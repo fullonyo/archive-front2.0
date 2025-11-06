@@ -27,14 +27,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         <div className="flex items-center justify-between p-4 border-b border-white/5">
           {isOpen ? (
             <>
-              <div className="flex items-center gap-2 overflow-hidden">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <span className="text-white font-bold text-sm">A</span>
-                </div>
-                <span className={`font-bold text-lg whitespace-nowrap transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-                  Archive Nyo
-                </span>
-              </div>
+              <span className={`font-medium text-sm text-text-secondary transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+                Menu
+              </span>
               <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="p-2 hover:bg-surface-float2 rounded-lg transition-colors flex-shrink-0"

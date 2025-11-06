@@ -27,15 +27,17 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         <div className="flex items-center justify-between p-4 border-b border-white/5">
           {isOpen ? (
             <>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <div className="flex items-center gap-2 overflow-hidden">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
                   <span className="text-white font-bold text-sm">A</span>
                 </div>
-                <span className="font-bold text-lg">Archive Nyo</span>
+                <span className={`font-bold text-lg whitespace-nowrap transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+                  Archive Nyo
+                </span>
               </div>
               <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="p-2 hover:bg-surface-float2 rounded-lg transition-colors"
+                className="p-2 hover:bg-surface-float2 rounded-lg transition-colors flex-shrink-0"
               >
                 <ChevronLeft size={20} />
               </button>
@@ -51,9 +53,11 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         </div>
 
         <div className="p-4">
-          <button onClick={() => navigate('/new-asset')} className={`btn btn-primary w-full justify-center ${!isOpen && 'p-2'}`}>
-            <Plus size={20} />
-            {isOpen && <span>New Asset</span>}
+          <button onClick={() => navigate('/new-asset')} className="btn btn-primary w-full justify-start overflow-hidden">
+            <Plus size={20} className="flex-shrink-0" />
+            <span className={`whitespace-nowrap transition-all duration-200 ${isOpen ? 'opacity-100 max-w-xs ml-2' : 'opacity-0 max-w-0 ml-0'}`}>
+              New Asset
+            </span>
           </button>
         </div>
 
@@ -64,15 +68,21 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               const active = isActive(item.path);
               
               return (
-                <button key={item.path} onClick={() => navigate(item.path)} className={`nav-item w-full ${active ? 'active' : ''} ${!isOpen && 'justify-center px-2'}`}>
-                  <Icon size={20} />
-                  {isOpen && <span>{item.label}</span>}
+                <button 
+                  key={item.path} 
+                  onClick={() => navigate(item.path)} 
+                  className={`nav-item w-full justify-start overflow-hidden ${active ? 'active' : ''}`}
+                >
+                  <Icon size={20} className="flex-shrink-0" />
+                  <span className={`whitespace-nowrap transition-all duration-200 ${isOpen ? 'opacity-100 max-w-xs ml-3' : 'opacity-0 max-w-0 ml-0'}`}>
+                    {item.label}
+                  </span>
                 </button>
               );
             })}
           </div>
 
-          {isOpen && <div className="border-t border-white/5 my-4" />}
+          <div className={`border-t border-white/5 my-4 transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`} />
 
           <div className="space-y-1">
             {secondaryMenuItems.map((item) => {
@@ -80,9 +90,15 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               const active = isActive(item.path);
               
               return (
-                <button key={item.path} onClick={() => navigate(item.path)} className={`nav-item w-full ${active ? 'active' : ''} ${!isOpen && 'justify-center px-2'}`}>
-                  <Icon size={20} />
-                  {isOpen && <span>{item.label}</span>}
+                <button 
+                  key={item.path} 
+                  onClick={() => navigate(item.path)} 
+                  className={`nav-item w-full justify-start overflow-hidden ${active ? 'active' : ''}`}
+                >
+                  <Icon size={20} className="flex-shrink-0" />
+                  <span className={`whitespace-nowrap transition-all duration-200 ${isOpen ? 'opacity-100 max-w-xs ml-3' : 'opacity-0 max-w-0 ml-0'}`}>
+                    {item.label}
+                  </span>
                 </button>
               );
             })}
@@ -90,9 +106,14 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         </nav>
 
         <div className="p-2 border-t border-white/5">
-          <button onClick={() => navigate('/settings')} className={`nav-item w-full ${isActive('/settings') ? 'active' : ''} ${!isOpen && 'justify-center px-2'}`}>
-            <Settings size={20} />
-            {isOpen && <span>Settings</span>}
+          <button 
+            onClick={() => navigate('/settings')} 
+            className={`nav-item w-full justify-start overflow-hidden ${isActive('/settings') ? 'active' : ''}`}
+          >
+            <Settings size={20} className="flex-shrink-0" />
+            <span className={`whitespace-nowrap transition-all duration-200 ${isOpen ? 'opacity-100 max-w-xs ml-3' : 'opacity-0 max-w-0 ml-0'}`}>
+              Settings
+            </span>
           </button>
         </div>
       </div>

@@ -1,0 +1,79 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-surface-base text-text-primary font-sans;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::-webkit-scrollbar {
+    @apply w-2 h-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-surface-base;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-text-tertiary rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-text-secondary;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-surface-float rounded-xl border border-white/5 shadow-card transition-all duration-200;
+  }
+
+  .card:hover {
+    @apply border-white/10 shadow-card-hover;
+  }
+
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2;
+  }
+
+  .btn-primary {
+    @apply bg-theme-active text-white hover:bg-theme-hover;
+  }
+
+  .btn-secondary {
+    @apply bg-surface-float text-text-secondary hover:bg-surface-float2 hover:text-text-primary;
+  }
+
+  .btn-ghost {
+    @apply text-text-secondary hover:bg-surface-float hover:text-text-primary;
+  }
+
+  .input {
+    @apply w-full px-4 py-2 bg-surface-float border border-white/5 rounded-lg text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theme-active transition-colors;
+  }
+
+  .nav-item {
+    @apply flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:bg-surface-float hover:text-text-primary transition-all duration-200 cursor-pointer;
+  }
+
+  .nav-item.active {
+    @apply bg-theme-active/10 text-theme-active font-medium;
+  }
+
+  .asset-card {
+    @apply card p-0 overflow-hidden cursor-pointer;
+  }
+
+  .asset-card:hover .asset-thumbnail {
+    @apply scale-105;
+  }
+
+  .asset-thumbnail {
+    @apply w-full aspect-video object-cover transition-transform duration-300;
+  }
+}

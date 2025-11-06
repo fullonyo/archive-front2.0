@@ -52,10 +52,13 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           )}
         </div>
 
-        <div className="p-4">
-          <button onClick={() => navigate('/new-asset')} className="btn btn-primary w-full justify-start overflow-hidden">
+        <div className="px-2 py-4">
+          <button 
+            onClick={() => navigate('/new-asset')} 
+            className="group w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-theme-active/10 hover:bg-theme-active/20 text-theme-active font-medium transition-all duration-200 overflow-hidden"
+          >
             <Plus size={20} className="flex-shrink-0" />
-            <span className={`whitespace-nowrap transition-all duration-200 ${isOpen ? 'opacity-100 max-w-xs ml-2' : 'opacity-0 max-w-0 ml-0'}`}>
+            <span className={`whitespace-nowrap transition-all duration-200 ${isOpen ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0 ml-0'}`}>
               New Asset
             </span>
           </button>

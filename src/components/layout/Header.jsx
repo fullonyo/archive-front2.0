@@ -1,8 +1,11 @@
 import { Search, Bell, User, LogOut, Settings as SettingsIcon } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '../../hooks/useTranslation';
+import LanguageSelector from '../common/LanguageSelector';
 
 const Header = () => {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -83,7 +86,7 @@ const Header = () => {
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-tertiary" size={18} />
             <input
               type="text"
-              placeholder="Search assets, creators, categories..."
+              placeholder={t('header.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full h-10 pl-10 pr-4 bg-surface-base/50 border border-white/5 rounded-lg text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theme-active/50 focus:bg-surface-base transition-all"
@@ -93,6 +96,9 @@ const Header = () => {
 
         {/* Right Actions */}
         <div className="flex items-center gap-1">
+          {/* Language Selector */}
+          <LanguageSelector />
+
           {/* Notifications */}
           <div className="relative" ref={notificationsRef}>
             <button
@@ -109,10 +115,10 @@ const Header = () => {
             {showNotifications && (
               <div className="absolute right-0 mt-2 w-80 bg-surface-float border border-white/10 rounded-xl shadow-xl overflow-hidden animate-slide-down">
                 <div className="px-4 py-3 border-b border-white/5 flex items-center justify-between">
-                  <h3 className="font-semibold text-sm">Notifications</h3>
+                  <h3 className="font-semibold text-sm">{t('header.notifications')}</h3>
                   {unreadCount > 0 && (
                     <span className="text-xs text-text-tertiary bg-theme-active/10 px-2 py-0.5 rounded-full">
-                      {unreadCount} new
+                      {unreadCount} {t('header.newNotifications')}
                     </span>
                   )}
                 </div>
@@ -132,7 +138,7 @@ const Header = () => {
                 </div>
                 <div className="px-4 py-2.5 text-center border-t border-white/5 bg-surface-base/30">
                   <button className="text-xs text-theme-active hover:text-theme-hover font-medium">
-                    View all notifications
+                    {t('header.viewAllNotifications')}
                   </button>
                 </div>
               </div>
@@ -170,7 +176,7 @@ const Header = () => {
                     className="w-full px-4 py-2 text-sm text-left hover:bg-surface-float2 flex items-center gap-3 transition-colors"
                   >
                     <User size={16} />
-                    <span>Profile</span>
+                    <span>{t('header.profile')}</span>
                   </button>
                   <button
                     onClick={() => {
@@ -180,7 +186,7 @@ const Header = () => {
                     className="w-full px-4 py-2 text-sm text-left hover:bg-surface-float2 flex items-center gap-3 transition-colors"
                   >
                     <SettingsIcon size={16} />
-                    <span>Settings</span>
+                    <span>{t('header.settings')}</span>
                   </button>
                 </div>
                 <div className="p-1.5 border-t border-white/5">
@@ -192,7 +198,7 @@ const Header = () => {
                     className="w-full px-4 py-2 text-sm text-left hover:bg-red-500/10 text-red-500 rounded-lg flex items-center gap-3 transition-colors"
                   >
                     <LogOut size={16} />
-                    <span>Sign out</span>
+                    <span>{t('header.signOut')}</span>
                   </button>
                 </div>
               </div>

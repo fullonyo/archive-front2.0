@@ -1,21 +1,23 @@
 import { Home, Compass, History, Users, Bookmark, FolderOpen, MessageSquare, Settings, Plus, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from '../../hooks/useTranslation';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
 
   const mainMenuItems = [
-    { icon: Home, label: 'For You', path: '/' },
-    { icon: Users, label: 'Following', path: '/following' },
-    { icon: Compass, label: 'Explore', path: '/explore' },
-    { icon: History, label: 'History', path: '/history' },
+    { icon: Home, label: t('sidebar.forYou'), path: '/' },
+    { icon: Users, label: t('sidebar.following'), path: '/following' },
+    { icon: Compass, label: t('sidebar.explore'), path: '/explore' },
+    { icon: History, label: t('sidebar.history'), path: '/history' },
   ];
 
   const secondaryMenuItems = [
-    { icon: Bookmark, label: 'Bookmarks', path: '/bookmarks' },
-    { icon: FolderOpen, label: 'My Assets', path: '/my-assets' },
-    { icon: MessageSquare, label: 'Discussions', path: '/discussions' },
+    { icon: Bookmark, label: t('sidebar.bookmarks'), path: '/bookmarks' },
+    { icon: FolderOpen, label: t('sidebar.myAssets'), path: '/my-assets' },
+    { icon: MessageSquare, label: t('sidebar.discussions'), path: '/discussions' },
   ];
 
   const isActive = (path) => location.pathname === path;
@@ -28,7 +30,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           {isOpen ? (
             <>
               <span className={`font-medium text-sm text-text-secondary transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-                Menu
+                {t('sidebar.menu')}
               </span>
               <button
                 onClick={() => setIsOpen(!isOpen)}
@@ -54,7 +56,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           >
             <Plus size={20} className="flex-shrink-0" />
             <span className={`whitespace-nowrap transition-all duration-200 ${isOpen ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0 ml-0'}`}>
-              New Asset
+              {t('sidebar.newAsset')}
             </span>
           </button>
         </div>
@@ -110,7 +112,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           >
             <Settings size={20} className="flex-shrink-0" />
             <span className={`whitespace-nowrap transition-all duration-200 ${isOpen ? 'opacity-100 max-w-xs ml-3' : 'opacity-0 max-w-0 ml-0'}`}>
-              Settings
+              {t('sidebar.settings')}
             </span>
           </button>
         </div>

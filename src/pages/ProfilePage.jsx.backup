@@ -189,91 +189,197 @@ const ProfilePage = () => {
 
   return (
     <div className="pb-6">
-      {/* Banner/Cover - Estilo Redes Sociais (Twitter/LinkedIn) */}
-      <div className="relative bg-gradient-to-br from-theme-primary via-theme-secondary to-theme-accent h-48 sm:h-56 md:h-64 overflow-hidden">
-        {/* Imagem do banner (se existir) */}
-        {displayUser?.bannerImage && (
-          <img 
-            src={displayUser.bannerImage}
-            alt="Banner do perfil"
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-        )}
-        
-        {/* Padrão de fundo (fallback ou overlay) */}
-        {!displayUser?.bannerImage && (
+      {/* Banner/Cover - Estilo Twitter/LinkedIn */}
+      <div className="relative w-full">
+        {/* Banner Image */}
+        <div 
+          className={`w-full h-48 sm:h-56 md:h-64 lg:h-72 bg-gradient-to-br from-theme-primary via-theme-secondary to-theme-accent overflow-hidden ${isEditing && isOwnProfile ? 'cursor-pointer group' : ''}`}
+          onClick={() => {
+            if (isEditing && isOwnProfile) {
+              // TODO: Abrir modal de upload de banner
+              console.log('Abrir modal de edição de banner');
+            }
+          }}
+        >
+          {/* Grid pattern overlay */}
           <div className="absolute inset-0 bg-grid-pattern opacity-10" />
-        )}
-        
-        {/* Overlay de edição do banner - Só aparece quando editando */}
-        {isEditing && isOwnProfile && (
-          <div 
-            className="absolute inset-0 bg-black/0 hover:bg-black/50 transition-colors cursor-pointer group flex items-center justify-center"
-            onClick={() => console.log('Abrir modal de edição de banner')}
-          >
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 px-4 py-2 bg-black/70 backdrop-blur-sm text-white rounded-lg">
-              <ImagePlus className="w-5 h-5" />
-              <span className="text-sm font-medium">Alterar Banner</span>
+          
+          {/* TODO: Substituir por imagem do usuário quando disponível */}
+          {/* {displayUser?.bannerImage && (
+            <img 
+              src={displayUser.bannerImage} 
+              alt="Banner" 
+              className="w-full h-full object-cover"
+            />
+          )} */}
+          
+          {/* Overlay de edição do banner */}
+          {isEditing && isOwnProfile && (
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors flex items-center justify-center">
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 px-4 py-2 bg-black/70 backdrop-blur-sm text-white rounded-lg">
+                <ImagePlus className="w-5 h-5" />
+                <span className="text-sm font-medium">Alterar Banner</span>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
-      {/* Profile Content com fundo sólido */}
-      <div className="bg-surface-base">
+        {/* Container do Profile - Overlay no banner */}
         <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          {/* Avatar sobrepondo o banner */}
-          <div className="relative -mt-16 sm:-mt-20 mb-4">
+          {/* Avatar - Sobrepõe o banner */}
+          <div className="relative -mt-16 sm:-mt-20 md:-mt-24 mb-4">
             <div 
               className={`inline-block relative ${isEditing && isOwnProfile ? 'cursor-pointer group' : ''}`}
               onClick={() => {
                 if (isEditing && isOwnProfile) {
+                  // TODO: Abrir modal de upload/edição de avatar
                   console.log('Abrir modal de edição de avatar');
                 }
               }}
             >
-            {/* Avatar redondo com borda */}
-            <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-40 lg:h-40 rounded-full border-4 border-surface-base bg-gradient-to-br from-theme-primary to-theme-accent p-1 shadow-2xl">
-              <div className="w-full h-full rounded-full bg-surface-float flex items-center justify-center overflow-hidden relative">
-                {displayUser?.avatar ? (
-                  <img 
-                    src={displayUser.avatar} 
-                    alt={displayUser.displayName}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="text-4xl sm:text-5xl font-bold text-text-primary">
-                    {displayUser?.displayName?.[0]?.toUpperCase() || 'U'}
-                  </span>
-                )}
-                
-                {/* Overlay de edição do avatar */}
-                {isEditing && isOwnProfile && (
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full">
-                    <Camera className="w-8 h-8 text-white" />
-                  </div>
-                )}
+              {/* Avatar com borda branca para destacar do banner */}
+              <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-40 lg:h-40 rounded-full border-4 border-surface-base bg-gradient-to-br from-theme-primary to-theme-accent p-1 shadow-2xl">
+                <div className="w-full h-full rounded-full bg-surface-float flex items-center justify-center overflow-hidden relative">
+                  {displayUser?.avatar ? (
+                    <img 
+                      src={displayUser.avatar} 
+                      alt={displayUser.displayName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-4xl sm:text-5xl font-bold text-text-primary">
+                      {displayUser?.displayName?.[0]?.toUpperCase() || 'U'}
+                    </span>
+                  )}
+                  
+                  {/* Overlay de edição do avatar */}
+                  {isEditing && isOwnProfile && (
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full">
+                      <Camera className="w-8 h-8 text-white" />
+                    </div>
+                  )}
+                </div>
               </div>
+              
+              {/* Status online - Só mostra quando não está editando */}
+              {!isEditing && (
+                <div className="absolute bottom-2 right-2 w-7 h-7 bg-green-500 border-4 border-surface-base rounded-full shadow-lg" />
+              )}
+              
+              {/* Badge de verificado */}
+              {displayUser?.isVerified && (
+                <div className="absolute top-0 right-0 w-10 h-10 bg-theme-primary rounded-full flex items-center justify-center shadow-lg border-4 border-surface-base">
+                  <CheckCircle className="w-5 h-5 text-white" />
+                </div>
+              )}
             </div>
-            
-            {/* Status online */}
-            {!isEditing && (
-              <div className="absolute bottom-2 right-2 w-7 h-7 bg-green-500 border-4 border-surface-base rounded-full shadow-lg" />
-            )}
-            
-            {/* Badge de verificado */}
-            {displayUser?.isVerified && (
-              <div className="absolute top-0 right-0 w-10 h-10 bg-theme-primary rounded-full flex items-center justify-center shadow-lg border-4 border-surface-base">
-                <CheckCircle className="w-5 h-5 text-white" />
-              </div>
-            )}
           </div>
-        </div>
 
-        {/* Profile Info */}
-        <div className="space-y-4 pb-4 border-b border-white/5">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-            <div className="flex-1 min-w-0">
+          {/* Profile Info e Actions - Alinhado com o avatar */}
+          <div className="space-y-4">
+            {/* Header: Nome + Botões de Ação */}
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                {/* MODO VISUALIZAÇÃO */}
+                {!isEditing ? (
+                  <>
+                    {/* Nome e badges */}
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-text-primary truncate">
+                        {displayUser?.displayName || displayUser?.username}
+                      </h1>
+                      
+                      {userStats?.isVerified && (
+                        <div className="flex items-center gap-1 px-2 py-1 bg-blue-500/10 text-blue-500 rounded-full text-xs font-medium">
+                          <Star className="w-3 h-3" />
+                          <span className="hidden xs:inline">Verificado</span>
+                        </div>
+                      )}
+                      
+                      {userStats?.isAdmin && (
+                        <div className="flex items-center gap-1 px-2 py-1 bg-red-500/10 text-red-500 rounded-full text-xs font-medium">
+                          <Award className="w-3 h-3" />
+                          <span className="hidden xs:inline">Admin</span>
+                        </div>
+                      )}
+                      
+                      {userStats?.isModerator && !userStats?.isAdmin && (
+                        <div className="flex items-center gap-1 px-2 py-1 bg-green-500/10 text-green-500 rounded-full text-xs font-medium">
+                          <Award className="w-3 h-3" />
+                          <span className="hidden xs:inline">Mod</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <p className="text-text-secondary text-sm mb-3">@{displayUser?.username}</p>
+
+                    {/* Bio */}
+                    {displayUser?.bio && (
+                      <p className="text-text-primary mb-3 leading-relaxed">
+                        {displayUser.bio}
+                      </p>
+                    )}
+
+                    {/* Meta info */}
+                    <div className="flex flex-wrap items-center gap-3 text-sm text-text-tertiary">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-4 h-4" />
+                        <span>Entrou em {new Date(displayUser?.createdAt || Date.now()).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })}</span>
+                      </div>
+                      
+                      {displayUser?.location && (
+                        <div className="flex items-center gap-1">
+                          <MapPin className="w-4 h-4" />
+                          {displayUser.location}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Social Links */}
+                    {displayUser?.socialLinks && (
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {displayUser.socialLinks.twitter && (
+                          <a 
+                            href={`https://twitter.com/${displayUser.socialLinks.twitter.replace('@', '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 px-2.5 py-1 bg-surface-elevated hover:bg-surface-elevated/80 rounded-lg transition-colors text-text-secondary hover:text-theme-primary text-xs"
+                          >
+                            <Twitter className="w-3.5 h-3.5" />
+                            <span>Twitter</span>
+                          </a>
+                        )}
+                        
+                        {displayUser.socialLinks.discord && (
+                          <a 
+                            href="#"
+                            className="flex items-center gap-1.5 px-2.5 py-1 bg-surface-elevated hover:bg-surface-elevated/80 rounded-lg transition-colors text-text-secondary hover:text-theme-primary text-xs"
+                          >
+                            <MessageCircle className="w-3.5 h-3.5" />
+                            <span>{displayUser.socialLinks.discord}</span>
+                          </a>
+                        )}
+                        
+                        {displayUser.socialLinks.vrchat && (
+                          <a 
+                            href={`https://vrchat.com/home/user/${displayUser.socialLinks.vrchat}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 px-2.5 py-1 bg-surface-elevated hover:bg-surface-elevated/80 rounded-lg transition-colors text-text-secondary hover:text-theme-primary text-xs"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                            <span>VRChat</span>
+                          </a>
+                        )}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  /* MODO EDIÇÃO */
+                  <div className="space-y-4 max-w-2xl">
+
+            {/* Info */}
+            <div className="flex-1">
               {/* MODO VISUALIZAÇÃO */}
               {!isEditing ? (
                 <>
@@ -893,7 +999,6 @@ const ProfilePage = () => {
             </div>
           )}
         </div>
-        </div>
       </div>
     </div>
   );
@@ -915,57 +1020,40 @@ const StatCard = ({ icon: Icon, label, value, color }) => (
 );
 
 const AvatarCard = ({ avatar, expanded = false }) => (
-  <article className="group relative bg-surface-float rounded-xl border border-white/5 overflow-hidden hover:border-white/10 transition-all duration-300 hover:shadow-xl cursor-pointer">
-    {/* Thumbnail Container */}
-    <div className="relative overflow-hidden bg-surface-float2">
+  <div className="group relative bg-surface-elevated rounded-lg sm:rounded-xl overflow-hidden hover:shadow-xl transition-all hover:-translate-y-1 cursor-pointer">
+    <div className="aspect-square bg-surface-base overflow-hidden">
       <img 
         src={avatar.preview}
         alt={avatar.name}
-        className="w-full h-40 object-cover group-hover:scale-110 transition-transform duration-500"
+        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
       />
-      
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      
-      {/* Hover Actions */}
-      <div className="absolute inset-x-0 bottom-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-        <div className="flex gap-2">
-          <button className="btn btn-primary flex-1 justify-center text-xs py-1.5 shadow-lg">
-            <Download size={14} />
-            <span className="hidden sm:inline">Download</span>
-          </button>
-          <button className="btn bg-black/80 backdrop-blur-md text-white hover:bg-black p-2 shadow-lg">
-            <Eye size={14} />
-          </button>
-        </div>
-      </div>
     </div>
     
-    {/* Content */}
-    <div className="p-3">
-      <h3 className="font-semibold text-sm mb-1.5 line-clamp-2 group-hover:text-theme-active transition-colors leading-tight">
+    <div className="p-2 sm:p-3">
+      <h3 className="font-semibold text-text-primary text-xs sm:text-sm mb-1 sm:mb-2 line-clamp-1 group-hover:text-theme-primary transition-colors">
         {avatar.name}
       </h3>
       
-      {/* Stats */}
-      <div className="flex items-center gap-3 text-xs text-text-tertiary">
-        <span className="flex items-center gap-1">
-          <Heart className="w-3 h-3" />
-          {avatar.likes}
-        </span>
-        <span className="flex items-center gap-1">
-          <Download className="w-3 h-3" />
-          {avatar.downloads}
-        </span>
-        {expanded && (
-          <span className="flex items-center gap-1">
-            <Eye className="w-3 h-3" />
-            {avatar.views}
+      <div className="flex items-center justify-between text-[10px] sm:text-xs text-text-tertiary">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <span className="flex items-center gap-0.5 sm:gap-1">
+            <Heart className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+            {avatar.likes}
           </span>
-        )}
+          <span className="flex items-center gap-0.5 sm:gap-1">
+            <Download className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+            {avatar.downloads}
+          </span>
+          {expanded && (
+            <span className="flex items-center gap-0.5 sm:gap-1">
+              <Eye className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+              {avatar.views}
+            </span>
+          )}
+        </div>
       </div>
     </div>
-  </article>
+  </div>
 );
 
 const PostCard = ({ post, expanded = false }) => (

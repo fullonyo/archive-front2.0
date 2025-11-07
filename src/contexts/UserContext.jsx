@@ -21,15 +21,18 @@ export const UserProvider = ({ children }) => {
     displayName: 'Lhama Developer',
     email: 'lhama@example.com',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=lhama',
+    bannerImage: 'https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?w=1200&h=400&fit=crop', // Banner VRChat temático
     bio: 'VRChat enthusiast and avatar creator. Always looking for the next amazing creation! 🦙',
     isVerified: true,
     role: 'user', // 'user', 'moderator', 'admin'
     createdAt: '2024-01-15T10:00:00Z',
+    location: 'São Paulo, Brazil',
     vrchatId: 'usr_1234567890',
     socialLinks: {
       twitter: '@lhama_dev',
       discord: 'lhama#1234',
-      vrchat: 'usr_1234567890'
+      vrchat: 'usr_1234567890',
+      website: 'https://lhama.dev'
     }
   };
 

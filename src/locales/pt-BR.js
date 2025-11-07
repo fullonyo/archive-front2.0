@@ -10,6 +10,8 @@ export const ptBR = {
     signOut: 'Sair',
     signIn: 'Entrar',
     signUp: 'Cadastrar',
+    welcomeBack: 'Bem-vindo!',
+    signInToAccess: 'Faça login para acessar todos os recursos',
   },
 
   // Sidebar

@@ -10,6 +10,8 @@ export const enUS = {
     signOut: 'Sign out',
     signIn: 'Sign In',
     signUp: 'Sign Up',
+    welcomeBack: 'Welcome Back!',
+    signInToAccess: 'Sign in to access all features',
   },
 
   // Sidebar

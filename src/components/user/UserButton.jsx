@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../contexts/UserContext';
 import { useAuth } from '../../hooks/user/useAuth';
 import { useTranslation } from '../../hooks/useTranslation';
-import AuthModal from './AuthModal';
 import {
   User,
   ChevronDown,
@@ -16,11 +16,10 @@ import {
 
 const UserButton = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { isAuthenticated, user, userStats } = useUser();
   const { logout } = useAuth();
   
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authModalMode, setAuthModalMode] = useState('login');
   const [showUserMenu, setShowUserMenu] = useState(false);
   
   const menuRef = useRef(null);
@@ -38,13 +37,11 @@ const UserButton = () => {
   }, []);
 
   const handleSignIn = () => {
-    setAuthModalMode('login');
-    setShowAuthModal(true);
+    navigate('/login');
   };
 
   const handleSignUp = () => {
-    setAuthModalMode('register');
-    setShowAuthModal(true);
+    navigate('/login?mode=register');
   };
 
   const handleLogout = () => {
@@ -52,30 +49,52 @@ const UserButton = () => {
     setShowUserMenu(false);
   };
 
-  // If not authenticated, show sign in/up buttons
+  // If not authenticated, show user icon with login dropdown
   if (!isAuthenticated) {
     return (
       <>
-        <div className="flex items-center space-x-3">
+        <div className="relative" ref={menuRef}>
           <button
-            onClick={handleSignIn}
-            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            className="p-2.5 hover:bg-surface-float2 rounded-lg transition-colors"
           >
-            {t('header.signIn')}
+            <User size={18} />
           </button>
-          <button
-            onClick={handleSignUp}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
-          >
-            {t('header.signUp')}
-          </button>
+
+          {/* Login Dropdown */}
+          {showUserMenu && (
+            <div className="absolute right-0 mt-2 w-72 bg-surface-float border border-white/10 rounded-xl shadow-xl overflow-hidden animate-slide-down">
+              <div className="p-6">
+                <h3 className="font-semibold text-lg mb-2">{t('header.welcomeBack')}</h3>
+                <p className="text-sm text-text-tertiary mb-4">
+                  {t('header.signInToAccess')}
+                </p>
+                
+                <div className="space-y-2">
+                  <button
+                    onClick={() => {
+                      setShowUserMenu(false);
+                      handleSignIn();
+                    }}
+                    className="btn btn-primary w-full justify-center"
+                  >
+                    {t('header.signIn')}
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setShowUserMenu(false);
+                      handleSignUp();
+                    }}
+                    className="btn btn-secondary w-full justify-center"
+                  >
+                    {t('header.signUp')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-        
-        <AuthModal 
-          isOpen={showAuthModal}
-          onClose={() => setShowAuthModal(false)}
-          initialMode={authModalMode}
-        />
       </>
     );
   }
@@ -85,41 +104,31 @@ const UserButton = () => {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setShowUserMenu(!showUserMenu)}
-        className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        className="p-2.5 hover:bg-surface-float2 rounded-lg transition-colors flex items-center gap-2"
       >
         {/* User Avatar */}
-        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium text-sm">
+        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium text-xs">
           {user?.avatar ? (
             <img 
               src={user.avatar} 
               alt={user.displayName}
-              className="w-8 h-8 rounded-full object-cover"
+              className="w-7 h-7 rounded-full object-cover"
             />
           ) : (
             user?.displayName?.[0]?.toUpperCase() || user?.username?.[0]?.toUpperCase() || 'U'
           )}
         </div>
         
-        {/* User Info */}
-        <div className="hidden md:block text-left">
-          <p className="text-sm font-medium text-gray-900 dark:text-white">
-            {user?.displayName || user?.username}
-          </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            {t('user.profile.level')} {userStats?.level} • {userStats?.reputation} {t('user.profile.reputation')}
-          </p>
-        </div>
-        
-        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-3.5 h-3.5 text-text-tertiary transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
       </button>
 
       {/* Dropdown Menu */}
       {showUserMenu && (
-        <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+        <div className="absolute right-0 mt-2 w-80 bg-surface-float border border-white/10 rounded-xl shadow-xl overflow-hidden animate-slide-down">
           {/* User Profile Header */}
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium text-lg">
+          <div className="p-4 border-b border-white/5 bg-surface-base/30">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium text-lg">
                 {user?.avatar ? (
                   <img 
                     src={user.avatar} 
@@ -130,18 +139,18 @@ const UserButton = () => {
                   user?.displayName?.[0]?.toUpperCase() || user?.username?.[0]?.toUpperCase() || 'U'
                 )}
               </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 dark:text-white">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-text-primary truncate">
                   {user?.displayName || user?.username}
                 </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-text-tertiary truncate">
                   @{user?.username}
                 </p>
-                <div className="flex items-center space-x-4 mt-1">
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                <div className="flex items-center gap-3 mt-1">
+                  <span className="text-xs text-text-tertiary">
                     {t('user.profile.level')} {userStats?.level}
                   </span>
-                  <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                  <span className="text-xs text-theme-active font-medium">
                     {userStats?.reputation} {t('user.profile.reputation')}
                   </span>
                 </div>
@@ -149,15 +158,15 @@ const UserButton = () => {
             </div>
             
             {/* Quick Stats */}
-            <div className="grid grid-cols-3 gap-4 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+            <div className="grid grid-cols-3 gap-4 mt-3 pt-3 border-t border-white/5">
               <div className="text-center">
                 <div className="flex items-center justify-center mb-1">
                   <User className="w-4 h-4 text-purple-500 mr-1" />
-                  <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                  <span className="text-sm font-semibold text-text-primary">
                     {userStats?.avatarsCount || 0}
                   </span>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-text-tertiary">
                   {t('user.profile.avatars')}
                 </p>
               </div>
@@ -165,11 +174,11 @@ const UserButton = () => {
               <div className="text-center">
                 <div className="flex items-center justify-center mb-1">
                   <Heart className="w-4 h-4 text-red-500 mr-1" />
-                  <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                  <span className="text-sm font-semibold text-text-primary">
                     {userStats?.favoritesCount || 0}
                   </span>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-text-tertiary">
                   {t('user.profile.favorites')}
                 </p>
               </div>
@@ -177,11 +186,11 @@ const UserButton = () => {
               <div className="text-center">
                 <div className="flex items-center justify-center mb-1">
                   <Download className="w-4 h-4 text-green-500 mr-1" />
-                  <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                  <span className="text-sm font-semibold text-text-primary">
                     {userStats?.downloadsCount || 0}
                   </span>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-text-tertiary">
                   {t('user.profile.downloads')}
                 </p>
               </div>
@@ -195,9 +204,9 @@ const UserButton = () => {
                 setShowUserMenu(false);
                 // Navigate to profile page
               }}
-              className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+              className="w-full px-4 py-2.5 text-left text-sm text-text-primary hover:bg-surface-float2 flex items-center gap-3 transition-colors"
             >
-              <UserCircle className="w-5 h-5 mr-3 text-gray-400" />
+              <UserCircle className="w-5 h-5 text-text-tertiary" />
               {t('header.profile')}
             </button>
             
@@ -206,9 +215,9 @@ const UserButton = () => {
                 setShowUserMenu(false);
                 // Navigate to notifications
               }}
-              className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+              className="w-full px-4 py-2.5 text-left text-sm text-text-primary hover:bg-surface-float2 flex items-center gap-3 transition-colors"
             >
-              <Bell className="w-5 h-5 mr-3 text-gray-400" />
+              <Bell className="w-5 h-5 text-text-tertiary" />
               {t('header.notifications')}
               {userStats?.unreadNotificationsCount > 0 && (
                 <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-0.5 min-w-[20px] text-center">
@@ -222,23 +231,23 @@ const UserButton = () => {
                 setShowUserMenu(false);
                 // Navigate to settings
               }}
-              className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+              className="w-full px-4 py-2.5 text-left text-sm text-text-primary hover:bg-surface-float2 flex items-center gap-3 transition-colors"
             >
-              <Settings className="w-5 h-5 mr-3 text-gray-400" />
+              <Settings className="w-5 h-5 text-text-tertiary" />
               {t('header.settings')}
             </button>
           </div>
 
           {/* Divider */}
-          <div className="border-t border-gray-200 dark:border-gray-700"></div>
+          <div className="border-t border-white/5"></div>
 
           {/* Sign Out */}
           <div className="py-2">
             <button
               onClick={handleLogout}
-              className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center"
+              className="w-full px-4 py-2.5 text-left text-sm text-red-500 hover:bg-red-500/10 flex items-center gap-3 transition-colors"
             >
-              <LogOut className="w-5 h-5 mr-3" />
+              <LogOut className="w-5 h-5" />
               {t('header.signOut')}
             </button>
           </div>

@@ -52,6 +52,12 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
     }
   }, [asset]);
 
+  // Optimized close button handler
+  const handleCloseClick = useCallback((e) => {
+    e.stopPropagation();
+    onClose();
+  }, [onClose]);
+
   // Don't render if not open
   if (!isOpen || !asset) return null;
 
@@ -94,7 +100,7 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
               </div>
             </div>
             <button 
-              onClick={onClose}
+              onClick={handleCloseClick}
               className="p-2 hover:bg-surface-float2 rounded-lg transition-colors"
               aria-label="Close modal"
             >

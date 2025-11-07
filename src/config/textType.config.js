@@ -14,9 +14,10 @@ export const textTypeConfig = {
    * Array de strings que serão digitadas em sequência
    */
   texts: [
-    "Welcome to Lhama Archive",
-    "Your VRChat Assets Hub",
-    "Discover Amazing Content"
+    "Welcome to Arc Lhama",
+    "Your VRChat Avatar Lab and Forum Lab",
+    "Discover Amazing Content",
+    "Developed with passion by Nyo"
   ],
   
   /**
@@ -33,7 +34,7 @@ export const textTypeConfig = {
    * Velocidade de digitação em ms
    * Valores menores = mais rápido
    */
-  typingSpeed: 75,
+  typingSpeed: 125,
   
   /**
    * Delay inicial antes de começar (ms)
@@ -43,13 +44,13 @@ export const textTypeConfig = {
   /**
    * Pausa entre textos (ms)
    */
-  pauseDuration: 1500,
+  pauseDuration: 3000,
   
   /**
    * Velocidade de apagar em ms
    * Valores menores = mais rápido
    */
-  deletingSpeed: 30,
+  deletingSpeed: 65,
   
   /**
    * Loop infinito dos textos
@@ -91,7 +92,7 @@ export const textTypeConfig = {
   /**
    * Caractere do cursor
    */
-  cursorCharacter: '|',
+  cursorCharacter: '_',
   
   /**
    * Classes CSS adicionais do cursor

@@ -5,8 +5,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import TextType from '../components/common/TextType';
 import PixelBlast from '../components/common/PixelBlast';
 import GridScan from '../components/common/GridScan';
-import { textTypeConfig } from '../config/textType.config';
-import { activeBackground } from '../config/backgrounds';
+import { textTypeConfig, activeBackground, pixelBlastConfig, gridScanConfig } from '../config';
 import { 
   User, 
   Lock, 
@@ -84,14 +83,22 @@ const LoginPage = () => {
     }
   };
 
-  // Renderizar background baseado na configuração
-  const BackgroundComponent = activeBackground === 'gridscan' ? GridScan : PixelBlast;
+  // Renderizar background baseado na configuração (igual ao MainLayout)
+  const renderBackground = () => {
+    switch (activeBackground) {
+      case 'gridscan':
+        return <GridScan {...gridScanConfig} />;
+      case 'pixelblast':
+      default:
+        return <PixelBlast {...pixelBlastConfig} />;
+    }
+  };
 
   return (
     <div className="min-h-screen w-full relative overflow-hidden">
       {/* Background Animado */}
       <div className="absolute inset-0 z-0">
-        <BackgroundComponent />
+        {renderBackground()}
       </div>
 
       {/* Overlay escuro para melhor legibilidade */}

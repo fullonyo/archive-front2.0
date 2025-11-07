@@ -34,6 +34,7 @@ export default {
           float: '#1C1F26',
           float2: '#131517',
           base: '#0E1217',
+          elevated: '#262A33',
         },
         text: {
           primary: '#FFFFFF',
@@ -45,6 +46,9 @@ export default {
           active: '#2563eb',
           hover: '#1e40af',
           label: '#1d4ed8',
+          primary: '#3b82f6',
+          secondary: '#8b5cf6',
+          accent: '#06b6d4',
         }
       },
       fontFamily: {

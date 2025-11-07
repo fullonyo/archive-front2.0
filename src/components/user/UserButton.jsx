@@ -202,7 +202,7 @@ const UserButton = () => {
             <button
               onClick={() => {
                 setShowUserMenu(false);
-                // Navigate to profile page
+                navigate(`/profile/${user?.username}`);
               }}
               className="w-full px-4 py-2.5 text-left text-sm text-text-primary hover:bg-surface-float2 flex items-center gap-3 transition-colors"
             >
@@ -213,7 +213,7 @@ const UserButton = () => {
             <button
               onClick={() => {
                 setShowUserMenu(false);
-                // Navigate to notifications
+                navigate('/notifications');
               }}
               className="w-full px-4 py-2.5 text-left text-sm text-text-primary hover:bg-surface-float2 flex items-center gap-3 transition-colors"
             >
@@ -229,7 +229,7 @@ const UserButton = () => {
             <button
               onClick={() => {
                 setShowUserMenu(false);
-                // Navigate to settings
+                navigate('/settings');
               }}
               className="w-full px-4 py-2.5 text-left text-sm text-text-primary hover:bg-surface-float2 flex items-center gap-3 transition-colors"
             >

@@ -14,6 +14,85 @@ export const useUser = () => {
 };
 
 export const UserProvider = ({ children }) => {
+  // MOCKUP DATA - Remove when backend is ready
+  const MOCKUP_USER = {
+    id: 1,
+    username: 'lhama_dev',
+    displayName: 'Lhama Developer',
+    email: 'lhama@example.com',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=lhama',
+    bio: 'VRChat enthusiast and avatar creator. Always looking for the next amazing creation! 🦙',
+    isVerified: true,
+    role: 'user', // 'user', 'moderator', 'admin'
+    createdAt: '2024-01-15T10:00:00Z',
+    vrchatId: 'usr_1234567890',
+    socialLinks: {
+      twitter: '@lhama_dev',
+      discord: 'lhama#1234',
+      vrchat: 'usr_1234567890'
+    }
+  };
+
+  const MOCKUP_STATS = {
+    avatarsCount: 42,
+    favoritesCount: 156,
+    downloadsCount: 2834,
+    postsCount: 28,
+    repliesCount: 143,
+    reputation: 3250,
+    level: 12,
+    badges: [
+      { id: 1, name: 'Early Adopter', icon: '🌟', description: 'Joined in the first month' },
+      { id: 2, name: 'Creator', icon: '🎨', description: 'Uploaded 25+ avatars' },
+      { id: 3, name: 'Helpful', icon: '💡', description: 'Received 1000+ upvotes' },
+      { id: 4, name: 'Verified', icon: '✓', description: 'Verified creator' }
+    ],
+    unreadNotificationsCount: 5
+  };
+
+  const MOCKUP_NOTIFICATIONS = [
+    {
+      id: 1,
+      type: 'like',
+      message: 'CoolUser liked your avatar "Cyber Punk Fox"',
+      time: '5m ago',
+      read: false,
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=cool'
+    },
+    {
+      id: 2,
+      type: 'comment',
+      message: 'AvatarFan commented on your post',
+      time: '1h ago',
+      read: false,
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=fan'
+    },
+    {
+      id: 3,
+      type: 'follow',
+      message: 'JohnDoe started following you',
+      time: '2h ago',
+      read: true,
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=john'
+    },
+    {
+      id: 4,
+      type: 'achievement',
+      message: 'You earned the "Creator" badge!',
+      time: '1d ago',
+      read: false,
+      avatar: null
+    },
+    {
+      id: 5,
+      type: 'download',
+      message: 'Your avatar was downloaded 100 times!',
+      time: '2d ago',
+      read: true,
+      avatar: null
+    }
+  ];
+
   // User State
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -40,6 +119,17 @@ export const UserProvider = ({ children }) => {
     const initializeUser = async () => {
       try {
         setLoading(true);
+        
+        // MOCKUP: Auto-login com usuário de teste
+        // TODO: Remover quando backend estiver pronto
+        setTimeout(() => {
+          setUser(MOCKUP_USER);
+          setIsAuthenticated(true);
+          setNotifications(MOCKUP_NOTIFICATIONS);
+          setLoading(false);
+        }, 500); // Simula delay de rede
+        
+        /* Código original - descomentar quando backend estiver pronto
         const token = localStorage.getItem('auth_token');
         
         if (token) {
@@ -58,12 +148,12 @@ export const UserProvider = ({ children }) => {
             ]);
           }
         }
+        */
       } catch (err) {
         console.error('Failed to initialize user:', err);
         setError(err.message);
         // Clear invalid token
         localStorage.removeItem('auth_token');
-      } finally {
         setLoading(false);
       }
     };
@@ -138,6 +228,17 @@ export const UserProvider = ({ children }) => {
       setLoading(true);
       setError(null);
       
+      // MOCKUP: Simular login
+      setTimeout(() => {
+        setUser(MOCKUP_USER);
+        setIsAuthenticated(true);
+        setNotifications(MOCKUP_NOTIFICATIONS);
+        setLoading(false);
+      }, 1000); // Simula delay de rede
+      
+      return { success: true };
+      
+      /* Código original - descomentar quando backend estiver pronto
       const { user: userData, token } = await userService.login(credentials);
       
       localStorage.setItem('auth_token', token);
@@ -153,15 +254,21 @@ export const UserProvider = ({ children }) => {
       ]);
       
       return { success: true };
+      */
     } catch (err) {
       setError(err.message);
-      return { success: false, error: err.message };
-    } finally {
       setLoading(false);
+      return { success: false, error: err.message };
     }
-  }, [loadUserAvatars, loadForumProfile, loadVRChatProfile, loadNotifications]);
+  }, []);
 
   const logout = useCallback(() => {
+    // MOCKUP: Apenas limpar estado
+    setUser(null);
+    setIsAuthenticated(false);
+    setNotifications([]);
+    
+    /* Código original - descomentar quando backend estiver pronto
     localStorage.removeItem('auth_token');
     setUser(null);
     setIsAuthenticated(false);
@@ -175,6 +282,7 @@ export const UserProvider = ({ children }) => {
     setVrchatFriends([]);
     setNotifications([]);
     setError(null);
+    */
   }, []);
 
   const register = useCallback(async (userData) => {
@@ -286,21 +394,23 @@ export const UserProvider = ({ children }) => {
 
   // Computed values
   const userStats = {
-    avatarsCount: userAvatars.length,
-    favoritesCount: favoriteAvatars.length,
-    downloadsCount: downloadedAssets.length,
-    postsCount: userPosts.length,
-    repliesCount: userReplies.length,
-    reputation: forumProfile?.reputation || 0,
+    // MOCKUP: Usar dados mockup quando disponíveis
+    avatarsCount: isAuthenticated ? MOCKUP_STATS.avatarsCount : userAvatars.length,
+    favoritesCount: isAuthenticated ? MOCKUP_STATS.favoritesCount : favoriteAvatars.length,
+    downloadsCount: isAuthenticated ? MOCKUP_STATS.downloadsCount : downloadedAssets.length,
+    postsCount: isAuthenticated ? MOCKUP_STATS.postsCount : userPosts.length,
+    repliesCount: isAuthenticated ? MOCKUP_STATS.repliesCount : userReplies.length,
+    reputation: isAuthenticated ? MOCKUP_STATS.reputation : (forumProfile?.reputation || 0),
     joinedDate: user?.createdAt,
-    level: forumProfile?.level || 1,
-    badges: forumProfile?.badges || [],
+    level: isAuthenticated ? MOCKUP_STATS.level : (forumProfile?.level || 1),
+    badges: isAuthenticated ? MOCKUP_STATS.badges : (forumProfile?.badges || []),
     isVerified: user?.isVerified || false,
     isModerator: user?.role === 'moderator' || user?.role === 'admin',
-    isAdmin: user?.role === 'admin'
+    isAdmin: user?.role === 'admin',
+    unreadNotificationsCount: isAuthenticated ? MOCKUP_STATS.unreadNotificationsCount : notifications.filter(n => !n.read).length
   };
 
-  const unreadNotificationsCount = notifications.filter(n => !n.read).length;
+  const unreadNotificationsCount = isAuthenticated ? MOCKUP_STATS.unreadNotificationsCount : notifications.filter(n => !n.read).length;
 
   const contextValue = {
     // User state

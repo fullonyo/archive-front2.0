@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { UserProvider } from './contexts/UserContext';
 import MainLayout from './components/layout/MainLayout';
+import DevTools from './components/dev/DevTools';
 import ForYouPage from './pages/ForYouPage';
 import ExplorePage from './pages/ExplorePage';
 import HistoryPage from './pages/HistoryPage';
@@ -17,6 +18,7 @@ import VRChatProfilePage from './pages/VRChatProfilePage';
 import VRChatFriendsPage from './pages/VRChatFriendsPage';
 import VRChatStatusPage from './pages/VRChatStatusPage';
 import UserProfilePage from './pages/UserProfilePage';
+import ProfilePage from './pages/ProfilePage';
 import LoginPage from './pages/LoginPage';
 
 const PlaceholderPage = ({ title }) => (
@@ -33,6 +35,9 @@ function App() {
     <LanguageProvider>
       <UserProvider>
       <Router>
+        {/* Dev Tools - Only visible in development */}
+        <DevTools />
+        
         <Routes>
           {/* Public Routes - Login without MainLayout */}
           <Route path="/login" element={<LoginPage />} />
@@ -60,10 +65,10 @@ function App() {
             
             {/* User Routes */}
             <Route path="user/:username" element={<UserProfilePage />} />
+            <Route path="profile/:username" element={<ProfilePage />} />
             
             {/* Other Routes */}
             <Route path="settings" element={<PlaceholderPage title="Settings" />} />
-            <Route path="profile" element={<PlaceholderPage title="Profile" />} />
             <Route path="new-asset" element={<PlaceholderPage title="Upload New Asset" />} />
             <Route path="search" element={<PlaceholderPage title="Search Results" />} />
             <Route path="category/:id" element={<PlaceholderPage title="Category" />} />

@@ -182,20 +182,19 @@ const ExplorePage = () => {
           {/* Search Bar and View Filters in same line */}
           <div className="flex gap-3 flex-1">
             {/* Search Bar */}
-            <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none" size={16} />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                  placeholder="Search categories, tags..."
-                  className="w-full bg-surface-float border border-white/5 rounded-lg pl-10 pr-4 py-2 text-sm 
-                    focus:outline-none focus:border-theme-active/50 focus:bg-surface-float2 transition-all
-                    placeholder:text-text-tertiary"
-                />
-              </div>
-            </form>
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none" size={16} />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit(e)}
+                placeholder="Search categories, tags..."
+                className="w-full h-10 bg-surface-float border border-white/5 rounded-lg pl-10 pr-4 text-sm 
+                  focus:outline-none focus:border-theme-active/50 focus:bg-surface-float2 transition-all
+                  placeholder:text-text-tertiary"
+              />
+            </div>
 
             {/* View Filters */}
             <div className="flex gap-1">

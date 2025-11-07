@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
 import { useTranslation } from '../hooks/useTranslation';
+import AssetDetailModal from '../components/assets/AssetDetailModal';
 import {
   User,
   Calendar,
@@ -914,59 +915,87 @@ const StatCard = ({ icon: Icon, label, value, color }) => (
   </div>
 );
 
-const AvatarCard = ({ avatar, expanded = false }) => (
-  <article className="group relative bg-surface-float rounded-xl border border-white/5 overflow-hidden hover:border-white/10 transition-all duration-300 hover:shadow-xl cursor-pointer">
-    {/* Thumbnail Container */}
-    <div className="relative overflow-hidden bg-surface-float2">
-      <img 
-        src={avatar.preview}
-        alt={avatar.name}
-        className="w-full h-40 object-cover group-hover:scale-110 transition-transform duration-500"
-      />
-      
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      
-      {/* Hover Actions */}
-      <div className="absolute inset-x-0 bottom-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-        <div className="flex gap-2">
-          <button className="btn btn-primary flex-1 justify-center text-xs py-1.5 shadow-lg">
-            <Download size={14} />
-            <span className="hidden sm:inline">Download</span>
-          </button>
-          <button className="btn bg-black/80 backdrop-blur-md text-white hover:bg-black p-2 shadow-lg">
-            <Eye size={14} />
-          </button>
+const AvatarCard = ({ avatar, expanded = false }) => {
+  const [showModal, setShowModal] = useState(false);
+  
+  return (
+    <>
+      <article 
+        className="group relative bg-surface-float rounded-xl border border-white/5 overflow-hidden hover:border-white/10 transition-all duration-300 hover:shadow-xl cursor-pointer"
+        onClick={() => setShowModal(true)}
+      >
+        {/* Thumbnail Container */}
+        <div className="relative overflow-hidden bg-surface-float2">
+          <img 
+            src={avatar.preview}
+            alt={avatar.name}
+            className="w-full h-40 object-cover group-hover:scale-110 transition-transform duration-500"
+          />
+          
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          
+          {/* Hover Actions */}
+          <div className="absolute inset-x-0 bottom-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+            <button 
+              className="btn btn-primary w-full justify-center text-xs py-1.5 shadow-lg"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowModal(true);
+              }}
+            >
+              <Eye size={14} />
+              <span>Ver Detalhes</span>
+            </button>
+          </div>
         </div>
-      </div>
-    </div>
-    
-    {/* Content */}
-    <div className="p-3">
-      <h3 className="font-semibold text-sm mb-1.5 line-clamp-2 group-hover:text-theme-active transition-colors leading-tight">
-        {avatar.name}
-      </h3>
+        
+        {/* Content */}
+        <div className="p-3">
+          <h3 className="font-semibold text-sm mb-1.5 line-clamp-2 group-hover:text-theme-active transition-colors leading-tight">
+            {avatar.name}
+          </h3>
+          
+          {/* Stats */}
+          <div className="flex items-center gap-3 text-xs text-text-tertiary">
+            <span className="flex items-center gap-1">
+              <Heart className="w-3 h-3" />
+              {avatar.likes}
+            </span>
+            <span className="flex items-center gap-1">
+              <Download className="w-3 h-3" />
+              {avatar.downloads}
+            </span>
+            {expanded && (
+              <span className="flex items-center gap-1">
+                <Eye className="w-3 h-3" />
+                {avatar.views}
+              </span>
+            )}
+          </div>
+        </div>
+      </article>
       
-      {/* Stats */}
-      <div className="flex items-center gap-3 text-xs text-text-tertiary">
-        <span className="flex items-center gap-1">
-          <Heart className="w-3 h-3" />
-          {avatar.likes}
-        </span>
-        <span className="flex items-center gap-1">
-          <Download className="w-3 h-3" />
-          {avatar.downloads}
-        </span>
-        {expanded && (
-          <span className="flex items-center gap-1">
-            <Eye className="w-3 h-3" />
-            {avatar.views}
-          </span>
-        )}
-      </div>
-    </div>
-  </article>
-);
+      {/* Modal de detalhes do avatar */}
+      <AssetDetailModal 
+        isOpen={showModal}
+        asset={{
+          ...avatar,
+          title: avatar.name,
+          category: 'Avatar',
+          thumbnail: avatar.preview,
+          author: { name: 'Você', avatar: null },
+          description: `Avatar ${avatar.name} - ${avatar.likes} curtidas, ${avatar.downloads} downloads`,
+          tags: ['Avatar', 'VRChat'],
+          uploadedAt: avatar.uploadDate
+        }}
+        onClose={() => {
+          setShowModal(false);
+        }}
+      />
+    </>
+  );
+};
 
 const PostCard = ({ post, expanded = false }) => (
   <div className="flex items-start gap-2 sm:gap-3 lg:gap-4 p-3 sm:p-4 bg-surface-elevated rounded-lg hover:bg-surface-elevated/80 transition-colors cursor-pointer group">

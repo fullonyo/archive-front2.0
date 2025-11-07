@@ -101,13 +101,61 @@ export const enUS = {
 
   // Forum
   forum: {
-    createPost: 'Create New Post',
+    // Navigation and actions
+    createPost: 'Create Post',
+    newPost: 'New Post',
+    backToForum: 'Back to Forum',
+    back: 'Back',
+    forum: 'Forum',
+    
+    // Post creation
+    createNewPost: 'Create New Post',
+    shareQuestion: 'Share your question, idea or knowledge with the community',
+    publishPost: 'Publish Post',
+    publishing: 'Publishing...',
+    draftSaved: 'Draft saved',
+    draftAutoSaved: 'You have a draft saved automatically',
+    clearDraft: 'Clear draft',
+    
+    // Form fields
+    category: 'Category',
+    title: 'Title',
+    content: 'Content',
+    tags: 'Tags',
+    maxTags: 'maximum 5',
+    titlePlaceholder: 'Describe your question clearly and concisely...',
+    contentPlaceholder: 'Describe in detail your question, problem or idea...',
+    
+    // Validation
+    titleRequired: 'Title is required',
+    titleMinLength: 'Title must be at least 10 characters',
+    contentRequired: 'Content is required',
+    contentMinLength: 'Content must be at least 20 characters',
+    selectAtLeastOneTag: 'Select at least one tag',
+    
+    // Categories
+    general: 'General',
+    generalDesc: 'General discussions about VRChat',
+    support: 'Support',
+    supportDesc: 'Need help with something?',
+    ideas: 'Ideas',
+    ideasDesc: 'Share your ideas and suggestions',
+    showcase: 'Showcase',
+    showcaseDesc: 'Show your projects and creations',
+    
+    // Forum list
     searchPosts: 'Search posts...',
     popularTags: 'Popular tags:',
+    popularTagsLabel: 'Popular tags:',
     noPosts: 'No posts found',
+    noPostsFound: 'No posts found',
     noPostsDescription: 'Try adjusting your filters or create the first post!',
+    tryAdjustFilters: 'Try adjusting your filters or create the first post!',
     createFirstPost: 'Create First Post',
+    loadingMorePosts: 'Loading more posts...',
     allPosts: 'You\'ve seen all available posts',
+    endOfPosts: 'You have seen all available posts',
+    
     // Sorting
     sortBy: 'Sort by',
     hot: 'Hot',
@@ -118,12 +166,17 @@ export const enUS = {
     best: 'Best',
     newest: 'Newest',
     oldest: 'Oldest',
-    // Stats
+    
+    // Stats and counts
     replies: 'replies',
+    reply: 'Reply',
     views: 'views',
     upvotes: 'upvotes',
     lastActivity: 'Last activity',
     reputation: 'reputation',
+    posts: 'posts',
+    post: 'post',
+    
     // Status
     pinned: 'Pinned',
     solved: 'Solved',
@@ -131,36 +184,55 @@ export const enUS = {
     locked: 'Locked',
     author: 'Author',
     bestAnswer: 'Best Answer',
+    
     // Actions
-    reply: 'Reply',
     share: 'Share',
     bookmark: 'Bookmark',
     report: 'Report',
     edit: 'Edit',
     delete: 'Delete',
-    backToForum: 'Back to Forum',
     addReply: 'Add Reply',
     publishReply: 'Publish Reply',
     cancel: 'Cancel',
-    createPost: 'Create Post',
-    newPost: 'New Post',
-    publishPost: 'Publish Post',
+    preview: 'Preview',
+    
+    // Post detail
+    replyPlaceholder: 'Write your reply here... (Markdown supported)',
+    postedAt: 'Posted',
+    noReplies: 'No replies yet',
+    beFirst: 'Be the first to reply!',
+    postNotFound: 'Post not found',
+    showReplies: 'Show',
+    hideReplies: 'Hide',
+    expandReplies: 'Click to expand',
+    
     // Reactions
     reactions: 'Reactions:',
     useful: 'Useful',
     loved: 'Loved',
     genius: 'Genius',
     interesting: 'Interesting',
-    // Post detail
-    postedAt: 'Posted',
-    noReplies: 'No replies yet',
-    beFirst: 'Be the first to reply!',
-    postNotFound: 'Post not found',
-    markdownSupported: 'Markdown supported:',
-    markdownHelp: '**bold**, *italic*, `code`, [link](url)',
-    showReplies: 'Show',
-    hideReplies: 'Hide',
-    expandReplies: 'Click to expand',
+    
+    // Editor
+    noPreviewYet: 'Nothing to preview yet. Start writing in the editor...',
+    charactersCount: 'characters',
+    dropImageHere: 'Drop image here to upload',
+    tabToIndent: 'Tab to indent',
+    ctrlEnterSubmit: 'Ctrl+Enter to submit',
+    
+    // Markdown help
+    markdownHelp: 'Markdown Formatting',
+    markdownSupported: '**bold**, *italic*, `code`, [link](url)',
+    previewHelp: 'Preview is being displayed in the main editor ←',
+    
+    // Tips
+    tipsTitle: 'Tips for a good post',
+    tip1: '• Use a clear and specific title',
+    tip2: '• Describe the problem in detail',
+    tip3: '• Include screenshots if necessary',
+    tip4: '• Mention your previous attempts',
+    tip5: '• Use relevant tags to help other users',
+    tip6: '• Be respectful and constructive',
   },
 
   // Time

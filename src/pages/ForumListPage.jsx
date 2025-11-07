@@ -20,10 +20,10 @@ const ForumListPage = ({ category = 'popular', icon: Icon, title }) => {
 
   // Sort Options
   const sortOptions = [
-    { value: 'hot', label: 'Hot', icon: Flame },
-    { value: 'new', label: 'Novo', icon: Clock },
-    { value: 'top', label: 'Top', icon: TrendingUp },
-    { value: 'unanswered', label: 'Sem Resposta', icon: HelpCircle },
+    { value: 'hot', label: t('forum.hot'), icon: Flame },
+    { value: 'new', label: t('forum.new'), icon: Clock },
+    { value: 'top', label: t('forum.top'), icon: TrendingUp },
+    { value: 'unanswered', label: t('forum.unanswered'), icon: HelpCircle },
   ];
 
   // Popular Tags
@@ -323,7 +323,7 @@ const ForumListPage = ({ category = 'popular', icon: Icon, title }) => {
           {/* Post Count */}
           {!loading && posts.length > 0 && (
             <span className="text-xs text-text-tertiary">
-              {posts.length} {posts.length === 1 ? 'post' : 'posts'}
+              {posts.length} {posts.length === 1 ? t('forum.post') : t('forum.posts')}
             </span>
           )}
         </div>
@@ -339,7 +339,7 @@ const ForumListPage = ({ category = 'popular', icon: Icon, title }) => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none" size={16} />
               <input
                 type="text"
-                placeholder="Buscar posts..."
+                placeholder={t('forum.searchPosts')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full h-10 pl-10 pr-4 bg-surface-float border border-white/5 rounded-lg text-sm text-text-primary 
@@ -353,13 +353,13 @@ const ForumListPage = ({ category = 'popular', icon: Icon, title }) => {
               className="btn btn-primary shrink-0 h-10 px-4 gap-2"
             >
               <Plus size={18} />
-              <span className="hidden sm:inline">Criar Post</span>
+              <span className="hidden sm:inline">{t('forum.createPost')}</span>
             </button>
           </div>
 
           {/* Popular Tags */}
           <div className="flex flex-wrap gap-2">
-            <span className="text-xs text-text-tertiary self-center mr-2">Tags populares:</span>
+            <span className="text-xs text-text-tertiary self-center mr-2">{t('forum.popularTags')}</span>
             {popularTags.map(tag => (
               <button
                 key={tag}
@@ -393,16 +393,16 @@ const ForumListPage = ({ category = 'popular', icon: Icon, title }) => {
             // Empty State
             <div className="text-center py-16">
               <HelpCircle size={48} className="mx-auto text-text-tertiary mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Nenhum post encontrado</h3>
+              <h3 className="text-xl font-semibold mb-2">{t('forum.noPostsFound')}</h3>
               <p className="text-text-secondary mb-6">
-                Tente ajustar seus filtros ou crie o primeiro post!
+                {t('forum.tryAdjustFilters')}
               </p>
               <button 
                 onClick={() => window.location.href = '/forum/new'}
                 className="btn btn-primary"
               >
                 <Plus size={20} />
-                Criar Primeiro Post
+                {t('forum.createFirstPost')}
               </button>
             </div>
           ) : (
@@ -427,7 +427,7 @@ const ForumListPage = ({ category = 'popular', icon: Icon, title }) => {
               {/* End of Results */}
               {!hasMore && (
                 <div className="text-center py-8 text-text-tertiary text-sm">
-                  Você viu todos os posts disponíveis
+                  {t('forum.endOfPosts')}
                 </div>
               )}
             </>

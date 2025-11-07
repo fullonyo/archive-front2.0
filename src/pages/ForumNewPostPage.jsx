@@ -52,10 +52,10 @@ const ForumNewPostPage = () => {
   }, [title, content, selectedTags, category]);
 
   const categories = [
-    { value: 'general', label: 'Geral', description: 'Discussões gerais sobre VRChat' },
-    { value: 'support', label: 'Suporte', description: 'Precisa de ajuda com algo?' },
-    { value: 'ideas', label: 'Ideias', description: 'Compartilhe suas ideias e sugestões' },
-    { value: 'showcase', label: 'Showcase', description: 'Mostre seus projetos e criações' }
+    { value: 'general', label: t('forum.general'), description: t('forum.generalDesc') },
+    { value: 'support', label: t('forum.support'), description: t('forum.supportDesc') },
+    { value: 'ideas', label: t('forum.ideas'), description: t('forum.ideasDesc') },
+    { value: 'showcase', label: t('forum.showcase'), description: t('forum.showcaseDesc') }
   ];
 
   const popularTags = [
@@ -66,23 +66,21 @@ const ForumNewPostPage = () => {
   const validateForm = useCallback(() => {
     const newErrors = {};
     
-    if (!title.trim()) {
-      newErrors.title = 'Título é obrigatório';
+        if (!title.trim()) {
+      newErrors.title = t('forum.titleRequired');
     } else if (title.trim().length < 10) {
-      newErrors.title = 'Título deve ter pelo menos 10 caracteres';
+      newErrors.title = t('forum.titleMinLength');
     }
     
     if (!content.trim()) {
-      newErrors.content = 'Conteúdo é obrigatório';
+      newErrors.content = t('forum.contentRequired');
     } else if (content.trim().length < 20) {
-      newErrors.content = 'Conteúdo deve ter pelo menos 20 caracteres';
+      newErrors.content = t('forum.contentMinLength');
     }
     
     if (selectedTags.length === 0) {
-      newErrors.tags = 'Selecione pelo menos uma tag';
-    }
-    
-    setErrors(newErrors);
+      newErrors.tags = t('forum.selectAtLeastOneTag');
+    }    setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }, [title, content, selectedTags]);
 
@@ -146,8 +144,8 @@ const ForumNewPostPage = () => {
       <div className="px-3 sm:px-4 lg:px-6 pt-4">
         <Breadcrumb
           items={[
-            { label: 'Fórum', path: '/forum/popular' },
-            { label: 'Novo Post', path: '/forum/new' }
+            { label: t('forum.forum'), path: '/forum/popular' },
+            { label: t('forum.newPost'), path: '/forum/new' }
           ]}
         />
       </div>
@@ -164,9 +162,9 @@ const ForumNewPostPage = () => {
               <ArrowLeft size={20} />
             </button>
             <div>
-              <h1 className="text-2xl font-bold">Criar Novo Post</h1>
+              <h1 className="text-2xl font-bold">{t('forum.createNewPost')}</h1>
               <p className="text-text-secondary text-sm">
-                Compartilhe sua pergunta, ideia ou conhecimento com a comunidade
+                {t('forum.shareQuestion')}
               </p>
             </div>
           </div>
@@ -175,7 +173,7 @@ const ForumNewPostPage = () => {
             {isDraft && (
               <div className="flex items-center gap-2 px-3 py-1.5 bg-yellow-500/10 text-yellow-400 rounded-lg border border-yellow-500/20">
                 <Save size={14} />
-                <span className="text-xs font-medium">Rascunho salvo</span>
+                <span className="text-xs font-medium">{t('forum.draftSaved')}</span>
               </div>
             )}
             
@@ -188,7 +186,7 @@ const ForumNewPostPage = () => {
               }`}
             >
               <Eye size={16} />
-              {isPreview ? 'Editar' : 'Preview'}
+              {isPreview ? t('forum.edit') : t('forum.preview')}
             </button>
             
             <button
@@ -200,12 +198,12 @@ const ForumNewPostPage = () => {
               {isSaving ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                  Publicando...
+                  {t('forum.publishing')}
                 </>
               ) : (
                 <>
                   <Upload size={16} />
-                  Publicar Post
+                  {t('forum.publishPost')}
                 </>
               )}
             </button>
@@ -218,14 +216,14 @@ const ForumNewPostPage = () => {
               <div className="flex items-center gap-2 text-yellow-400">
                 <AlertCircle size={16} />
                 <span className="text-sm font-medium">
-                  Você tem um rascunho salvo automaticamente
+                  {t('forum.draftAutoSaved')}
                 </span>
               </div>
               <button
                 onClick={clearDraft}
                 className="text-xs text-yellow-400 hover:text-yellow-300 underline"
               >
-                Limpar rascunho
+                {t('forum.clearDraft')}
               </button>
             </div>
           </div>
@@ -240,7 +238,7 @@ const ForumNewPostPage = () => {
             {/* Category Selection */}
             <div>
               <label className="block text-sm font-semibold mb-3">
-                Categoria
+                {t('forum.category')}
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {categories.map((cat) => (
@@ -263,13 +261,13 @@ const ForumNewPostPage = () => {
             {/* Title */}
             <div>
               <label className="block text-sm font-semibold mb-2">
-                Título *
+                {t('forum.title')} *
               </label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Descreva sua pergunta de forma clara e concisa..."
+                placeholder={t('forum.titlePlaceholder')}
                 className={`w-full h-12 px-4 bg-surface-float border rounded-lg text-sm 
                   focus:outline-none focus:border-theme-active/50 focus:bg-surface-float2 transition-all
                   placeholder:text-text-tertiary ${
@@ -284,13 +282,13 @@ const ForumNewPostPage = () => {
             {/* Content Editor */}
             <div>
               <label className="block text-sm font-semibold mb-2">
-                Conteúdo *
+                {t('forum.content')} *
               </label>
               <ForumEditor
                 value={content}
                 onChange={setContent}
                 isPreview={isPreview}
-                placeholder="Descreva detalhadamente sua pergunta, problema ou ideia..."
+                placeholder={t('forum.contentPlaceholder')}
                 error={errors.content}
               />
             </div>
@@ -298,7 +296,7 @@ const ForumNewPostPage = () => {
             {/* Tags */}
             <div>
               <label className="block text-sm font-semibold mb-2">
-                Tags * (máximo 5)
+                {t('forum.tags')} * ({t('forum.maxTags')})
               </label>
               <div className="space-y-3">
                 {/* Selected Tags */}
@@ -321,7 +319,7 @@ const ForumNewPostPage = () => {
 
                 {/* Popular Tags */}
                 <div className="border border-white/5 rounded-lg p-4 bg-surface-float">
-                  <div className="text-xs text-text-tertiary mb-3">Tags populares:</div>
+                  <div className="text-xs text-text-tertiary mb-3">{t('forum.popularTagsLabel')}</div>
                   <div className="flex flex-wrap gap-2">
                     {popularTags.map(tag => (
                       <button
@@ -354,21 +352,21 @@ const ForumNewPostPage = () => {
             <div className="bg-surface-float border border-white/5 rounded-lg p-4">
               <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
                 <AlertCircle size={16} />
-                Dicas para um bom post
+                {t('forum.tipsTitle')}
               </h3>
               <ul className="space-y-2 text-xs text-text-secondary">
-                <li>• Use um título claro e específico</li>
-                <li>• Descreva o problema em detalhes</li>
-                <li>• Inclua screenshots se necessário</li>
-                <li>• Mencione suas tentativas anteriores</li>
-                <li>• Use tags relevantes para ajudar outros usuários</li>
-                <li>• Seja respeitoso e construtivo</li>
+                <li>{t('forum.tip1')}</li>
+                <li>{t('forum.tip2')}</li>
+                <li>{t('forum.tip3')}</li>
+                <li>{t('forum.tip4')}</li>
+                <li>{t('forum.tip5')}</li>
+                <li>{t('forum.tip6')}</li>
               </ul>
             </div>
 
             {/* Markdown Help */}
             <div className="bg-surface-float border border-white/5 rounded-lg p-4">
-              <h3 className="font-semibold text-sm mb-3">Formatação Markdown</h3>
+              <h3 className="font-semibold text-sm mb-3">{t('forum.markdownHelp')}</h3>
               <div className="space-y-1 text-xs text-text-secondary font-mono">
                 <div>**negrito**</div>
                 <div>*itálico*</div>
@@ -381,9 +379,9 @@ const ForumNewPostPage = () => {
             {/* Preview Box quando em modo preview */}
             {isPreview && (
               <div className="bg-surface-float border border-white/5 rounded-lg p-4">
-                <h3 className="font-semibold text-sm mb-3">Preview do Post</h3>
+                <h3 className="font-semibold text-sm mb-3">{t('forum.preview')} do Post</h3>
                 <div className="text-xs text-text-secondary">
-                  O preview está sendo exibido no editor principal ←
+                  {t('forum.previewHelp')}
                 </div>
               </div>
             )}

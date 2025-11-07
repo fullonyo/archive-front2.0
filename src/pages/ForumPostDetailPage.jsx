@@ -18,13 +18,15 @@ import {
   Eye
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useTranslation } from '../hooks/useTranslation';
 import ForumReply from '../components/forum/ForumReply';
 import Breadcrumb from '../components/common/Breadcrumb';
 
 const ForumPostDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { language } = useLanguage();
+  const { t } = useTranslation();
   
   const [post, setPost] = useState(null);
   const [replies, setReplies] = useState([]);
@@ -454,11 +456,11 @@ No frontend, inclua o token em todas as requisições de mutação.`,
                 <div className="flex items-center gap-4 text-xs text-text-tertiary">
                   <span className="flex items-center gap-1.5 font-medium">
                     <Calendar size={15} />
-                    Publicado {formatDate(post.createdAt)}
+                    {t('forum.postedAt')} {formatDate(post.createdAt)}
                   </span>
                   <span className="flex items-center gap-1.5 font-medium">
                     <Eye size={15} />
-                    {post.views.toLocaleString()} visualizações
+                    {post.views.toLocaleString()} {t('forum.views')}
                   </span>
                   <span className="px-2 py-0.5 rounded-full bg-theme-active/10 text-theme-active font-semibold">
                     {post.author.reputation} pts
@@ -546,7 +548,7 @@ No frontend, inclua o token em todas as requisições de mutação.`,
                 {/* Reply Count */}
                 <div className="flex items-center gap-2 px-4 py-2.5 bg-surface-float rounded-xl text-text-tertiary text-sm font-medium border border-white/10">
                   <MessageSquare size={18} />
-                  <span>{post.replyCount} respostas</span>
+                  <span>{post.replyCount} {post.replyCount === 1 ? t('forum.reply') : t('forum.replies')}</span>
                 </div>
               </div>
 
@@ -618,15 +620,15 @@ No frontend, inclua o token em todas as requisições de mutação.`,
           <div className="flex items-center justify-between mb-6 px-1">
             <h2 className="text-lg font-bold text-text-primary flex items-center gap-2">
               <MessageSquare size={20} className="text-theme-active" />
-              {replies.length} {replies.length === 1 ? 'Resposta' : 'Respostas'}
+              {replies.length} {replies.length === 1 ? t('forum.reply') : t('forum.replies')}
             </h2>
             
             {/* Sort Options - Mais discretos */}
             <div className="flex gap-1">
               {[
-                { value: 'best', label: 'Melhores' },
-                { value: 'newest', label: 'Recentes' },
-                { value: 'oldest', label: 'Antigas' }
+                { value: 'best', label: t('forum.best') },
+                { value: 'newest', label: t('forum.newest') },
+                { value: 'oldest', label: t('forum.oldest') }
               ].map((option) => (
                 <button
                   key={option.value}
@@ -651,7 +653,7 @@ No frontend, inclua o token em todas as requisições de mutação.`,
               className="flex items-center gap-2 px-4 py-2.5 bg-surface-float text-text-primary rounded-lg hover:bg-surface-float2 transition-all border border-white/10 hover:border-white/20 mb-6 font-medium text-sm"
             >
               <MessageSquare size={16} />
-              <span>Adicionar Resposta</span>
+              <span>{t('forum.addReply')}</span>
             </button>
           )}
 
@@ -661,12 +663,12 @@ No frontend, inclua o token em todas as requisições de mutação.`,
               <textarea
                 value={replyContent}
                 onChange={(e) => setReplyContent(e.target.value)}
-                placeholder="Escreva sua resposta aqui... (Markdown suportado)"
+                placeholder={t('forum.replyPlaceholder')}
                 className="w-full min-h-[150px] p-4 bg-surface-base rounded-lg text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-theme-active/30 resize-y transition-all border border-white/5"
               />
               <div className="flex items-center justify-between mt-3">
                 <span className="text-xs text-text-tertiary">
-                  Markdown: **negrito**, *itálico*, `código`
+                  {t('forum.markdownSupported')}
                 </span>
                 <div className="flex gap-2">
                   <button
@@ -676,14 +678,14 @@ No frontend, inclua o token em todas as requisições de mutação.`,
                     }}
                     className="px-4 py-2 text-sm font-medium text-text-tertiary hover:text-text-primary hover:bg-surface-float2 rounded-lg transition-all"
                   >
-                    Cancelar
+                    {t('forum.cancel')}
                   </button>
                   <button
                     onClick={handleReply}
                     disabled={!replyContent.trim()}
                     className="px-4 py-2 text-sm font-medium bg-surface-float2 text-text-primary rounded-lg hover:bg-surface-float border border-white/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Publicar Resposta
+                    {t('forum.publishReply')}
                   </button>
                 </div>
               </div>
@@ -707,9 +709,9 @@ No frontend, inclua o token em todas as requisições de mutação.`,
           {replies.length === 0 && (
             <div className="text-center py-12 bg-surface-float rounded-xl border border-white/5">
               <MessageSquare size={40} className="mx-auto text-text-tertiary mb-3 opacity-50" />
-              <p className="text-text-secondary text-sm">Nenhuma resposta ainda</p>
+              <p className="text-text-secondary text-sm">{t('forum.noReplies')}</p>
               <p className="text-text-tertiary text-xs mt-1">
-                Seja o primeiro a responder!
+                {t('forum.beFirst')}
               </p>
             </div>
           )}

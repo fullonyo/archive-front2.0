@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { Globe } from 'lucide-react';
-import { useTranslation } from '../../hooks/useTranslation';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { availableLanguages } from '../../locales';
 
 const LanguageSelector = () => {
-  const { language, changeLanguage } = useTranslation();
+  const { language, changeLanguage } = useLanguage();
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
 

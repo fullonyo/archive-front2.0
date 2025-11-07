@@ -3,8 +3,10 @@ import {
   Bold, Italic, Code, Link, Image, List, ListOrdered,
   Quote, Heading1, Heading2, Heading3, Eye, Edit3
 } from 'lucide-react';
+import { useTranslation } from '../../hooks/useTranslation';
 
 const ForumEditor = ({ value, onChange, isPreview = false, placeholder, error }) => {
+  const { t } = useTranslation();
   const textareaRef = useRef(null);
   const [dragActive, setDragActive] = useState(false);
 
@@ -164,7 +166,7 @@ const ForumEditor = ({ value, onChange, isPreview = false, placeholder, error })
             />
           ) : (
             <div className="text-text-tertiary text-sm italic">
-              Nada para visualizar ainda. Comece escrevendo no editor...
+              {t('forum.noPreviewYet')}
             </div>
           )}
         </div>
@@ -204,7 +206,7 @@ const ForumEditor = ({ value, onChange, isPreview = false, placeholder, error })
         </div>
 
         <div className="ml-auto text-xs text-text-tertiary">
-          {value.length} caracteres
+          {value.length} {t('forum.charactersCount')}
         </div>
       </div>
 
@@ -230,7 +232,7 @@ const ForumEditor = ({ value, onChange, isPreview = false, placeholder, error })
             <div className="text-center">
               <Image size={32} className="mx-auto mb-2 text-theme-active" />
               <div className="text-sm font-medium text-theme-active">
-                Solte a imagem aqui para fazer upload
+                {t('forum.dropImageHere')}
               </div>
             </div>
           </div>
@@ -240,12 +242,12 @@ const ForumEditor = ({ value, onChange, isPreview = false, placeholder, error })
       {/* Footer with tips */}
       <div className="flex items-center justify-between px-4 py-2 border-t border-white/5 bg-surface-float2 rounded-b-lg">
         <div className="text-xs text-text-tertiary">
-          Markdown suportado • Arraste imagens para fazer upload
+          {t('forum.markdownSupported')}
         </div>
         
         <div className="flex items-center gap-4 text-xs text-text-tertiary">
-          <span>Tab para indentar</span>
-          <span>Ctrl+Enter para enviar</span>
+          <span>{t('forum.tabToIndent')}</span>
+          <span>{t('forum.ctrlEnterSubmit')}</span>
         </div>
       </div>
       

@@ -1,9 +1,11 @@
 import { Heart, Download, Eye, MessageCircle, MoreVertical } from 'lucide-react';
 import { useState } from 'react';
+import AssetDetailModal from './AssetDetailModal';
 
 const AssetCard = ({ asset }) => {
   const [isLiked, setIsLiked] = useState(asset.isLiked || false);
   const [likes, setLikes] = useState(asset.likes || 0);
+  const [showModal, setShowModal] = useState(false);
 
   const handleLike = (e) => {
     e.preventDefault();
@@ -18,8 +20,7 @@ const AssetCard = ({ asset }) => {
   };
 
   const handleCardClick = () => {
-    // TODO: Navigate to asset detail page
-    console.log('Navigate to asset:', asset.id);
+    setShowModal(true);
   };
 
   return (
@@ -135,6 +136,13 @@ const AssetCard = ({ asset }) => {
           </button>
         </div>
       </div>
+
+      {/* Asset Detail Modal */}
+      <AssetDetailModal 
+        asset={asset}
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+      />
     </article>
   );
 };

@@ -235,7 +235,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           {isOpen ? (
             <div className="pt-3">
               <h3 className="px-3 mb-1.5 text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                {t('sidebar.forum')}
+                Forum Lab
               </h3>
               <div className="space-y-0.5">
                 {/* New Topic Button */}
@@ -313,7 +313,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           {isOpen ? (
             <div className="pt-3">
               <h3 className="px-3 mb-1.5 text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                {t('sidebar.vrchatApi')}
+                VRChat Lab
               </h3>
               <div className="space-y-0.5">
                 {vrchatItems.map((item) => {

@@ -33,7 +33,11 @@ import {
   MessageCircle,
   ChevronRight,
   Activity,
-  BarChart3
+  BarChart3,
+  Save,
+  X,
+  Camera,
+  ImagePlus
 } from 'lucide-react';
 
 const ProfilePage = () => {
@@ -44,10 +48,84 @@ const ProfilePage = () => {
   
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedFilter, setSelectedFilter] = useState('recent');
+  const [isEditing, setIsEditing] = useState(false);
+  
+  // Form states para edição
+  const [formData, setFormData] = useState({
+    displayName: '',
+    bio: '',
+    location: '',
+    socialLinks: {
+      twitter: '',
+      discord: '',
+      vrchat: '',
+      website: ''
+    }
+  });
 
   // Simular se é perfil próprio
   const isOwnProfile = isAuthenticated && currentUser?.username === username;
   const displayUser = currentUser; // TODO: Carregar perfil de outro usuário se necessário
+
+  // Inicializar form data quando o usuário carregar
+  useState(() => {
+    if (displayUser) {
+      setFormData({
+        displayName: displayUser.displayName || '',
+        bio: displayUser.bio || '',
+        location: displayUser.location || '',
+        socialLinks: {
+          twitter: displayUser.socialLinks?.twitter || '',
+          discord: displayUser.socialLinks?.discord || '',
+          vrchat: displayUser.socialLinks?.vrchat || '',
+          website: displayUser.socialLinks?.website || ''
+        }
+      });
+    }
+  }, [displayUser]);
+
+  // Handler para alterações no form
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSocialLinkChange = (platform, value) => {
+    setFormData(prev => ({
+      ...prev,
+      socialLinks: {
+        ...prev.socialLinks,
+        [platform]: value
+      }
+    }));
+  };
+
+  // Salvar alterações
+  const handleSave = () => {
+    // TODO: Implementar chamada à API para salvar
+    console.log('Saving profile data:', formData);
+    setIsEditing(false);
+    // Aqui você faria: updateUser(formData)
+  };
+
+  // Cancelar edição
+  const handleCancel = () => {
+    // Resetar para dados originais
+    setFormData({
+      displayName: displayUser.displayName || '',
+      bio: displayUser.bio || '',
+      location: displayUser.location || '',
+      socialLinks: {
+        twitter: displayUser.socialLinks?.twitter || '',
+        discord: displayUser.socialLinks?.discord || '',
+        vrchat: displayUser.socialLinks?.vrchat || '',
+        website: displayUser.socialLinks?.website || ''
+      }
+    });
+    setIsEditing(false);
+  };
 
   // Dados mockup para demonstração
   const mockAvatars = [
@@ -115,6 +193,17 @@ const ProfilePage = () => {
       <div className="relative bg-gradient-to-br from-theme-primary via-theme-secondary to-theme-accent h-20 sm:h-24">
         {/* Padrão de fundo */}
         <div className="absolute inset-0 bg-grid-pattern opacity-10" />
+        
+        {/* Botão de alterar cover - Só aparece quando editando */}
+        {isEditing && isOwnProfile && (
+          <button 
+            className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 px-3 py-2 bg-black/50 hover:bg-black/70 backdrop-blur-sm text-white rounded-lg flex items-center gap-2 transition-colors text-sm"
+            title="Alterar imagem de capa"
+          >
+            <ImagePlus className="w-4 h-4" />
+            <span className="hidden sm:inline">Alterar Capa</span>
+          </button>
+        )}
       </div>
 
       {/* Profile Info Card - Com padding padrão das páginas */}
@@ -139,8 +228,20 @@ const ProfilePage = () => {
                 </div>
               </div>
               
-              {/* Status online */}
-              <div className="absolute bottom-2 right-2 w-6 h-6 bg-green-500 border-4 border-surface-float rounded-full shadow-lg" />
+              {/* Botão de upload de avatar - Só aparece quando editando */}
+              {isEditing && isOwnProfile && (
+                <button 
+                  className="absolute bottom-0 right-0 w-10 h-10 sm:w-12 sm:h-12 bg-theme-primary hover:bg-theme-hover text-white rounded-full flex items-center justify-center shadow-lg transition-colors"
+                  title="Alterar foto de perfil"
+                >
+                  <Camera className="w-5 h-5 sm:w-6 sm:h-6" />
+                </button>
+              )}
+              
+              {/* Status online - Só mostra quando não está editando */}
+              {!isEditing && (
+                <div className="absolute bottom-2 right-2 w-6 h-6 bg-green-500 border-4 border-surface-float rounded-full shadow-lg" />
+              )}
               
               {/* Badge de verificado */}
               {displayUser?.isVerified && (
@@ -152,67 +253,195 @@ const ProfilePage = () => {
 
             {/* Info */}
             <div className="flex-1">
-              {/* Nome e badges */}
-              <div className="flex flex-wrap items-center gap-3 mb-3">
-                <h1 className="text-3xl lg:text-4xl font-bold text-text-primary">
-                  {displayUser?.displayName || displayUser?.username}
-                </h1>
-                
-                {userStats?.isVerified && (
-                  <div className="flex items-center gap-1 px-3 py-1 bg-blue-500/10 text-blue-500 rounded-full text-sm font-medium">
-                    <Star className="w-4 h-4" />
-                    Verificado
+              {/* MODO VISUALIZAÇÃO */}
+              {!isEditing ? (
+                <>
+                  {/* Nome e badges */}
+                  <div className="flex flex-wrap items-center gap-3 mb-3">
+                    <h1 className="text-3xl lg:text-4xl font-bold text-text-primary">
+                      {displayUser?.displayName || displayUser?.username}
+                    </h1>
+                    
+                    {userStats?.isVerified && (
+                      <div className="flex items-center gap-1 px-3 py-1 bg-blue-500/10 text-blue-500 rounded-full text-sm font-medium">
+                        <Star className="w-4 h-4" />
+                        Verificado
+                      </div>
+                    )}
+                    
+                    {userStats?.isAdmin && (
+                      <div className="flex items-center gap-1 px-3 py-1 bg-red-500/10 text-red-500 rounded-full text-sm font-medium">
+                        <Award className="w-4 h-4" />
+                        Admin
+                      </div>
+                    )}
+                    
+                    {userStats?.isModerator && !userStats?.isAdmin && (
+                      <div className="flex items-center gap-1 px-3 py-1 bg-green-500/10 text-green-500 rounded-full text-sm font-medium">
+                        <Award className="w-4 h-4" />
+                        Moderador
+                      </div>
+                    )}
                   </div>
-                )}
-                
-                {userStats?.isAdmin && (
-                  <div className="flex items-center gap-1 px-3 py-1 bg-red-500/10 text-red-500 rounded-full text-sm font-medium">
-                    <Award className="w-4 h-4" />
-                    Admin
-                  </div>
-                )}
-                
-                {userStats?.isModerator && !userStats?.isAdmin && (
-                  <div className="flex items-center gap-1 px-3 py-1 bg-green-500/10 text-green-500 rounded-full text-sm font-medium">
-                    <Award className="w-4 h-4" />
-                    Moderador
-                  </div>
-                )}
-              </div>
 
-              <p className="text-text-secondary mb-4">@{displayUser?.username}</p>
+                  <p className="text-text-secondary mb-4">@{displayUser?.username}</p>
 
-              {/* Bio */}
-              {displayUser?.bio && (
-                <p className="text-sm sm:text-base text-text-primary max-w-3xl mb-3 sm:mb-4 leading-relaxed">
-                  {displayUser.bio}
-                </p>
+                  {/* Bio */}
+                  {displayUser?.bio && (
+                    <p className="text-sm sm:text-base text-text-primary max-w-3xl mb-3 sm:mb-4 leading-relaxed">
+                      {displayUser.bio}
+                    </p>
+                  )}
+
+                  {/* Meta info */}
+                  <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-text-tertiary mb-4 sm:mb-6">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline">Membro desde</span>
+                      <span className="sm:hidden">Desde</span>
+                      {' '}{new Date(displayUser?.createdAt || Date.now()).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })}
+                    </div>
+                    
+                    {displayUser?.location && (
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4" />
+                        {displayUser.location}
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      {stats.responseTime} tempo de resposta
+                    </div>
+                  </div>
+                </>
+              ) : (
+                /* MODO EDIÇÃO */
+                <div className="space-y-4">
+                  {/* Display Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-text-secondary mb-2">
+                      Nome de Exibição
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.displayName}
+                      onChange={(e) => handleInputChange('displayName', e.target.value)}
+                      className="w-full px-4 py-2 bg-surface-elevated border border-white/10 rounded-lg text-text-primary focus:outline-none focus:border-theme-primary transition-colors"
+                      placeholder="Seu nome de exibição"
+                    />
+                  </div>
+
+                  {/* Username (não editável) */}
+                  <div>
+                    <label className="block text-sm font-medium text-text-secondary mb-2">
+                      Username (não editável)
+                    </label>
+                    <input
+                      type="text"
+                      value={displayUser?.username}
+                      disabled
+                      className="w-full px-4 py-2 bg-surface-base border border-white/5 rounded-lg text-text-tertiary cursor-not-allowed"
+                    />
+                  </div>
+
+                  {/* Bio */}
+                  <div>
+                    <label className="block text-sm font-medium text-text-secondary mb-2">
+                      Biografia
+                      <span className="text-text-tertiary ml-2">
+                        {formData.bio.length}/500
+                      </span>
+                    </label>
+                    <textarea
+                      value={formData.bio}
+                      onChange={(e) => {
+                        if (e.target.value.length <= 500) {
+                          handleInputChange('bio', e.target.value);
+                        }
+                      }}
+                      rows={4}
+                      className="w-full px-4 py-2 bg-surface-elevated border border-white/10 rounded-lg text-text-primary focus:outline-none focus:border-theme-primary transition-colors resize-none"
+                      placeholder="Conte um pouco sobre você..."
+                    />
+                  </div>
+
+                  {/* Localização */}
+                  <div>
+                    <label className="block text-sm font-medium text-text-secondary mb-2">
+                      <MapPin className="w-4 h-4 inline mr-1" />
+                      Localização
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.location}
+                      onChange={(e) => handleInputChange('location', e.target.value)}
+                      className="w-full px-4 py-2 bg-surface-elevated border border-white/10 rounded-lg text-text-primary focus:outline-none focus:border-theme-primary transition-colors"
+                      placeholder="Cidade, País"
+                    />
+                  </div>
+
+                  {/* Links Sociais */}
+                  <div className="pt-4 border-t border-white/5">
+                    <h3 className="text-sm font-medium text-text-secondary mb-3">
+                      Links Sociais
+                    </h3>
+                    
+                    <div className="space-y-3">
+                      {/* Twitter */}
+                      <div className="flex items-center gap-3">
+                        <Twitter className="w-5 h-5 text-text-tertiary flex-shrink-0" />
+                        <input
+                          type="text"
+                          value={formData.socialLinks.twitter}
+                          onChange={(e) => handleSocialLinkChange('twitter', e.target.value)}
+                          className="flex-1 px-3 py-2 bg-surface-elevated border border-white/10 rounded-lg text-text-primary text-sm focus:outline-none focus:border-theme-primary transition-colors"
+                          placeholder="@username"
+                        />
+                      </div>
+
+                      {/* Discord */}
+                      <div className="flex items-center gap-3">
+                        <MessageCircle className="w-5 h-5 text-text-tertiary flex-shrink-0" />
+                        <input
+                          type="text"
+                          value={formData.socialLinks.discord}
+                          onChange={(e) => handleSocialLinkChange('discord', e.target.value)}
+                          className="flex-1 px-3 py-2 bg-surface-elevated border border-white/10 rounded-lg text-text-primary text-sm focus:outline-none focus:border-theme-primary transition-colors"
+                          placeholder="username#0000"
+                        />
+                      </div>
+
+                      {/* VRChat */}
+                      <div className="flex items-center gap-3">
+                        <User className="w-5 h-5 text-text-tertiary flex-shrink-0" />
+                        <input
+                          type="text"
+                          value={formData.socialLinks.vrchat}
+                          onChange={(e) => handleSocialLinkChange('vrchat', e.target.value)}
+                          className="flex-1 px-3 py-2 bg-surface-elevated border border-white/10 rounded-lg text-text-primary text-sm focus:outline-none focus:border-theme-primary transition-colors"
+                          placeholder="usr_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                        />
+                      </div>
+
+                      {/* Website */}
+                      <div className="flex items-center gap-3">
+                        <LinkIcon className="w-5 h-5 text-text-tertiary flex-shrink-0" />
+                        <input
+                          type="url"
+                          value={formData.socialLinks.website}
+                          onChange={(e) => handleSocialLinkChange('website', e.target.value)}
+                          className="flex-1 px-3 py-2 bg-surface-elevated border border-white/10 rounded-lg text-text-primary text-sm focus:outline-none focus:border-theme-primary transition-colors"
+                          placeholder="https://seusite.com"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               )}
 
-              {/* Meta info */}
-              <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-text-tertiary mb-4 sm:mb-6">
-                <div className="flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  <span className="hidden sm:inline">Membro desde</span>
-                  <span className="sm:hidden">Desde</span>
-                  {' '}{new Date(displayUser?.createdAt || Date.now()).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })}
-                </div>
-                
-                {displayUser?.location && (
-                  <div className="flex items-center gap-1">
-                    <MapPin className="w-4 h-4" />
-                    {displayUser.location}
-                  </div>
-                )}
-                
-                <div className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
-                  {stats.responseTime} tempo de resposta
-                </div>
-              </div>
-
-              {/* Social Links */}
-              {displayUser?.socialLinks && (
+              {/* Social Links - Só mostrar no modo visualização */}
+              {!isEditing && displayUser?.socialLinks && (
                 <div className="flex flex-wrap gap-2">
                   {displayUser.socialLinks.twitter && (
                     <a 
@@ -255,17 +484,47 @@ const ProfilePage = () => {
               <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-white/5">
                 {isOwnProfile ? (
                   <>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-surface-elevated hover:bg-surface-elevated/80 text-text-primary rounded-lg transition-colors text-sm">
-                      <Share2 className="w-4 h-4" />
-                      Compartilhar
-                    </button>
-                    <button 
-                      onClick={() => navigate('/settings')}
-                      className="flex items-center gap-2 px-4 py-2 bg-surface-elevated hover:bg-surface-elevated/80 text-text-primary rounded-lg transition-colors text-sm"
-                    >
-                      <Settings className="w-4 h-4" />
-                      Configurações
-                    </button>
+                    {!isEditing ? (
+                      <>
+                        {/* Modo Visualização */}
+                        <button 
+                          onClick={() => setIsEditing(true)}
+                          className="flex items-center gap-2 px-4 py-2 bg-theme-active text-white rounded-lg hover:bg-theme-hover transition-colors text-sm"
+                        >
+                          <Edit className="w-4 h-4" />
+                          Editar Perfil
+                        </button>
+                        <button className="flex items-center gap-2 px-4 py-2 bg-surface-elevated hover:bg-surface-elevated/80 text-text-primary rounded-lg transition-colors text-sm">
+                          <Share2 className="w-4 h-4" />
+                          Compartilhar
+                        </button>
+                        <button 
+                          onClick={() => navigate('/settings')}
+                          className="flex items-center gap-2 px-4 py-2 bg-surface-elevated hover:bg-surface-elevated/80 text-text-primary rounded-lg transition-colors text-sm"
+                        >
+                          <Settings className="w-4 h-4" />
+                          <span className="hidden sm:inline">Configurações</span>
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        {/* Modo Edição */}
+                        <button 
+                          onClick={handleSave}
+                          className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm"
+                        >
+                          <Save className="w-4 h-4" />
+                          Salvar Alterações
+                        </button>
+                        <button 
+                          onClick={handleCancel}
+                          className="flex items-center gap-2 px-4 py-2 bg-surface-elevated hover:bg-surface-elevated/80 text-text-primary rounded-lg transition-colors text-sm"
+                        >
+                          <X className="w-4 h-4" />
+                          Cancelar
+                        </button>
+                      </>
+                    )}
                   </>
                 ) : (
                   <>

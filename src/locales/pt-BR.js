@@ -99,6 +99,40 @@ export const ptBR = {
     other: 'Outros',
   },
 
+  // Forum
+  forum: {
+    createPost: 'Criar Novo Post',
+    searchPosts: 'Buscar posts...',
+    popularTags: 'Tags populares:',
+    noPosts: 'Nenhum post encontrado',
+    noPostsDescription: 'Tente ajustar seus filtros ou crie o primeiro post!',
+    createFirstPost: 'Criar Primeiro Post',
+    allPosts: 'Você viu todos os posts disponíveis',
+    // Sorting
+    sortBy: 'Ordenar por',
+    hot: 'Hot',
+    new: 'Novo',
+    top: 'Top',
+    unanswered: 'Sem Resposta',
+    trending: 'Trending',
+    // Stats
+    replies: 'respostas',
+    views: 'visualizações',
+    upvotes: 'votos',
+    lastActivity: 'Última atividade',
+    // Status
+    pinned: 'Fixado',
+    solved: 'Resolvido',
+    closed: 'Fechado',
+    // Actions
+    reply: 'Responder',
+    share: 'Compartilhar',
+    bookmark: 'Salvar',
+    report: 'Reportar',
+    edit: 'Editar',
+    delete: 'Excluir',
+  },
+
   // Time
   time: {
     justNow: 'agora',

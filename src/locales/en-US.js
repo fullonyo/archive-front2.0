@@ -99,6 +99,40 @@ export const enUS = {
     other: 'Other',
   },
 
+  // Forum
+  forum: {
+    createPost: 'Create New Post',
+    searchPosts: 'Search posts...',
+    popularTags: 'Popular tags:',
+    noPosts: 'No posts found',
+    noPostsDescription: 'Try adjusting your filters or create the first post!',
+    createFirstPost: 'Create First Post',
+    allPosts: 'You\'ve seen all available posts',
+    // Sorting
+    sortBy: 'Sort by',
+    hot: 'Hot',
+    new: 'New',
+    top: 'Top',
+    unanswered: 'Unanswered',
+    trending: 'Trending',
+    // Stats
+    replies: 'replies',
+    views: 'views',
+    upvotes: 'upvotes',
+    lastActivity: 'Last activity',
+    // Status
+    pinned: 'Pinned',
+    solved: 'Solved',
+    closed: 'Closed',
+    // Actions
+    reply: 'Reply',
+    share: 'Share',
+    bookmark: 'Bookmark',
+    report: 'Report',
+    edit: 'Edit',
+    delete: 'Delete',
+  },
+
   // Time
   time: {
     justNow: 'now',

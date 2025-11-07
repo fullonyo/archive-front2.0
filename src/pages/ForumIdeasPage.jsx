@@ -1,14 +1,15 @@
 import { Lightbulb } from 'lucide-react';
-import ComingSoon from '../components/common/ComingSoon';
+import ForumListPage from './ForumListPage';
 import { useTranslation } from '../hooks/useTranslation';
 
 const ForumIdeasPage = () => {
   const { t } = useTranslation();
 
   return (
-    <ComingSoon 
-      title={t('sidebar.forumIdeas')} 
+    <ForumListPage 
+      category="ideas"
       icon={Lightbulb}
+      title={t('sidebar.forumIdeas')}
     />
   );
 };

@@ -1,5 +1,3 @@
-import PropTypes from 'prop-types';
-
 /**
  * Container component - daily.dev inspired centralized layout
  * 
@@ -35,13 +33,6 @@ const Container = ({
       {children}
     </div>
   );
-};
-
-Container.propTypes = {
-  children: PropTypes.node.isRequired,
-  variant: PropTypes.oneOf(['default', 'narrow', 'wide', 'full']),
-  className: PropTypes.string,
-  noPadding: PropTypes.bool
 };
 
 export default Container;

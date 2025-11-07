@@ -1,14 +1,15 @@
 import { TrendingUp } from 'lucide-react';
-import ComingSoon from '../components/common/ComingSoon';
+import ForumListPage from './ForumListPage';
 import { useTranslation } from '../hooks/useTranslation';
 
 const ForumPopularPage = () => {
   const { t } = useTranslation();
 
   return (
-    <ComingSoon 
-      title={t('sidebar.forumPopular')} 
+    <ForumListPage 
+      category="popular"
       icon={TrendingUp}
+      title={t('sidebar.forumPopular')}
     />
   );
 };

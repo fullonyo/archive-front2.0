@@ -24,6 +24,7 @@ export const enUS = {
     settings: 'Settings',
     // Forum
     forum: 'Forum',
+    newTopic: 'New Topic',
     forumPopular: 'Popular',
     forumSupport: 'Support',
     forumIdeas: 'Ideas',

@@ -24,6 +24,7 @@ export const ptBR = {
     settings: 'Configurações',
     // Forum
     forum: 'Fórum',
+    newTopic: 'Novo Tópico',
     forumPopular: 'Popular',
     forumSupport: 'Suporte',
     forumIdeas: 'Ideias',

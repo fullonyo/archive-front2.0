@@ -1,4 +1,4 @@
-import { Home, Compass, History, Users, Bookmark, FolderOpen, MessageSquare, Settings, Plus, ChevronRight, ChevronLeft, X, Hash, TrendingUp, HelpCircle, Lightbulb, Link2, UserCircle, Activity } from 'lucide-react';
+import { Home, Compass, History, Users, Bookmark, FolderOpen, MessageSquare, Settings, Plus, ChevronRight, ChevronLeft, X, Hash, TrendingUp, HelpCircle, Lightbulb, Link2, UserCircle, Activity, PenTool } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useEffect, useState } from 'react';
@@ -238,6 +238,19 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 {t('sidebar.forum')}
               </h3>
               <div className="space-y-0.5">
+                {/* New Topic Button */}
+                <button 
+                  onClick={() => handleNavigation('/forum/new')} 
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 font-medium transition-all duration-200 overflow-hidden text-sm"
+                  aria-label={t('sidebar.newTopic')}
+                >
+                  <PenTool size={18} className="flex-shrink-0" />
+                  <span className="whitespace-nowrap">
+                    {t('sidebar.newTopic')}
+                  </span>
+                </button>
+                
+                {/* Forum Categories */}
                 {forumCategories.map((item) => {
                   const Icon = item.icon;
                   const active = isActive(item.path);
@@ -262,6 +275,17 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           ) : (
             // Mostrar apenas ícones quando colapsado
             <div className="space-y-0.5">
+              {/* New Topic Button - Collapsed */}
+              <button 
+                onClick={() => handleNavigation('/forum/new')} 
+                className="w-full flex items-center justify-center p-2 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 transition-all duration-200"
+                aria-label={t('sidebar.newTopic')}
+                title={t('sidebar.newTopic')}
+              >
+                <PenTool size={18} />
+              </button>
+              
+              {/* Forum Categories - Collapsed */}
               {forumCategories.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.path);

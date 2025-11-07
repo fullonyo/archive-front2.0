@@ -10,6 +10,7 @@ import ForumPopularPage from './pages/ForumPopularPage';
 import ForumSupportPage from './pages/ForumSupportPage';
 import ForumIdeasPage from './pages/ForumIdeasPage';
 import ForumGeneralPage from './pages/ForumGeneralPage';
+import ForumPostDetailPage from './pages/ForumPostDetailPage';
 import VRChatProfilePage from './pages/VRChatProfilePage';
 import VRChatFriendsPage from './pages/VRChatFriendsPage';
 import VRChatStatusPage from './pages/VRChatStatusPage';
@@ -40,6 +41,7 @@ function App() {
             <Route path="forum/support" element={<ForumSupportPage />} />
             <Route path="forum/ideas" element={<ForumIdeasPage />} />
             <Route path="forum/general" element={<ForumGeneralPage />} />
+            <Route path="forum/post/:id" element={<ForumPostDetailPage />} />
             
             {/* VRChat Routes */}
             <Route path="vrchat/profile" element={<VRChatProfilePage />} />

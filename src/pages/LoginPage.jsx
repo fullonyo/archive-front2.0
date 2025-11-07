@@ -108,64 +108,66 @@ const LoginPage = () => {
       <div className="relative z-10 min-h-screen flex flex-col lg:flex-row">
         
         {/* LADO ESQUERDO - Hero Section com TextType */}
-        <div className="flex-1 flex items-center justify-center px-6 py-12 lg:py-0">
-          <div className="w-full max-w-2xl space-y-8">
-            
-            {/* Logo/Brand */}
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-12 h-12 lg:w-16 lg:h-16 bg-gradient-to-br from-theme-active to-theme-hover rounded-xl flex items-center justify-center shadow-lg shadow-theme-active/30">
-                <User className="w-6 h-6 lg:w-8 lg:h-8 text-white" />
-              </div>
-              <div>
-                <h2 className="text-xl lg:text-2xl font-bold text-text-primary">Lhama Archive</h2>
-                <p className="text-sm text-text-tertiary">VRChat Assets Hub</p>
-              </div>
+        <div className="flex-1 flex flex-col justify-between px-6 py-8 lg:py-12">
+          
+          {/* Logo/Brand - Topo */}
+          <div className="flex items-center gap-3 opacity-80 hover:opacity-100 transition-opacity">
+            <div className="w-10 h-10 bg-gradient-to-br from-theme-active/80 to-theme-hover/80 rounded-lg flex items-center justify-center shadow-md">
+              <User className="w-5 h-5 text-white" />
             </div>
+            <div>
+              <h2 className="text-lg font-bold text-text-primary">Lhama Archive</h2>
+              <p className="text-xs text-text-tertiary">VRChat Assets Hub</p>
+            </div>
+          </div>
 
-            {/* TextType Hero */}
-            <div className="space-y-6">
-              <TextType
-                text={textTypeConfig.texts}
-                as={textTypeConfig.as}
-                typingSpeed={textTypeConfig.typingSpeed}
-                pauseDuration={textTypeConfig.pauseDuration}
-                deletingSpeed={textTypeConfig.deletingSpeed}
-                loop={textTypeConfig.loop}
-                showCursor={textTypeConfig.showCursor}
-                cursorCharacter={textTypeConfig.cursorCharacter}
-                cursorClassName={textTypeConfig.cursorClassName}
-                cursorBlinkDuration={textTypeConfig.cursorBlinkDuration}
-                textColors={textTypeConfig.textColors}
-                className={textTypeConfig.className}
-              />
+          {/* TextType Hero - Centro (Isolado e com altura fixa) */}
+          <div className="flex-1 flex items-center justify-center py-12">
+            <div className="w-full max-w-3xl text-center px-4">
+              {/* Container com altura mínima fixa para evitar movimentação */}
+              <div className="min-h-[320px] lg:min-h-[380px] flex flex-col items-center justify-center">
+                <TextType
+                  text={textTypeConfig.texts}
+                  as={textTypeConfig.as}
+                  typingSpeed={textTypeConfig.typingSpeed}
+                  pauseDuration={textTypeConfig.pauseDuration}
+                  deletingSpeed={textTypeConfig.deletingSpeed}
+                  loop={textTypeConfig.loop}
+                  showCursor={textTypeConfig.showCursor}
+                  cursorCharacter={textTypeConfig.cursorCharacter}
+                  cursorClassName={textTypeConfig.cursorClassName}
+                  cursorBlinkDuration={textTypeConfig.cursorBlinkDuration}
+                  textColors={textTypeConfig.textColors}
+                  className={textTypeConfig.className}
+                />
+              </div>
               
-              <p className="text-lg lg:text-xl text-text-secondary animate-fade-in leading-relaxed">
+              <p className="mt-8 text-sm lg:text-base text-text-secondary/70 animate-fade-in leading-relaxed max-w-lg mx-auto">
                 Sign in to explore and share VRChat avatars, worlds, and more with the community.
               </p>
+            </div>
+          </div>
 
-              {/* Features Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8 animate-fade-in">
-                {[
-                  { icon: Palette, title: 'Avatars', desc: 'Discover unique designs' },
-                  { icon: Globe, title: 'Worlds', desc: 'Explore amazing spaces' },
-                  { icon: MessageCircle, title: 'Community', desc: 'Connect with creators' },
-                  { icon: Star, title: 'Favorites', desc: 'Save your picks' }
-                ].map((feature, idx) => {
-                  const IconComponent = feature.icon;
-                  return (
-                    <div
-                      key={idx}
-                      className="card p-4 hover:scale-105 cursor-default"
-                    >
-                      <div className="w-10 h-10 bg-gradient-to-br from-theme-active/20 to-theme-hover/20 rounded-lg flex items-center justify-center mb-3">
-                        <IconComponent className="w-5 h-5 text-theme-active" />
-                      </div>
-                      <h3 className="text-sm font-semibold text-text-primary mb-1">{feature.title}</h3>
-                      <p className="text-xs text-text-tertiary">{feature.desc}</p>
-                    </div>
-                  );
-                })}
-              </div>
+          {/* Features Grid - Rodapé (Menor destaque) */}
+          <div className="opacity-60 hover:opacity-80 transition-opacity">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl mx-auto">
+              {[
+                { icon: Palette, title: 'Avatars' },
+                { icon: Globe, title: 'Worlds' },
+                { icon: MessageCircle, title: 'Community' },
+                { icon: Star, title: 'Favorites' }
+              ].map((feature, idx) => {
+                const IconComponent = feature.icon;
+                return (
+                  <div
+                    key={idx}
+                    className="flex flex-col items-center gap-2 p-3 rounded-lg bg-surface-float/30 hover:bg-surface-float/50 transition-all"
+                  >
+                    <IconComponent className="w-4 h-4 text-theme-active/70" />
+                    <span className="text-xs text-text-tertiary font-medium">{feature.title}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

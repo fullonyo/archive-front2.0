@@ -8,6 +8,6 @@
  * TIPO DE BACKGROUND ATIVO
  * Opções: 'pixelblast', 'gridscan'
  */
-export const activeBackground = 'gridscan';
+export const activeBackground = 'pixelblast';
 
 export default activeBackground;

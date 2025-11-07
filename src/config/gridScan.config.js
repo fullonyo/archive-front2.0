@@ -30,14 +30,14 @@ export const gridScanConfig = {
    * Escala da grade (0.05-0.5)
    * Valores menores = grade mais densa
    */
-  gridScale: 0.1,
+  gridScale: 0.04,
   
   /**
    * Estilo das linhas
    * Opções: 'solid', 'dashed', 'dotted'
    */
-  lineStyle: 'solid',
-  
+  lineStyle: 'dashed',
+
   /**
    * Trepidação das linhas (0-1)
    * 0 = linhas estáticas

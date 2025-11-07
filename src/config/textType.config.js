@@ -130,7 +130,7 @@ export const textTypeConfig = {
   /**
    * Classes CSS adicionais
    */
-  className: 'text-5xl md:text-6xl lg:text-7xl font-bold'
+  className: 'text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight'
 };
 
 // ============================================

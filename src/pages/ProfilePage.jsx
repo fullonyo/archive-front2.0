@@ -212,8 +212,17 @@ const ProfilePage = () => {
           <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
             {/* Avatar */}
             <div className="relative flex-shrink-0">
-              <div className="w-24 h-24 sm:w-32 sm:h-32 lg:w-40 lg:h-40 rounded-2xl bg-gradient-to-br from-theme-primary to-theme-accent p-1 shadow-xl">
-                <div className="w-full h-full rounded-xl bg-surface-float flex items-center justify-center overflow-hidden">
+              <div 
+                className={`w-24 h-24 sm:w-32 sm:h-32 lg:w-40 lg:h-40 rounded-2xl bg-gradient-to-br from-theme-primary to-theme-accent p-1 shadow-xl ${isEditing && isOwnProfile ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+                onClick={() => {
+                  if (isEditing && isOwnProfile) {
+                    // TODO: Abrir modal de upload/edição de avatar
+                    console.log('Abrir modal de edição de avatar');
+                  }
+                }}
+                title={isEditing && isOwnProfile ? 'Clique para alterar foto de perfil' : ''}
+              >
+                <div className="w-full h-full rounded-xl bg-surface-float flex items-center justify-center overflow-hidden relative">
                   {displayUser?.avatar ? (
                     <img 
                       src={displayUser.avatar} 
@@ -225,18 +234,15 @@ const ProfilePage = () => {
                       {displayUser?.displayName?.[0]?.toUpperCase() || 'U'}
                     </span>
                   )}
+                  
+                  {/* Overlay de edição */}
+                  {isEditing && isOwnProfile && (
+                    <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Camera className="w-8 h-8 text-white" />
+                    </div>
+                  )}
                 </div>
               </div>
-              
-              {/* Botão de upload de avatar - Só aparece quando editando */}
-              {isEditing && isOwnProfile && (
-                <button 
-                  className="absolute bottom-0 right-0 w-10 h-10 sm:w-12 sm:h-12 bg-theme-primary hover:bg-theme-hover text-white rounded-full flex items-center justify-center shadow-lg transition-colors"
-                  title="Alterar foto de perfil"
-                >
-                  <Camera className="w-5 h-5 sm:w-6 sm:h-6" />
-                </button>
-              )}
               
               {/* Status online - Só mostra quando não está editando */}
               {!isEditing && (
@@ -327,7 +333,7 @@ const ProfilePage = () => {
                       type="text"
                       value={formData.displayName}
                       onChange={(e) => handleInputChange('displayName', e.target.value)}
-                      className="w-full px-4 py-2 bg-surface-elevated border border-white/10 rounded-lg text-text-primary focus:outline-none focus:border-theme-primary transition-colors"
+                      className="w-full px-4 py-2.5 bg-surface-float border border-white/5 rounded-lg text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theme-active focus:bg-surface-elevated transition-all"
                       placeholder="Seu nome de exibição"
                     />
                   </div>
@@ -341,7 +347,7 @@ const ProfilePage = () => {
                       type="text"
                       value={displayUser?.username}
                       disabled
-                      className="w-full px-4 py-2 bg-surface-base border border-white/5 rounded-lg text-text-tertiary cursor-not-allowed"
+                      className="w-full px-4 py-2.5 bg-surface-base border border-white/5 rounded-lg text-text-tertiary cursor-not-allowed opacity-60"
                     />
                   </div>
 
@@ -349,7 +355,7 @@ const ProfilePage = () => {
                   <div>
                     <label className="block text-sm font-medium text-text-secondary mb-2">
                       Biografia
-                      <span className="text-text-tertiary ml-2">
+                      <span className="text-text-tertiary ml-2 text-xs">
                         {formData.bio.length}/500
                       </span>
                     </label>
@@ -361,7 +367,7 @@ const ProfilePage = () => {
                         }
                       }}
                       rows={4}
-                      className="w-full px-4 py-2 bg-surface-elevated border border-white/10 rounded-lg text-text-primary focus:outline-none focus:border-theme-primary transition-colors resize-none"
+                      className="w-full px-4 py-2.5 bg-surface-float border border-white/5 rounded-lg text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theme-active focus:bg-surface-elevated transition-all resize-none"
                       placeholder="Conte um pouco sobre você..."
                     />
                   </div>
@@ -376,7 +382,7 @@ const ProfilePage = () => {
                       type="text"
                       value={formData.location}
                       onChange={(e) => handleInputChange('location', e.target.value)}
-                      className="w-full px-4 py-2 bg-surface-elevated border border-white/10 rounded-lg text-text-primary focus:outline-none focus:border-theme-primary transition-colors"
+                      className="w-full px-4 py-2.5 bg-surface-float border border-white/5 rounded-lg text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theme-active focus:bg-surface-elevated transition-all"
                       placeholder="Cidade, País"
                     />
                   </div>
@@ -395,7 +401,7 @@ const ProfilePage = () => {
                           type="text"
                           value={formData.socialLinks.twitter}
                           onChange={(e) => handleSocialLinkChange('twitter', e.target.value)}
-                          className="flex-1 px-3 py-2 bg-surface-elevated border border-white/10 rounded-lg text-text-primary text-sm focus:outline-none focus:border-theme-primary transition-colors"
+                          className="flex-1 px-3 py-2 bg-surface-float border border-white/5 rounded-lg text-text-primary placeholder:text-text-tertiary text-sm focus:outline-none focus:border-theme-active focus:bg-surface-elevated transition-all"
                           placeholder="@username"
                         />
                       </div>
@@ -407,7 +413,7 @@ const ProfilePage = () => {
                           type="text"
                           value={formData.socialLinks.discord}
                           onChange={(e) => handleSocialLinkChange('discord', e.target.value)}
-                          className="flex-1 px-3 py-2 bg-surface-elevated border border-white/10 rounded-lg text-text-primary text-sm focus:outline-none focus:border-theme-primary transition-colors"
+                          className="flex-1 px-3 py-2 bg-surface-float border border-white/5 rounded-lg text-text-primary placeholder:text-text-tertiary text-sm focus:outline-none focus:border-theme-active focus:bg-surface-elevated transition-all"
                           placeholder="username#0000"
                         />
                       </div>
@@ -419,7 +425,7 @@ const ProfilePage = () => {
                           type="text"
                           value={formData.socialLinks.vrchat}
                           onChange={(e) => handleSocialLinkChange('vrchat', e.target.value)}
-                          className="flex-1 px-3 py-2 bg-surface-elevated border border-white/10 rounded-lg text-text-primary text-sm focus:outline-none focus:border-theme-primary transition-colors"
+                          className="flex-1 px-3 py-2 bg-surface-float border border-white/5 rounded-lg text-text-primary placeholder:text-text-tertiary text-sm focus:outline-none focus:border-theme-active focus:bg-surface-elevated transition-all"
                           placeholder="usr_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
                         />
                       </div>
@@ -431,7 +437,7 @@ const ProfilePage = () => {
                           type="url"
                           value={formData.socialLinks.website}
                           onChange={(e) => handleSocialLinkChange('website', e.target.value)}
-                          className="flex-1 px-3 py-2 bg-surface-elevated border border-white/10 rounded-lg text-text-primary text-sm focus:outline-none focus:border-theme-primary transition-colors"
+                          className="flex-1 px-3 py-2 bg-surface-float border border-white/5 rounded-lg text-text-primary placeholder:text-text-tertiary text-sm focus:outline-none focus:border-theme-active focus:bg-surface-elevated transition-all"
                           placeholder="https://seusite.com"
                         />
                       </div>
@@ -442,7 +448,7 @@ const ProfilePage = () => {
 
               {/* Social Links - Só mostrar no modo visualização */}
               {!isEditing && displayUser?.socialLinks && (
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 mb-4">
                   {displayUser.socialLinks.twitter && (
                     <a 
                       href={`https://twitter.com/${displayUser.socialLinks.twitter.replace('@', '')}`}
@@ -480,68 +486,69 @@ const ProfilePage = () => {
                 </div>
               )}
 
-              {/* Botões de ação */}
-              <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-white/5">
-                {isOwnProfile ? (
-                  <>
-                    {!isEditing ? (
-                      <>
-                        {/* Modo Visualização */}
-                        <button 
-                          onClick={() => setIsEditing(true)}
-                          className="flex items-center gap-2 px-4 py-2 bg-theme-active text-white rounded-lg hover:bg-theme-hover transition-colors text-sm"
-                        >
-                          <Edit className="w-4 h-4" />
-                          Editar Perfil
-                        </button>
-                        <button className="flex items-center gap-2 px-4 py-2 bg-surface-elevated hover:bg-surface-elevated/80 text-text-primary rounded-lg transition-colors text-sm">
-                          <Share2 className="w-4 h-4" />
-                          Compartilhar
-                        </button>
-                        <button 
-                          onClick={() => navigate('/settings')}
-                          className="flex items-center gap-2 px-4 py-2 bg-surface-elevated hover:bg-surface-elevated/80 text-text-primary rounded-lg transition-colors text-sm"
-                        >
-                          <Settings className="w-4 h-4" />
-                          <span className="hidden sm:inline">Configurações</span>
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        {/* Modo Edição */}
-                        <button 
-                          onClick={handleSave}
-                          className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm"
-                        >
-                          <Save className="w-4 h-4" />
-                          Salvar Alterações
-                        </button>
-                        <button 
-                          onClick={handleCancel}
-                          className="flex items-center gap-2 px-4 py-2 bg-surface-elevated hover:bg-surface-elevated/80 text-text-primary rounded-lg transition-colors text-sm"
-                        >
-                          <X className="w-4 h-4" />
-                          Cancelar
-                        </button>
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-theme-active text-white rounded-lg hover:bg-theme-hover transition-colors text-sm">
-                      <Users className="w-4 h-4" />
-                      Seguir
-                    </button>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-surface-elevated hover:bg-surface-elevated/80 text-text-primary rounded-lg transition-colors text-sm">
-                      <MessageCircle className="w-4 h-4" />
-                      Mensagem
-                    </button>
-                    <button className="px-4 py-2 bg-surface-elevated hover:bg-surface-elevated/80 text-text-primary rounded-lg transition-colors">
-                      <MoreHorizontal className="w-4 h-4" />
-                    </button>
-                  </>
-                )}
-              </div>
+              {/* Botões de ação - Layout minimalista */}
+              {isOwnProfile && (
+                <div className={`flex items-center ${isEditing ? 'justify-end gap-3 pt-4 border-t border-white/5' : 'justify-start gap-2'}`}>
+                  {!isEditing ? (
+                    <>
+                      {/* Modo Visualização - Minimalista */}
+                      <button 
+                        onClick={() => setIsEditing(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-theme-active/10 hover:bg-theme-active text-theme-active hover:text-white rounded-lg transition-all text-sm font-medium"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Editar
+                      </button>
+                      <button 
+                        onClick={() => navigate('/settings')}
+                        className="p-2 hover:bg-surface-elevated rounded-lg transition-colors text-text-tertiary hover:text-text-primary"
+                        title="Configurações"
+                      >
+                        <Settings className="w-4 h-4" />
+                      </button>
+                      <button 
+                        className="p-2 hover:bg-surface-elevated rounded-lg transition-colors text-text-tertiary hover:text-text-primary"
+                        title="Compartilhar"
+                      >
+                        <Share2 className="w-4 h-4" />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      {/* Modo Edição - Destaque claro */}
+                      <button 
+                        onClick={handleSave}
+                        className="flex items-center gap-2 px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all text-sm font-medium shadow-lg shadow-green-600/20"
+                      >
+                        <Save className="w-4 h-4" />
+                        Salvar
+                      </button>
+                      <button 
+                        onClick={handleCancel}
+                        className="px-4 py-2.5 text-text-tertiary hover:text-text-primary transition-colors text-sm font-medium"
+                      >
+                        Cancelar
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Botões para perfil de outros usuários */}
+              {!isOwnProfile && (
+                <div className="flex items-center gap-2">
+                  <button className="flex items-center gap-2 px-4 py-2 bg-theme-active text-white rounded-lg hover:bg-theme-hover transition-colors text-sm font-medium">
+                    <Users className="w-4 h-4" />
+                    Seguir
+                  </button>
+                  <button className="p-2 hover:bg-surface-elevated rounded-lg transition-colors text-text-tertiary hover:text-text-primary">
+                    <MessageCircle className="w-4 h-4" />
+                  </button>
+                  <button className="p-2 hover:bg-surface-elevated rounded-lg transition-colors text-text-tertiary hover:text-text-primary">
+                    <MoreHorizontal className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Level Card - Desktop */}

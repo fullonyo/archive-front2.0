@@ -7,7 +7,7 @@ const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
-    <div className="flex flex-col min-h-screen bg-surface-base text-text-primary">
+    <div className="flex flex-col h-screen bg-surface-base text-text-primary">
       {/* Header at the top */}
       <Header />
       

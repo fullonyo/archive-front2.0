@@ -24,10 +24,10 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
   return (
     <aside       className={`
-        bg-surface-float border-r border-white/5 transition-all duration-300 flex-shrink-0
+        bg-surface-float border-r border-white/5 transition-all duration-300 flex-shrink-0 h-full overflow-y-auto
         ${isOpen ? 'w-64' : 'w-16'}
       `}>
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col min-h-full">
         {/* Logo & Toggle Button */}
         <div className="flex items-center justify-between p-4 border-b border-white/5">
           {isOpen ? (

@@ -348,7 +348,10 @@ const ForumListPage = ({ category = 'popular', icon: Icon, title }) => {
             </div>
 
             {/* Create Post Button - Fixed Width */}
-            <button className="btn btn-primary shrink-0 h-10 px-4 gap-2">
+            <button 
+              onClick={() => window.location.href = '/forum/new'}
+              className="btn btn-primary shrink-0 h-10 px-4 gap-2"
+            >
               <Plus size={18} />
               <span className="hidden sm:inline">Criar Post</span>
             </button>
@@ -394,7 +397,10 @@ const ForumListPage = ({ category = 'popular', icon: Icon, title }) => {
               <p className="text-text-secondary mb-6">
                 Tente ajustar seus filtros ou crie o primeiro post!
               </p>
-              <button className="btn btn-primary">
+              <button 
+                onClick={() => window.location.href = '/forum/new'}
+                className="btn btn-primary"
+              >
                 <Plus size={20} />
                 Criar Primeiro Post
               </button>

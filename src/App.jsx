@@ -11,6 +11,7 @@ import ForumSupportPage from './pages/ForumSupportPage';
 import ForumIdeasPage from './pages/ForumIdeasPage';
 import ForumGeneralPage from './pages/ForumGeneralPage';
 import ForumPostDetailPage from './pages/ForumPostDetailPage';
+import ForumNewPostPage from './pages/ForumNewPostPage';
 import VRChatProfilePage from './pages/VRChatProfilePage';
 import VRChatFriendsPage from './pages/VRChatFriendsPage';
 import VRChatStatusPage from './pages/VRChatStatusPage';
@@ -41,6 +42,7 @@ function App() {
             <Route path="forum/support" element={<ForumSupportPage />} />
             <Route path="forum/ideas" element={<ForumIdeasPage />} />
             <Route path="forum/general" element={<ForumGeneralPage />} />
+            <Route path="forum/new" element={<ForumNewPostPage />} />
             <Route path="forum/post/:id" element={<ForumPostDetailPage />} />
             
             {/* VRChat Routes */}

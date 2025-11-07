@@ -142,6 +142,9 @@ export const enUS = {
     addReply: 'Add Reply',
     publishReply: 'Publish Reply',
     cancel: 'Cancel',
+    createPost: 'Create Post',
+    newPost: 'New Post',
+    publishPost: 'Publish Post',
     // Reactions
     reactions: 'Reactions:',
     useful: 'Useful',

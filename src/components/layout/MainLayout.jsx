@@ -12,12 +12,15 @@ const MainLayout = () => {
       <Header />
       
       {/* Sidebar and main content below header */}
-      <div className="flex flex-1">
+      <div className="flex flex-1 overflow-hidden">
         <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
         
-        {/* Main Content Area */}
-        <main className={`flex-1 transition-all duration-300`}>
-          <Outlet />
+        {/* Main Content Area - Centralized Container */}
+        <main className="flex-1 transition-all duration-300 overflow-y-auto">
+          {/* Content Container - daily.dev style */}
+          <div className="content-container">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

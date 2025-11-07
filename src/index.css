@@ -29,6 +29,21 @@
 }
 
 @layer components {
+  /* Content Container - daily.dev style centralized layout */
+  .content-container {
+    @apply w-full max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-5;
+  }
+
+  /* Narrower container for single-column content */
+  .content-container-narrow {
+    @apply w-full max-w-[1024px] mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-5;
+  }
+
+  /* Full-width container with padding */
+  .content-container-full {
+    @apply w-full px-3 sm:px-4 lg:px-6 py-4 sm:py-5;
+  }
+
   .card {
     @apply bg-surface-float rounded-xl border border-white/5 shadow-card transition-all duration-200;
   }

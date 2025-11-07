@@ -23,7 +23,10 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <aside className={`bg-surface-float border-r border-white/5 transition-all duration-300 ease-in-out flex-shrink-0 ${isOpen ? 'w-64' : 'w-16'}`}>
+    <aside       className={`
+        bg-surface-float border-r border-white/5 transition-all duration-300 flex-shrink-0
+        ${isOpen ? 'w-64' : 'w-16'}
+      `}>
       <div className="flex flex-col h-full">
         {/* Logo & Toggle Button */}
         <div className="flex items-center justify-between p-4 border-b border-white/5">

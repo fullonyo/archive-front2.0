@@ -70,7 +70,7 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-surface-float/80 backdrop-blur-xl border-b border-white/5 z-40 sticky top-0">
+    <header className="bg-surface-float/80 backdrop-blur-xl border-b border-white/5 z-50 sticky top-0">
       <div className="flex items-center justify-between gap-6 px-4 h-14 w-full">
         {/* Logo and Brand */}
         <div className="flex items-center gap-3 flex-shrink-0">

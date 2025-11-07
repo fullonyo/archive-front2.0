@@ -24,135 +24,116 @@ const AssetCard = ({ asset }) => {
 
   return (
     <article 
-      className="asset-card group"
+      className="asset-card group relative"
       onClick={handleCardClick}
     >
-      {/* Thumbnail */}
-      <div className="relative overflow-hidden bg-surface-float2">
+      {/* Thumbnail Container - Mais compacto */}
+      <div className="relative overflow-hidden bg-surface-float2 rounded-t-xl">
         <img
           src={asset.thumbnail || 'https://via.placeholder.com/400x225'}
           alt={asset.title}
-          className="asset-thumbnail w-full h-48 object-cover"
+          className="asset-thumbnail w-full h-40 object-cover"
         />
         
-        {/* Category Badge */}
-        <div className="absolute top-3 left-3">
-          <span className="px-3 py-1 bg-black/70 backdrop-blur-sm rounded-full text-xs font-medium">
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+        {/* Category Badge - Menor */}
+        <div className="absolute top-2 left-2 z-10">
+          <span className="px-2.5 py-1 bg-black/80 backdrop-blur-md rounded-full text-xs font-medium border border-white/10">
             {asset.category}
           </span>
         </div>
 
-        {/* Like Button Overlay */}
+        {/* Like Button - Menor */}
         <button
           onClick={handleLike}
           className={`
-            absolute top-3 right-3 p-2 rounded-full backdrop-blur-sm transition-all
+            absolute top-2 right-2 z-10 p-2 rounded-full backdrop-blur-md transition-all duration-200
             ${isLiked 
-              ? 'bg-red-500/90 text-white' 
-              : 'bg-black/70 hover:bg-black/90 text-white'
+              ? 'bg-red-500/90 text-white scale-110' 
+              : 'bg-black/80 hover:bg-black/90 text-white hover:scale-110'
             }
           `}
         >
           <Heart 
-            size={18} 
-            fill={isLiked ? 'currentColor' : 'none'} 
+            size={16} 
+            fill={isLiked ? 'currentColor' : 'none'}
+            strokeWidth={2}
           />
         </button>
 
-        {/* Hover Actions */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-4">
-          <div className="flex gap-2 w-full">
-            <button className="btn btn-primary flex-1 justify-center text-sm">
-              <Download size={16} />
-              Download
+        {/* Hover Actions - Compacto */}
+        <div className="absolute inset-x-0 bottom-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+          <div className="flex gap-2">
+            <button className="btn btn-primary flex-1 justify-center text-xs py-1.5 shadow-lg">
+              <Download size={14} />
+              <span className="hidden sm:inline">Download</span>
             </button>
-            <button className="btn btn-secondary p-2">
-              <Eye size={16} />
+            <button className="btn bg-black/80 backdrop-blur-md text-white hover:bg-black p-2 shadow-lg">
+              <Eye size={14} />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="p-4">
-        {/* Title */}
-        <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-theme-active transition-colors">
+      {/* Content - Mais compacto */}
+      <div className="p-3">
+        {/* Title - Menor */}
+        <h3 className="font-semibold text-sm mb-1.5 line-clamp-2 group-hover:text-theme-active transition-colors leading-tight">
           {asset.title}
         </h3>
 
-        {/* Description */}
-        {asset.description && (
-          <p className="text-sm text-text-secondary line-clamp-2 mb-3">
-            {asset.description}
-          </p>
-        )}
-
-        {/* Author */}
-        <div className="flex items-center gap-2 mb-3">
+        {/* Description - Removida para economizar espaço */}
+        
+        {/* Author Info - Compacto */}
+        <div className="flex items-center gap-1.5 mb-3 pb-2 border-b border-white/5">
           {asset.author.avatar ? (
             <img 
               src={asset.author.avatar} 
               alt={asset.author.name}
-              className="w-6 h-6 rounded-full"
+              className="w-5 h-5 rounded-full ring-1 ring-surface-float2"
             />
           ) : (
-            <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full" />
+            <div className="w-5 h-5 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full ring-1 ring-surface-float2" />
           )}
-          <span className="text-sm text-text-secondary hover:text-text-primary transition-colors cursor-pointer">
-            {asset.author.name}
-          </span>
-          <span className="text-text-tertiary text-xs">•</span>
-          <span className="text-text-tertiary text-xs">{asset.uploadedAt}</span>
+          <div className="flex-1 min-w-0">
+            <span className="text-xs text-text-secondary hover:text-text-primary transition-colors cursor-pointer font-medium truncate block">
+              {asset.author.name}
+            </span>
+          </div>
+          <span className="text-text-tertiary text-xs flex-shrink-0">{asset.uploadedAt}</span>
         </div>
 
-        {/* Stats */}
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-4 text-text-tertiary">
-            <span className="flex items-center gap-1">
-              <Heart size={16} />
-              {likes}
+        {/* Stats - Mais compacto */}
+        <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center gap-3 text-text-tertiary">
+            <span className="flex items-center gap-1 hover:text-red-500 transition-colors cursor-pointer">
+              <Heart size={14} strokeWidth={2} />
+              <span className="font-medium">{likes}</span>
             </span>
-            <span className="flex items-center gap-1">
-              <Download size={16} />
-              {asset.downloads}
+            <span className="flex items-center gap-1 hover:text-blue-500 transition-colors cursor-pointer">
+              <Download size={14} strokeWidth={2} />
+              <span className="font-medium">{asset.downloads}</span>
             </span>
             {asset.comments > 0 && (
-              <span className="flex items-center gap-1">
-                <MessageCircle size={16} />
-                {asset.comments}
+              <span className="flex items-center gap-1 hover:text-green-500 transition-colors cursor-pointer">
+                <MessageCircle size={14} strokeWidth={2} />
+                <span className="font-medium">{asset.comments}</span>
               </span>
             )}
           </div>
 
           <button 
-            className="p-1 hover:bg-surface-float2 rounded transition-colors"
+            className="p-1 hover:bg-surface-float2 rounded transition-colors text-text-tertiary hover:text-text-primary"
             onClick={(e) => {
               e.stopPropagation();
               // TODO: Show options menu
             }}
           >
-            <MoreVertical size={16} />
+            <MoreVertical size={14} />
           </button>
         </div>
-
-        {/* Tags */}
-        {asset.tags && asset.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-3">
-            {asset.tags.slice(0, 3).map((tag, index) => (
-              <span
-                key={index}
-                className="px-2 py-1 bg-surface-float2 rounded text-xs text-text-tertiary hover:text-text-secondary transition-colors cursor-pointer"
-              >
-                #{tag}
-              </span>
-            ))}
-            {asset.tags.length > 3 && (
-              <span className="px-2 py-1 text-xs text-text-tertiary">
-                +{asset.tags.length - 3} more
-              </span>
-            )}
-          </div>
-        )}
       </div>
     </article>
   );

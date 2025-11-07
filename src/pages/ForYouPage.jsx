@@ -70,29 +70,56 @@ const ForYouPage = () => {
   const categories = ['all', 'Avatars', 'Worlds', 'Shaders', 'Effects', 'Tools', 'Accessories'];
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold mb-1">For You</h1>
-          <p className="text-text-secondary text-sm">Latest assets from the community</p>
-        </div>
-      </div>
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between bg-surface-float/30 rounded-lg p-3 border border-white/5">
-        <div className="flex gap-2 flex-wrap">
-          {sortOptions.map((option) => {
-            const Icon = option.icon;
-            return (<button key={option.value} onClick={() => setSortBy(option.value)} className={`btn flex items-center gap-2 text-sm ${sortBy === option.value ? 'btn-primary' : 'btn-secondary'}`}><Icon size={16} />{option.label}</button>);
-          })}
-        </div>
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto">
-          <Filter size={16} className="text-text-tertiary flex-shrink-0" />
-          <div className="flex gap-2">
-            {categories.map((category) => (<button key={category} onClick={() => setFilterCategory(category)} className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${filterCategory === category ? 'bg-theme-active text-white' : 'bg-surface-float text-text-secondary hover:bg-surface-float2 hover:text-text-primary'}`}>{category === 'all' ? 'All' : category}</button>))}
+    <div className="max-w-[1600px] mx-auto">
+      {/* Compact Filter Bar - Minimalista - STICKY */}
+      <div className="sticky top-0 z-10 bg-surface-base backdrop-blur-sm px-3 sm:px-4 lg:px-6 py-3 border-b border-white/5">
+        <div className="flex gap-2 items-center justify-between">
+          {/* Sort Tabs */}
+          <div className="flex gap-1">
+            {sortOptions.map((option) => {
+              const Icon = option.icon;
+              return (
+                <button
+                  key={option.value}
+                  onClick={() => setSortBy(option.value)}
+                  className={`
+                    flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all
+                    ${sortBy === option.value 
+                      ? 'bg-theme-active text-white' 
+                      : 'text-text-secondary hover:text-text-primary hover:bg-surface-float'}
+                  `}
+                >
+                  <Icon size={16} />
+                  <span className="hidden sm:inline">{option.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Category Filter Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setFilterCategory(category)}
+                className={`
+                  px-2.5 py-1 rounded-md text-xs font-medium transition-all whitespace-nowrap flex-shrink-0
+                  ${filterCategory === category 
+                    ? 'bg-theme-active/20 text-theme-active border border-theme-active/30' 
+                    : 'text-text-tertiary hover:text-text-secondary hover:bg-surface-float/50'}
+                `}
+              >
+                {category === 'all' ? 'All' : category}
+              </button>
+            ))}
           </div>
         </div>
       </div>
-      {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+
+      {/* Content Area with padding */}
+      <div className="px-3 sm:px-4 lg:px-6 py-4">
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
           {[...Array(15)].map((_, i) => (<div key={i} className="card animate-pulse"><div className="bg-surface-float2 h-40 rounded-t-xl" /><div className="p-3 space-y-2"><div className="h-3 bg-surface-float2 rounded w-3/4" /><div className="h-2 bg-surface-float2 rounded w-full" /></div></div>))}
         </div>
       ) : (
@@ -106,6 +133,7 @@ const ForYouPage = () => {
           </div>
         </>
       )}
+      </div>
     </div>
   );
 };

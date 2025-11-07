@@ -17,10 +17,7 @@ const MainLayout = () => {
         
         {/* Main Content Area - Centralized Container */}
         <main className="flex-1 transition-all duration-300 overflow-y-auto">
-          {/* Content Container - daily.dev style */}
-          <div className="content-container">
-            <Outlet />
-          </div>
+          <Outlet />
         </main>
       </div>
     </div>

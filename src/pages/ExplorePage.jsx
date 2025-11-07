@@ -1,11 +1,12 @@
 import { Shirt, Globe, Sparkles, Wand2, Box, Star, Grid3x3, Package, Search, TrendingUp, Flame, Clock } from 'lucide-react';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const ExplorePage = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeView, setActiveView] = useState('all'); // all, featured, popular
+  const [loading, setLoading] = useState(true);
 
   const categories = [
     {
@@ -132,6 +133,14 @@ const ExplorePage = () => {
     }
   }, [searchQuery, navigate]);
 
+  // Simular carregamento inicial
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Filter categories based on active view
   const filteredCategories = useMemo(() => {
     if (activeView === 'featured') return categories.filter(cat => cat.featured);
@@ -141,6 +150,19 @@ const ExplorePage = () => {
 
   return (
     <div className="max-w-[1600px] mx-auto">
+      {/* RGB Progress Bar - Loading State */}
+      {loading && (
+        <div className="fixed top-0 left-0 right-0 z-50 h-1">
+          <div 
+            className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-progress-bar"
+            style={{ 
+              boxShadow: '0 0 10px rgba(139, 92, 246, 0.5)',
+              willChange: 'transform'
+            }}
+          />
+        </div>
+      )}
+
       {/* Sticky Search & Filter Bar */}
       <div 
         className="sticky top-0 z-10 bg-surface-base px-3 sm:px-4 lg:px-6 py-3 border-b border-white/5"
@@ -190,6 +212,115 @@ const ExplorePage = () => {
 
       {/* Content Area */}
       <div className="px-3 sm:px-4 lg:px-6 py-6 space-y-8">
+        {loading ? (
+          /* Modern Skeleton Loading */
+          <>
+            {/* Featured Categories Skeleton */}
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <div className="h-6 w-48 bg-surface-float rounded animate-pulse" style={{ opacity: 0.6 }} />
+                <div className="h-4 w-20 bg-surface-float rounded animate-pulse" style={{ opacity: 0.6 }} />
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                {[...Array(3)].map((_, i) => (
+                  <div 
+                    key={i} 
+                    className="relative overflow-hidden rounded-xl border border-white/5 bg-surface-float"
+                    style={{ 
+                      animation: `fade-in 0.3s ease-out ${i * 0.05}s backwards`,
+                      opacity: 0.6
+                    }}
+                  >
+                    {/* Gradient Header Skeleton */}
+                    <div className="h-28 bg-gradient-to-br from-surface-float2 to-surface-float relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
+                    </div>
+                    {/* Content Skeleton */}
+                    <div className="p-4 space-y-2">
+                      <div className="h-4 w-24 bg-surface-float2 rounded" />
+                      <div className="h-3 w-full bg-surface-float2 rounded" />
+                      <div className="flex items-center justify-between pt-1">
+                        <div className="h-3 w-16 bg-surface-float2 rounded" />
+                        <div className="h-3 w-14 bg-surface-float2 rounded" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* All Categories Grid Skeleton */}
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <div className="h-6 w-32 bg-surface-float rounded animate-pulse" style={{ opacity: 0.6 }} />
+                <div className="h-4 w-24 bg-surface-float rounded animate-pulse" style={{ opacity: 0.6 }} />
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                {[...Array(10)].map((_, i) => (
+                  <div 
+                    key={i} 
+                    className="relative p-4 rounded-lg border border-white/5 bg-surface-float"
+                    style={{ 
+                      animation: `fade-in 0.3s ease-out ${i * 0.03}s backwards`,
+                      opacity: 0.6
+                    }}
+                  >
+                    <div className="relative">
+                      <div className="inline-flex p-2.5 rounded-lg bg-gradient-to-br from-surface-float2 to-surface-float mb-3">
+                        <div className="w-5 h-5 bg-surface-float2 rounded" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
+                      </div>
+                    </div>
+                    <div className="h-4 w-20 bg-surface-float2 rounded mb-1" />
+                    <div className="h-3 w-12 bg-surface-float2 rounded" />
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Tags Skeleton */}
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <div className="h-6 w-32 bg-surface-float rounded animate-pulse" style={{ opacity: 0.6 }} />
+                <div className="h-4 w-16 bg-surface-float rounded animate-pulse" style={{ opacity: 0.6 }} />
+              </div>
+              <div className="rounded-xl border border-white/5 bg-surface-float p-4">
+                <div className="flex flex-wrap gap-2">
+                  {[...Array(12)].map((_, i) => (
+                    <div 
+                      key={i} 
+                      className="h-7 bg-surface-float2 rounded-md"
+                      style={{ 
+                        width: `${Math.random() * 40 + 60}px`,
+                        animation: `fade-in 0.3s ease-out ${i * 0.02}s backwards`,
+                        opacity: 0.6
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* Stats Skeleton */}
+            <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[...Array(4)].map((_, i) => (
+                <div 
+                  key={i} 
+                  className="p-4 rounded-lg border border-white/5 bg-surface-float"
+                  style={{ 
+                    animation: `fade-in 0.3s ease-out ${i * 0.05}s backwards`,
+                    opacity: 0.6
+                  }}
+                >
+                  <div className="w-4 h-4 bg-surface-float2 rounded mb-2" />
+                  <div className="h-6 w-16 bg-surface-float2 rounded mb-1" />
+                  <div className="h-3 w-20 bg-surface-float2 rounded" />
+                </div>
+              ))}
+            </section>
+          </>
+        ) : (
+          <>
         {/* Featured Hero Categories - Large Cards (2 columns on desktop) */}
         {activeView === 'all' && (
           <section>
@@ -337,6 +468,8 @@ const ExplorePage = () => {
             );
           })}
         </section>
+          </>
+        )}
       </div>
     </div>
   );

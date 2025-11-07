@@ -8,6 +8,8 @@ export const ptBR = {
     profile: 'Perfil',
     settings: 'Configurações',
     signOut: 'Sair',
+    signIn: 'Entrar',
+    signUp: 'Cadastrar',
   },
 
   // Sidebar
@@ -268,5 +270,109 @@ export const ptBR = {
     follow: 'começou a seguir você',
     download: 'baixou seu asset',
     mention: 'mencionou você',
+  },
+
+  // User System
+  user: {
+    // Login
+    login: {
+      title: 'Entrar na sua conta',
+      subtitle: 'Bem-vindo de volta! Entre para continuar.',
+      rememberMe: 'Lembrar de mim',
+      forgotPassword: 'Esqueceu a senha?',
+      signIn: 'Entrar',
+      signingIn: 'Entrando...',
+      noAccount: 'Não tem uma conta?',
+      signUp: 'Cadastre-se',
+    },
+    
+    // Register  
+    register: {
+      title: 'Criar conta',
+      subtitle: 'Junte-se à nossa comunidade de criadores VRChat!',
+      createAccount: 'Criar conta',
+      creating: 'Criando conta...',
+      hasAccount: 'Já tem uma conta?',
+      signIn: 'Entre aqui',
+      agreeToTerms: 'Eu concordo com os',
+      termsOfService: 'Termos de Serviço',
+      agreeToPrivacy: 'Eu concordo com a',
+      privacyPolicy: 'Política de Privacidade',
+    },
+
+    // Fields
+    fields: {
+      username: 'Nome de usuário',
+      email: 'E-mail',
+      password: 'Senha',
+      confirmPassword: 'Confirmar senha',
+      displayName: 'Nome de exibição',
+    },
+
+    // Placeholders
+    placeholders: {
+      username: 'Digite seu nome de usuário',
+      email: 'Digite seu e-mail',
+      password: 'Digite sua senha',
+      confirmPassword: 'Confirme sua senha',
+      displayName: 'Como você quer ser chamado',
+    },
+
+    // Validation
+    validation: {
+      usernameRequired: 'Nome de usuário é obrigatório',
+      usernameTooShort: 'Nome de usuário deve ter pelo menos 3 caracteres',
+      usernameInvalid: 'Nome de usuário pode conter apenas letras, números e _',
+      emailRequired: 'E-mail é obrigatório',
+      emailInvalid: 'E-mail deve ser válido',
+      passwordRequired: 'Senha é obrigatória',
+      passwordTooShort: 'Senha deve ter pelo menos 8 caracteres',
+      passwordWeak: 'Senha deve conter letras maiúsculas, minúsculas e números',
+      confirmPasswordRequired: 'Confirmação de senha é obrigatória',
+      passwordMismatch: 'Senhas não coincidem',
+      displayNameTooLong: 'Nome de exibição deve ter no máximo 50 caracteres',
+      agreeToTermsRequired: 'Você deve concordar com os Termos de Serviço',
+      agreeToPrivacyRequired: 'Você deve concordar com a Política de Privacidade',
+    },
+
+    // Password strength
+    password: {
+      strength: 'Força da senha:',
+      veryWeak: 'Muito fraca',
+      weak: 'Fraca',
+      fair: 'Regular',
+      good: 'Boa',
+      strong: 'Forte',
+      veryStrong: 'Muito forte',
+    },
+
+    // Profile
+    profile: {
+      title: 'Perfil do usuário',
+      editProfile: 'Editar perfil',
+      followers: 'Seguidores',
+      following: 'Seguindo',
+      posts: 'Posts',
+      reputation: 'Reputação',
+      level: 'Nível',
+      joinedDate: 'Membro desde',
+      bio: 'Bio',
+      socialLinks: 'Redes sociais',
+      vrchatProfile: 'Perfil VRChat',
+      avatars: 'Avatares',
+      favorites: 'Favoritos',
+      downloads: 'Downloads',
+      likes: 'Curtidas',
+      overview: 'Visão geral',
+      activity: 'Atividade',
+      follow: 'Seguir',
+      message: 'Mensagem',
+      recentAvatars: 'Avatares recentes',
+      recentActivity: 'Atividade recente',
+      postedIn: 'Postou em',
+    },
+
+    // General
+    optional: 'opcional',
   },
 };

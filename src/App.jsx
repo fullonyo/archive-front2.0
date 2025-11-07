@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { UserProvider } from './contexts/UserContext';
 import MainLayout from './components/layout/MainLayout';
 import ForYouPage from './pages/ForYouPage';
 import ExplorePage from './pages/ExplorePage';
@@ -15,6 +16,8 @@ import ForumNewPostPage from './pages/ForumNewPostPage';
 import VRChatProfilePage from './pages/VRChatProfilePage';
 import VRChatFriendsPage from './pages/VRChatFriendsPage';
 import VRChatStatusPage from './pages/VRChatStatusPage';
+import UserProfilePage from './pages/UserProfilePage';
+import LoginPage from './pages/LoginPage';
 
 const PlaceholderPage = ({ title }) => (
   <div className="flex items-center justify-center min-h-[60vh]">
@@ -28,8 +31,13 @@ const PlaceholderPage = ({ title }) => (
 function App() {
   return (
     <LanguageProvider>
+      <UserProvider>
       <Router>
         <Routes>
+          {/* Public Routes - Login without MainLayout */}
+          <Route path="/login" element={<LoginPage />} />
+          
+          {/* Protected Routes with MainLayout */}
           <Route path="/" element={<MainLayout />}>
             <Route index element={<ForYouPage />} />
             <Route path="explore" element={<ExplorePage />} />
@@ -50,6 +58,9 @@ function App() {
             <Route path="vrchat/friends" element={<VRChatFriendsPage />} />
             <Route path="vrchat/status" element={<VRChatStatusPage />} />
             
+            {/* User Routes */}
+            <Route path="user/:username" element={<UserProfilePage />} />
+            
             {/* Other Routes */}
             <Route path="settings" element={<PlaceholderPage title="Settings" />} />
             <Route path="profile" element={<PlaceholderPage title="Profile" />} />
@@ -59,6 +70,7 @@ function App() {
           </Route>
         </Routes>
       </Router>
+      </UserProvider>
     </LanguageProvider>
   );
 }

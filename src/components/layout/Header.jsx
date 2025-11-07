@@ -3,22 +3,14 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../hooks/useTranslation';
 import LanguageSelector from '../common/LanguageSelector';
+import UserButton from '../user/UserButton';
 
 const Header = () => {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
-  const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const userMenuRef = useRef(null);
   const notificationsRef = useRef(null);
   const navigate = useNavigate();
-
-  // Mock user data - será substituído com contexto real
-  const user = {
-    name: 'User Name',
-    avatar: null,
-    email: 'user@example.com'
-  };
 
   // Mock notifications
   const notifications = [
@@ -50,9 +42,6 @@ const Header = () => {
   // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
-        setShowUserMenu(false);
-      }
       if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
         setShowNotifications(false);
       }
@@ -145,65 +134,8 @@ const Header = () => {
             )}
           </div>
 
-          {/* User Menu */}
-          <div className="relative" ref={userMenuRef}>
-            <button
-              onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-2 p-1.5 hover:bg-surface-float2 rounded-lg transition-colors"
-            >
-              {user.avatar ? (
-                <img src={user.avatar} alt={user.name} className="w-7 h-7 rounded-full" />
-              ) : (
-                <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                  <User size={14} />
-                </div>
-              )}
-            </button>
-
-            {/* User Menu Dropdown */}
-            {showUserMenu && (
-              <div className="absolute right-0 mt-2 w-56 bg-surface-float border border-white/10 rounded-xl shadow-xl overflow-hidden animate-slide-down">
-                <div className="px-4 py-3 border-b border-white/5">
-                  <p className="font-medium text-sm">{user.name}</p>
-                  <p className="text-xs text-text-tertiary mt-0.5">{user.email}</p>
-                </div>
-                <div className="py-1">
-                  <button
-                    onClick={() => {
-                      navigate('/profile');
-                      setShowUserMenu(false);
-                    }}
-                    className="w-full px-4 py-2 text-sm text-left hover:bg-surface-float2 flex items-center gap-3 transition-colors"
-                  >
-                    <User size={16} />
-                    <span>{t('header.profile')}</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      navigate('/settings');
-                      setShowUserMenu(false);
-                    }}
-                    className="w-full px-4 py-2 text-sm text-left hover:bg-surface-float2 flex items-center gap-3 transition-colors"
-                  >
-                    <SettingsIcon size={16} />
-                    <span>{t('header.settings')}</span>
-                  </button>
-                </div>
-                <div className="p-1.5 border-t border-white/5">
-                  <button
-                    onClick={() => {
-                      // TODO: Implement logout
-                      console.log('Logout');
-                    }}
-                    className="w-full px-4 py-2 text-sm text-left hover:bg-red-500/10 text-red-500 rounded-lg flex items-center gap-3 transition-colors"
-                  >
-                    <LogOut size={16} />
-                    <span>{t('header.signOut')}</span>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+          {/* User Button */}
+          <UserButton />
         </div>
       </div>
     </header>

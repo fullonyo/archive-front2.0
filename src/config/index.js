@@ -7,3 +7,4 @@
 export { activeBackground } from './backgrounds';
 export { pixelBlastConfig, pixelBlastPresets } from './pixelBlast.config';
 export { gridScanConfig, gridScanPresets } from './gridScan.config';
+export { textTypeConfig, textTypePresets } from './textType.config';

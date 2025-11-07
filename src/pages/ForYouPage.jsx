@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect, useRef, useCallback } from 'react';
 import AssetCard from '../components/assets/AssetCard';
+import Breadcrumb from '../components/common/Breadcrumb';
 import { TrendingUp, Clock, Sparkles, ArrowUp, AlertCircle, Upload, RefreshCw } from 'lucide-react';
 
 const ForYouPage = () => {
@@ -141,12 +142,22 @@ const ForYouPage = () => {
         </div>
       )}
 
-      {/* Compact Sort Bar - Minimalista - STICKY */}
+      {/* Breadcrumb */}
+      <div className="px-3 sm:px-4 lg:px-6 pt-4">
+        <Breadcrumb
+          items={[
+            { label: 'For You', path: '/for-you' }
+          ]}
+        />
+      </div>
+
+      {/* Compact Sort Bar - Sticky */}
       <div 
         className="sticky top-0 z-10 bg-surface-base px-3 sm:px-4 lg:px-6 py-3 border-b border-white/5"
         style={{ contain: 'layout style' }}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          {/* Sort Options */}
           <div className="flex gap-1">
             {sortOptions.map((option) => {
               const Icon = option.icon;
@@ -158,7 +169,7 @@ const ForYouPage = () => {
                     flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all
                     ${sortBy === option.value 
                       ? 'bg-theme-active text-white' 
-                      : 'text-text-secondary hover:text-text-primary hover:bg-surface-float'}
+                      : 'bg-surface-float text-text-secondary hover:bg-surface-float2 hover:text-text-primary'}
                   `}
                 >
                   <Icon size={14} />

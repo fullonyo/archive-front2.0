@@ -310,10 +310,10 @@ const ForumListPage = ({ category = 'popular', icon: Icon, title }) => {
                     flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all
                     ${sortBy === option.value 
                       ? 'bg-theme-active text-white' 
-                      : 'text-text-secondary hover:text-text-primary hover:bg-surface-float'}
+                      : 'bg-surface-float text-text-secondary hover:bg-surface-float2 hover:text-text-primary'}
                   `}
                 >
-                  <OptionIcon size={14} />
+                  <Icon size={14} />
                   {option.label}
                 </button>
               );
@@ -336,13 +336,14 @@ const ForumListPage = ({ category = 'popular', icon: Icon, title }) => {
           <div className="flex gap-3 mb-4">
             {/* Search Bar - Flexible */}
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" size={18} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none" size={16} />
               <input
                 type="text"
                 placeholder="Buscar posts..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-10 pl-10 pr-4 bg-surface-float2 border border-white/5 rounded-lg text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theme-active/50 transition-all"
+                className="w-full h-10 pl-10 pr-4 bg-surface-float border border-white/5 rounded-lg text-sm text-text-primary 
+                  placeholder:text-text-tertiary focus:outline-none focus:border-theme-active/50 focus:bg-surface-float2 transition-all"
               />
             </div>
 

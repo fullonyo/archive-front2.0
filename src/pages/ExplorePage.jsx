@@ -1,6 +1,7 @@
 import { Shirt, Globe, Sparkles, Wand2, Box, Star, Grid3x3, Package, Search, TrendingUp, Flame, Clock } from 'lucide-react';
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Breadcrumb from '../components/common/Breadcrumb';
 
 const ExplorePage = () => {
   const navigate = useNavigate();
@@ -163,50 +164,69 @@ const ExplorePage = () => {
         </div>
       )}
 
+      {/* Breadcrumb */}
+      <div className="px-3 sm:px-4 lg:px-6 pt-4">
+        <Breadcrumb
+          items={[
+            { label: 'Explorer', path: '/explore' }
+          ]}
+        />
+      </div>
+
       {/* Sticky Search & Filter Bar */}
       <div 
         className="sticky top-0 z-10 bg-surface-base px-3 sm:px-4 lg:px-6 py-3 border-b border-white/5"
         style={{ contain: 'layout style' }}
       >
-        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
-          {/* Search Bar */}
-          <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" size={16} />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={handleSearchChange}
-                placeholder="Search categories, tags..."
-                className="w-full bg-surface-float border border-white/5 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-theme-active/50 transition-colors"
-              />
-            </div>
-          </form>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          {/* Search Bar and View Filters in same line */}
+          <div className="flex gap-3 flex-1">
+            {/* Search Bar */}
+            <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none" size={16} />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  placeholder="Search categories, tags..."
+                  className="w-full bg-surface-float border border-white/5 rounded-lg pl-10 pr-4 py-2 text-sm 
+                    focus:outline-none focus:border-theme-active/50 focus:bg-surface-float2 transition-all
+                    placeholder:text-text-tertiary"
+                />
+              </div>
+            </form>
 
-          {/* View Filters */}
-          <div className="flex gap-1">
-            {[
-              { value: 'all', label: 'All', icon: Grid3x3 },
-              { value: 'featured', label: 'Featured', icon: Star },
-              { value: 'popular', label: 'Popular', icon: TrendingUp },
-            ].map((option) => {
-              const Icon = option.icon;
-              return (
-                <button
-                  key={option.value}
-                  onClick={() => setActiveView(option.value)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                    activeView === option.value
-                      ? 'bg-theme-active text-white'
-                      : 'bg-surface-float text-text-secondary hover:bg-surface-float2 hover:text-text-primary'
-                  }`}
-                >
-                  <Icon size={14} />
-                  {option.label}
-                </button>
-              );
-            })}
+            {/* View Filters */}
+            <div className="flex gap-1">
+              {[
+                { value: 'all', label: 'All', icon: Grid3x3 },
+                { value: 'featured', label: 'Featured', icon: Star },
+                { value: 'popular', label: 'Popular', icon: TrendingUp },
+              ].map((option) => {
+                const Icon = option.icon;
+                return (
+                  <button
+                    key={option.value}
+                    onClick={() => setActiveView(option.value)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                      activeView === option.value
+                        ? 'bg-theme-active text-white'
+                        : 'bg-surface-float text-text-secondary hover:bg-surface-float2 hover:text-text-primary'
+                    }`}
+                  >
+                    <Icon size={14} />
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
+          
+          {/* Category Count */}
+          <span className="text-xs text-text-tertiary">
+            {filteredCategories.length} categories
+          </span>
         </div>
       </div>
 
@@ -387,7 +407,6 @@ const ExplorePage = () => {
             <h2 className="text-lg font-semibold">
               {activeView === 'featured' ? 'Featured' : activeView === 'popular' ? 'Most Popular' : 'All Categories'}
             </h2>
-            <span className="text-xs text-text-tertiary">{filteredCategories.length} categories</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {filteredCategories.map((category) => {

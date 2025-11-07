@@ -179,6 +179,37 @@ const ForYouPage = () => {
 
       {/* Content Area with padding */}
       <div className="px-3 sm:px-4 lg:px-6 py-4">
+        {/* Modern Skeleton Loading - Subtle and Minimal */}
+        {loading && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+            {[...Array(15)].map((_, i) => (
+              <div 
+                key={i} 
+                className="rounded-xl border border-white/5 bg-surface-float overflow-hidden"
+                style={{
+                  opacity: 0.6,
+                  animation: `fade-in 0.3s ease-out ${i * 0.05}s backwards`,
+                }}
+              >
+                {/* Thumbnail skeleton */}
+                <div className="relative h-40 bg-gradient-to-br from-surface-float2 to-surface-float overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
+                </div>
+                {/* Content skeleton */}
+                <div className="p-3 space-y-2">
+                  <div className="h-3 bg-surface-float2 rounded w-3/4" />
+                  <div className="h-2 bg-surface-float2 rounded w-full" />
+                  <div className="flex gap-2 mt-3">
+                    <div className="h-2 bg-surface-float2 rounded w-12" />
+                    <div className="h-2 bg-surface-float2 rounded w-12" />
+                    <div className="h-2 bg-surface-float2 rounded w-12" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Error State */}
         {error && !loading && (
           <div className="flex flex-col items-center justify-center py-20">

@@ -1,32 +1,38 @@
 import { X, Heart, Download, MessageSquare, Share2, User, Calendar, Tag, ExternalLink, Copy, Flag } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 
 const AssetDetailModal = ({ asset, isOpen, onClose }) => {
   const [isLiked, setIsLiked] = useState(asset?.isLiked || false);
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const modalRef = useRef(null);
 
-  // Close on ESC key
+  // Close on ESC key and click outside
   useEffect(() => {
+    if (!isOpen) return;
+
     const handleEsc = (e) => {
       if (e.key === 'Escape') onClose();
     };
-    if (isOpen) {
-      document.addEventListener('keydown', handleEsc);
-      document.body.style.overflow = 'hidden';
-    }
+
+    document.addEventListener('keydown', handleEsc);
+    document.body.style.overflow = 'hidden';
+
     return () => {
       document.removeEventListener('keydown', handleEsc);
       document.body.style.overflow = 'unset';
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen || !asset) return null;
+  // Optimized backdrop click handler
+  const handleBackdropClick = useCallback((e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  }, [onClose]);
 
-  const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) onClose();
-  };
-
-  const handleShare = (platform) => {
+  // Optimized share handler
+  const handleShare = useCallback((platform) => {
     const url = `${window.location.origin}/asset/${asset.id}`;
     const text = `Check out ${asset.title}`;
     
@@ -44,47 +50,74 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
       window.open(shareUrls[platform], '_blank', 'width=600,height=400');
       setShowShareMenu(false);
     }
-  };
+  }, [asset]);
 
-  return (
+  // Don't render if not open
+  if (!isOpen || !asset) return null;
+
+  // Render modal in portal for better performance and z-index management
+  return createPortal(
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 animate-fade-in"
       onClick={handleBackdropClick}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
     >
-      <div className="relative bg-surface-float rounded-2xl shadow-2xl border border-white/10 max-w-7xl w-full max-h-[90vh] overflow-hidden flex animate-scale-in">
+      <div 
+        className="relative bg-surface-float rounded-2xl shadow-2xl border border-white/10 max-w-7xl w-full max-h-[90vh] overflow-hidden flex animate-scale-in" 
+        ref={modalRef}
+        style={{ 
+          contain: 'layout style paint',
+          willChange: 'transform',
+          transform: 'translateZ(0)'
+        }}
+      >
         {/* Main Content - Left Side */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Header - Fixed */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-surface-float/95 backdrop-blur-sm sticky top-0 z-10">
+          <div 
+            className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-surface-float sticky top-0 z-10"
+            style={{ contain: 'layout style' }}
+          >
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                {asset.author.avatar ? (
-                  <img src={asset.author.avatar} alt={asset.author.name} className="w-full h-full rounded-full" />
+                {asset.author?.avatar ? (
+                  <img src={asset.author.avatar} alt={asset.author.name} className="w-full h-full rounded-full object-cover" loading="lazy" />
                 ) : (
                   <User size={16} />
                 )}
               </div>
               <div>
-                <h3 className="font-semibold text-sm">{asset.author.name}</h3>
+                <h3 className="font-semibold text-sm">{asset.author?.name || 'Unknown'}</h3>
                 <p className="text-xs text-text-tertiary">{asset.uploadedAt}</p>
               </div>
             </div>
             <button 
               onClick={onClose}
               className="p-2 hover:bg-surface-float2 rounded-lg transition-colors"
+              aria-label="Close modal"
             >
               <X size={20} />
             </button>
           </div>
 
           {/* Content - Scrollable */}
-          <div className="flex-1 overflow-y-auto">
+          <div 
+            className="flex-1 overflow-y-auto overscroll-contain"
+            style={{ 
+              WebkitOverflowScrolling: 'touch',
+              contain: 'layout style paint',
+              willChange: 'scroll-position'
+            }}
+          >
             {/* Image/Thumbnail */}
             <div className="relative aspect-video bg-surface-base">
               <img 
                 src={asset.thumbnail} 
                 alt={asset.title}
                 className="w-full h-full object-cover"
+                loading="lazy"
               />
               <div className="absolute top-3 left-3">
                 <span className="px-2.5 py-1 bg-surface-float/90 backdrop-blur-sm rounded-lg text-xs font-medium border border-white/10">
@@ -97,7 +130,7 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
             <div className="p-6 space-y-6">
               {/* Title & Description */}
               <div>
-                <h1 className="text-2xl font-bold mb-2">{asset.title}</h1>
+                <h1 id="modal-title" className="text-2xl font-bold mb-2">{asset.title}</h1>
                 <p className="text-text-secondary leading-relaxed">
                   {asset.description || 'High quality VRChat asset with amazing features and optimized performance.'}
                 </p>
@@ -200,9 +233,9 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
                     <h3 className="font-semibold text-sm">Tags</h3>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {asset.tags.map((tag, index) => (
+                    {asset.tags.slice(0, 10).map((tag, index) => (
                       <span 
-                        key={index}
+                        key={`${tag}-${index}`}
                         className="px-3 py-1.5 bg-surface-float2 hover:bg-surface-base text-text-secondary hover:text-text-primary rounded-lg text-xs font-medium transition-colors cursor-pointer"
                       >
                         #{tag}
@@ -250,20 +283,27 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
 
         {/* Right Sidebar - Additional Info */}
         <aside className="w-80 border-l border-white/5 bg-surface-base/30 flex-shrink-0 hidden lg:flex flex-col">
-          <div className="p-5 space-y-4 flex-1 overflow-y-auto">
+          <div 
+            className="p-5 space-y-4 flex-1 overflow-y-auto overscroll-contain"
+            style={{ 
+              WebkitOverflowScrolling: 'touch',
+              contain: 'layout style paint',
+              willChange: 'scroll-position'
+            }}
+          >
             {/* Author Card */}
             <div className="bg-surface-float/50 rounded-xl p-3 border border-white/5">
               <h3 className="text-xs font-semibold text-text-tertiary uppercase tracking-wide mb-2">Author</h3>
               <div className="flex items-center gap-2.5 mb-2.5">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                  {asset.author.avatar ? (
-                    <img src={asset.author.avatar} alt={asset.author.name} className="w-full h-full rounded-full" />
+                  {asset.author?.avatar ? (
+                    <img src={asset.author.avatar} alt={asset.author.name} className="w-full h-full rounded-full object-cover" loading="lazy" />
                   ) : (
                     <User size={20} />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold truncate text-sm">{asset.author.name}</p>
+                  <p className="font-semibold truncate text-sm">{asset.author?.name || 'Unknown'}</p>
                   <p className="text-xs text-text-tertiary">Creator</p>
                 </div>
               </div>
@@ -345,7 +385,8 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
           </div>
         </aside>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

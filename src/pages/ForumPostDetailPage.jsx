@@ -17,7 +17,6 @@ import {
   Calendar,
   Eye
 } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
 import { useTranslation } from '../hooks/useTranslation';
 import ForumReply from '../components/forum/ForumReply';
 import Breadcrumb from '../components/common/Breadcrumb';
@@ -25,8 +24,7 @@ import Breadcrumb from '../components/common/Breadcrumb';
 const ForumPostDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { language } = useLanguage();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   
   const [post, setPost] = useState(null);
   const [replies, setReplies] = useState([]);

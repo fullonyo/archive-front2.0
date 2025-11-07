@@ -45,6 +45,12 @@ export const enUS = {
     filterByCategory: 'Filter by category',
     allCategories: 'All',
     noAssets: 'No assets found',
+    noAssetsDescription: 'Be the first to share your amazing creations with the community!',
+    uploadAsset: 'Upload Asset',
+    asset: 'asset',
+    assets: 'assets',
+    loadingMore: 'Loading more assets...',
+    reachedEnd: 'You\'ve reached the end',
   },
 
   // Explore Page
@@ -54,6 +60,10 @@ export const enUS = {
     featured: 'Featured Categories',
     allCategories: 'All Categories',
     assets: 'assets',
+    searchPlaceholder: 'Search categories, tags...',
+    popular: 'Popular',
+    mostPopular: 'Most Popular',
+    viewAll: 'View all',
   },
 
   // Asset Card

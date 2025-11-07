@@ -1,9 +1,11 @@
 ﻿import { useState, useEffect, useRef, useCallback } from 'react';
 import AssetCard from '../components/assets/AssetCard';
 import Breadcrumb from '../components/common/Breadcrumb';
+import { useTranslation } from '../hooks/useTranslation';
 import { TrendingUp, Clock, Sparkles, ArrowUp, AlertCircle, Upload, RefreshCw } from 'lucide-react';
 
 const ForYouPage = () => {
+  const { t } = useTranslation();
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -101,9 +103,9 @@ const ForYouPage = () => {
   }, [loadMoreAssets, hasMore, loadingMore]);
 
   const sortOptions = [
-    { value: 'latest', label: 'Latest', icon: Clock },
-    { value: 'trending', label: 'Trending', icon: TrendingUp },
-    { value: 'popular', label: 'Popular', icon: Sparkles },
+    { value: 'latest', label: t('forYou.latest'), icon: Clock },
+    { value: 'trending', label: t('forYou.trending'), icon: TrendingUp },
+    { value: 'popular', label: t('forYou.popular'), icon: Sparkles },
   ];
 
   // Handle sort change
@@ -146,7 +148,7 @@ const ForYouPage = () => {
       <div className="px-3 sm:px-4 lg:px-6 pt-4">
         <Breadcrumb
           items={[
-            { label: 'For You', path: '/for-you' }
+            { label: t('forYou.title'), path: '/for-you' }
           ]}
         />
       </div>
@@ -182,7 +184,7 @@ const ForYouPage = () => {
           {/* Asset Count */}
           {!loading && !error && assets.length > 0 && (
             <span className="text-xs text-text-tertiary">
-              {assets.length} {assets.length === 1 ? 'asset' : 'assets'}
+              {assets.length} {assets.length === 1 ? t('forYou.asset') : t('forYou.assets')}
             </span>
           )}
         </div>
@@ -247,12 +249,12 @@ const ForYouPage = () => {
             <div className="w-20 h-20 rounded-full bg-surface-float flex items-center justify-center mb-4">
               <Upload size={40} className="text-text-tertiary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">No assets yet</h3>
+            <h3 className="text-xl font-semibold mb-2">{t('forYou.noAssets')}</h3>
             <p className="text-text-secondary text-sm mb-6 text-center max-w-md">
-              Be the first to share your amazing creations with the community!
+              {t('forYou.noAssetsDescription')}
             </p>
             <button className="px-6 py-2.5 bg-theme-active text-white rounded-lg hover:bg-theme-hover transition-colors font-medium">
-              Upload Asset
+              {t('forYou.uploadAsset')}
             </button>
           </div>
         )}
@@ -276,11 +278,11 @@ const ForYouPage = () => {
               {loadingMore && (
                 <div className="flex items-center gap-2 text-text-tertiary">
                   <div className="w-5 h-5 border-2 border-theme-active border-t-transparent rounded-full animate-spin" />
-                  <span className="text-sm">Loading more assets...</span>
+                  <span className="text-sm">{t('forYou.loadingMore')}</span>
                 </div>
               )}
               {!hasMore && assets.length > 0 && (
-                <p className="text-text-tertiary text-sm">You've reached the end</p>
+                <p className="text-text-tertiary text-sm">{t('forYou.reachedEnd')}</p>
               )}
             </div>
           </>

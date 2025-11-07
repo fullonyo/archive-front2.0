@@ -2,9 +2,11 @@ import { Shirt, Globe, Sparkles, Wand2, Box, Star, Grid3x3, Package, Search, Tre
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Breadcrumb from '../components/common/Breadcrumb';
+import { useTranslation } from '../hooks/useTranslation';
 
 const ExplorePage = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeView, setActiveView] = useState('all'); // all, featured, popular
   const [loading, setLoading] = useState(true);
@@ -168,7 +170,7 @@ const ExplorePage = () => {
       <div className="px-3 sm:px-4 lg:px-6 pt-4">
         <Breadcrumb
           items={[
-            { label: 'Explorer', path: '/explore' }
+            { label: t('explore.title'), path: '/explore' }
           ]}
         />
       </div>
@@ -189,7 +191,7 @@ const ExplorePage = () => {
                 value={searchQuery}
                 onChange={handleSearchChange}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit(e)}
-                placeholder="Search categories, tags..."
+                placeholder={t('explore.searchPlaceholder')}
                 className="w-full h-10 bg-surface-float border border-white/5 rounded-lg pl-10 pr-4 text-sm 
                   focus:outline-none focus:border-theme-active/50 focus:bg-surface-float2 transition-all
                   placeholder:text-text-tertiary"
@@ -199,9 +201,9 @@ const ExplorePage = () => {
             {/* View Filters */}
             <div className="flex gap-1">
               {[
-                { value: 'all', label: 'All', icon: Grid3x3 },
-                { value: 'featured', label: 'Featured', icon: Star },
-                { value: 'popular', label: 'Popular', icon: TrendingUp },
+                { value: 'all', label: t('explore.allCategories'), icon: Grid3x3 },
+                { value: 'featured', label: t('explore.featured'), icon: Star },
+                { value: 'popular', label: t('explore.popular'), icon: TrendingUp },
               ].map((option) => {
                 const Icon = option.icon;
                 return (
@@ -404,7 +406,7 @@ const ExplorePage = () => {
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">
-              {activeView === 'featured' ? 'Featured' : activeView === 'popular' ? 'Most Popular' : 'All Categories'}
+              {activeView === 'featured' ? t('explore.featured') : activeView === 'popular' ? t('explore.mostPopular') : t('explore.allCategories')}
             </h2>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
@@ -443,7 +445,7 @@ const ExplorePage = () => {
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">Popular Tags</h2>
-            <button className="text-xs text-theme-active hover:underline">View all →</button>
+            <button className="text-xs text-theme-active hover:underline">{t('explore.viewAll')} →</button>
           </div>
           <div className="rounded-xl border border-white/5 bg-surface-float p-4">
             <div className="flex flex-wrap gap-2">

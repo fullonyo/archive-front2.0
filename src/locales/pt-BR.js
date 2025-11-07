@@ -45,6 +45,12 @@ export const ptBR = {
     filterByCategory: 'Filtrar por categoria',
     allCategories: 'Todas',
     noAssets: 'Nenhum asset encontrado',
+    noAssetsDescription: 'Seja o primeiro a compartilhar suas criações incríveis com a comunidade!',
+    uploadAsset: 'Enviar Asset',
+    asset: 'asset',
+    assets: 'assets',
+    loadingMore: 'Carregando mais assets...',
+    reachedEnd: 'Você chegou ao final',
   },
 
   // Explore Page
@@ -54,6 +60,10 @@ export const ptBR = {
     featured: 'Categorias em Destaque',
     allCategories: 'Todas as Categorias',
     assets: 'assets',
+    searchPlaceholder: 'Buscar categorias, tags...',
+    popular: 'Populares',
+    mostPopular: 'Mais Populares',
+    viewAll: 'Ver tudo',
   },
 
   // Asset Card

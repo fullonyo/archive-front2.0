@@ -39,9 +39,13 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     }
   }, [isOpen, isMobile]);
 
-  const mainMenuItems = [
+  // Avatar Lab - Seção principal no topo
+  const avatarLabItems = [
+    { icon: Plus, label: t('sidebar.newAsset'), path: '/new-asset', special: true },
     { icon: Home, label: t('sidebar.forYou'), path: '/' },
     { icon: Compass, label: t('sidebar.explore'), path: '/explore' },
+    { icon: FolderOpen, label: t('sidebar.myAssets'), path: '/my-assets' },
+    { icon: Bookmark, label: t('sidebar.bookmarks'), path: '/bookmarks' },
     { icon: History, label: t('sidebar.history'), path: '/history' },
   ];
 
@@ -56,11 +60,6 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { icon: UserCircle, label: t('sidebar.vrchatProfile'), path: '/vrchat/profile' },
     { icon: Users, label: t('sidebar.vrchatFriends'), path: '/vrchat/friends' },
     { icon: Activity, label: t('sidebar.vrchatStatus'), path: '/vrchat/status' },
-  ];
-
-  const secondaryMenuItems = [
-    { icon: Bookmark, label: t('sidebar.bookmarks'), path: '/bookmarks' },
-    { icon: FolderOpen, label: t('sidebar.myAssets'), path: '/my-assets' },
   ];
 
   // Função melhorada para detectar item ativo incluindo sub-rotas
@@ -159,44 +158,78 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           )}
         </div>
 
-        <div className="px-2 py-3">
-          <button 
-            onClick={() => handleNavigation('/new-asset')} 
-            className="group w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-theme-active/10 hover:bg-theme-active/20 text-theme-active font-medium transition-all duration-200 overflow-hidden"
-            aria-label={t('sidebar.newAsset')}
-            title={!isOpen ? t('sidebar.newAsset') : ''}
-          >
-            <Plus size={20} className="flex-shrink-0" />
-            <span className={`whitespace-nowrap transition-all duration-200 ${isOpen ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'}`}>
-              {t('sidebar.newAsset')}
-            </span>
-          </button>
-        </div>
-
         <nav className="flex-1 px-2 py-2 space-y-1 overflow-y-auto" aria-label="Menu principal">
-          {/* Menu Principal */}
-          <div className="space-y-0.5">
-            {mainMenuItems.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item.path);
-              
-              return (
-                <button 
-                  key={item.path} 
-                  onClick={() => handleNavigation(item.path)} 
-                  className={`nav-item w-full justify-start overflow-hidden text-sm py-2 ${active ? 'active' : ''}`}
-                  aria-label={item.label}
-                  aria-current={active ? 'page' : undefined}
-                  title={!isOpen ? item.label : ''}
-                >
-                  <Icon size={18} className="flex-shrink-0" />
-                  <span className={`whitespace-nowrap transition-all duration-200 ${isOpen ? 'opacity-100 max-w-xs ml-3' : 'opacity-0 max-w-0'}`}>
-                    {item.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+          {/* Avatar Lab - Seção Principal */}
+          {isOpen ? (
+            <div className="pb-3">
+              <h3 className="px-3 mb-2 text-xs font-semibold text-theme-active uppercase tracking-wider">
+                Avatar Lab
+              </h3>
+              <div className="space-y-0.5">
+                {avatarLabItems.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item.path);
+                  const isSpecial = item.special;
+                  
+                  return (
+                    <button 
+                      key={item.path} 
+                      onClick={() => handleNavigation(item.path)} 
+                      className={`
+                        w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-all duration-200 overflow-hidden text-sm
+                        ${isSpecial 
+                          ? 'bg-theme-active/10 hover:bg-theme-active/20 text-theme-active' 
+                          : active 
+                            ? 'nav-item active' 
+                            : 'nav-item'
+                        }
+                      `}
+                      aria-label={item.label}
+                      aria-current={active ? 'page' : undefined}
+                    >
+                      <Icon size={18} className="flex-shrink-0" />
+                      <span className="whitespace-nowrap">
+                        {item.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            // Mostrar apenas ícones quando colapsado
+            <div className="space-y-0.5 pb-2">
+              {avatarLabItems.map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item.path);
+                const isSpecial = item.special;
+                
+                return (
+                  <button 
+                    key={item.path} 
+                    onClick={() => handleNavigation(item.path)} 
+                    className={`
+                      w-full flex items-center justify-center p-2 rounded-lg transition-all duration-200
+                      ${isSpecial 
+                        ? 'bg-theme-active/10 hover:bg-theme-active/20 text-theme-active' 
+                        : active 
+                          ? 'nav-item active' 
+                          : 'nav-item'
+                      }
+                    `}
+                    aria-label={item.label}
+                    aria-current={active ? 'page' : undefined}
+                    title={item.label}
+                  >
+                    <Icon size={18} />
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Separador */}
+          {isOpen && <div className="border-t border-white/5 my-3" />}
 
           {/* Fórum */}
           {isOpen ? (
@@ -249,6 +282,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             </div>
           )}
 
+          {/* Separador */}
+          {isOpen && <div className="border-t border-white/5 my-3" />}
+
           {/* VRChat API */}
           {isOpen ? (
             <div className="pt-3">
@@ -300,31 +336,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             </div>
           )}
 
-          {isOpen && <div className="border-t border-white/5 my-3" />}
 
-          {/* Menu Secundário */}
-          <div className="space-y-0.5">
-            {secondaryMenuItems.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item.path);
-              
-              return (
-                <button 
-                  key={item.path} 
-                  onClick={() => handleNavigation(item.path)} 
-                  className={`nav-item w-full justify-start overflow-hidden text-sm py-2 ${active ? 'active' : ''}`}
-                  aria-label={item.label}
-                  aria-current={active ? 'page' : undefined}
-                  title={!isOpen ? item.label : ''}
-                >
-                  <Icon size={18} className="flex-shrink-0" />
-                  <span className={`whitespace-nowrap transition-all duration-200 ${isOpen ? 'opacity-100 max-w-xs ml-3' : 'opacity-0 max-w-0'}`}>
-                    {item.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
         </nav>
 
         <div className="p-2 border-t border-white/5">

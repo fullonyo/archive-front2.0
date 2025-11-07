@@ -1,9 +1,10 @@
 import { MessageSquare, ThumbsUp, Eye, Clock, TrendingUp, Pin, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const ForumPostCard = ({ post }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [upvoted, setUpvoted] = useState(post.isUpvoted || false);
   const [upvotes, setUpvotes] = useState(post.upvotes || 0);
 
@@ -18,6 +19,10 @@ const ForumPostCard = ({ post }) => {
   };
 
   const handleCardClick = () => {
+    // Salvar a categoria atual antes de navegar
+    if (location.pathname.startsWith('/forum/')) {
+      sessionStorage.setItem('forumCategory', location.pathname);
+    }
     navigate(`/forum/post/${post.id}`);
   };
 

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Plus, Flame, Clock, TrendingUp, HelpCircle, Search, ArrowUp } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
 import ForumPostCard from '../components/forum/ForumPostCard';
+import Breadcrumb from '../components/common/Breadcrumb';
 
 const ForumListPage = ({ category = 'popular', icon: Icon, title }) => {
   const { t } = useTranslation();
@@ -280,6 +281,16 @@ const ForumListPage = ({ category = 'popular', icon: Icon, title }) => {
           />
         </div>
       )}
+
+      {/* Breadcrumb */}
+      <div className="px-3 sm:px-4 lg:px-6 pt-4">
+        <Breadcrumb
+          items={[
+            { label: 'Fórum', path: '/forum/popular' },
+            { label: title, path: `/forum/${category}` }
+          ]}
+        />
+      </div>
 
       {/* Compact Sort Bar - Sticky */}
       <div 

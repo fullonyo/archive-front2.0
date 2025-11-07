@@ -108,6 +108,13 @@ export const ptBR = {
     noPostsDescription: 'Tente ajustar seus filtros ou crie o primeiro post!',
     createFirstPost: 'Criar Primeiro Post',
     allPosts: 'Você viu todos os posts disponíveis',
+    // Breadcrumb
+    home: 'Início',
+    forum: 'Fórum',
+    popular: 'Popular',
+    support: 'Suporte',
+    ideas: 'Ideias',
+    general: 'Geral',
     // Sorting
     sortBy: 'Ordenar por',
     hot: 'Hot',

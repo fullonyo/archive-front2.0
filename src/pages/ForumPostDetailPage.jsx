@@ -18,8 +18,8 @@ import {
   Eye
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import Container from '../components/layout/Container';
 import ForumReply from '../components/forum/ForumReply';
+import Breadcrumb from '../components/common/Breadcrumb';
 
 const ForumPostDetailPage = () => {
   const { id } = useParams();
@@ -35,6 +35,14 @@ const ForumPostDetailPage = () => {
   const [showReplyEditor, setShowReplyEditor] = useState(false);
   const [replyContent, setReplyContent] = useState('');
   const [sortBy, setSortBy] = useState('best'); // best, newest, oldest
+
+  // Mapa de categorias para breadcrumb
+  const categoryLabels = {
+    'popular': 'Popular',
+    'support': 'Suporte',
+    'ideas': 'Ideias',
+    'general': 'Geral'
+  };
 
   // Reactions
   const reactions = [
@@ -359,7 +367,7 @@ No frontend, inclua o token em todas as requisições de mutação.`,
 
   if (loading) {
     return (
-      <Container>
+      <>
         {/* Loading Progress Bar */}
         <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-transparent overflow-hidden">
           <div 
@@ -369,30 +377,41 @@ No frontend, inclua o token em todas as requisições de mutação.`,
             }}
           />
         </div>
-        <PostDetailSkeleton />
-      </Container>
+        <div className="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6">
+          <PostDetailSkeleton />
+        </div>
+      </>
     );
   }
 
   if (!post) {
     return (
-      <Container>
-        <div className="max-w-4xl mx-auto py-12 text-center">
-          <p className="text-text-secondary">Post não encontrado</p>
-          <button 
-            onClick={() => navigate('/forum')}
-            className="btn btn-secondary mt-4"
-          >
-            Voltar ao Fórum
-          </button>
-        </div>
-      </Container>
+      <div className="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6 py-12 text-center">
+        <p className="text-text-secondary">Post não encontrado</p>
+        <button 
+          onClick={() => navigate('/forum/popular')}
+          className="btn btn-secondary mt-4"
+        >
+          Voltar ao Fórum
+        </button>
+      </div>
     );
   }
 
+  const categoryLabel = categoryLabels[post.category] || 'Popular';
+  const categoryPath = `/forum/${post.category || 'popular'}`;
+
   return (
-    <Container>
-      <div className="max-w-4xl mx-auto py-6">
+    <div className="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6 py-6">
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb
+          items={[
+            { label: 'Fórum', path: '/forum/popular' },
+            { label: categoryLabel, path: categoryPath },
+            { label: post.title, path: `/forum/post/${id}` }
+          ]}
+        />
+
         {/* Back Button */}
         <button
           onClick={() => navigate(-1)}
@@ -695,8 +714,7 @@ No frontend, inclua o token em todas as requisições de mutação.`,
             </div>
           )}
         </div>
-      </div>
-    </Container>
+    </div>
   );
 };
 

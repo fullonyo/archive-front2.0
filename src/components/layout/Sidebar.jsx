@@ -63,7 +63,43 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { icon: FolderOpen, label: t('sidebar.myAssets'), path: '/my-assets' },
   ];
 
-  const isActive = (path) => location.pathname === path;
+  // Função melhorada para detectar item ativo incluindo sub-rotas
+  const isActive = (path) => {
+    if (location.pathname === path) return true;
+    
+    // Se está em um post de fórum, destacar a categoria correspondente
+    if (location.pathname.startsWith('/forum/post/')) {
+      // Detectar categoria pela URL anterior ou state
+      const forumPaths = {
+        '/forum/popular': location.pathname.includes('popular') || true, // default
+        '/forum/support': location.pathname.includes('support'),
+        '/forum/ideas': location.pathname.includes('ideas'),
+        '/forum/general': location.pathname.includes('general'),
+      };
+      
+      // Se vier de uma categoria específica, destacar ela
+      if (path.startsWith('/forum/')) {
+        const prevPath = sessionStorage.getItem('forumCategory');
+        if (prevPath === path) return true;
+        // Por padrão, destacar Popular
+        return path === '/forum/popular';
+      }
+    }
+    
+    // Para sub-rotas de fórum
+    if (path.startsWith('/forum/') && location.pathname.startsWith(path)) {
+      return true;
+    }
+    
+    return false;
+  };
+
+  // Salvar categoria do fórum quando navegar
+  useEffect(() => {
+    if (location.pathname.startsWith('/forum/') && !location.pathname.includes('/post/')) {
+      sessionStorage.setItem('forumCategory', location.pathname);
+    }
+  }, [location.pathname]);
 
   const handleNavigation = (path) => {
     navigate(path);

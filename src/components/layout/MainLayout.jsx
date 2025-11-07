@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import PixelBlast from '../common/PixelBlast';
+import pixelBlastConfig from '../../config/pixelBlastConfig';
 
 const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -19,25 +20,7 @@ const MainLayout = () => {
     <div className="flex flex-col h-screen bg-surface-base text-text-primary relative overflow-hidden">
       {/* Background PixelBlast */}
       <div className="absolute inset-0 z-0">
-        <PixelBlast
-          variant="circle"
-          pixelSize={6}
-          color="#2563eb"
-          patternScale={3}
-          patternDensity={1.2}
-          pixelSizeJitter={0.5}
-          enableRipples
-          rippleSpeed={0.4}
-          rippleThickness={0.12}
-          rippleIntensityScale={1.5}
-          liquid
-          liquidStrength={0.12}
-          liquidRadius={1.2}
-          liquidWobbleSpeed={5}
-          speed={0.6}
-          edgeFade={0.25}
-          transparent
-        />
+        <PixelBlast {...pixelBlastConfig} />
       </div>
 
       {/* Content */}

@@ -1,8 +1,7 @@
 /**
  * PixelBlast Background Configuration
  * 
- * Este arquivo centraliza todas as configurações do background animado.
- * Para trocar ou ajustar o background, edite os valores abaixo.
+ * Configurações do background de partículas animadas.
  */
 
 export const pixelBlastConfig = {

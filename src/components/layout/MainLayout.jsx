@@ -3,7 +3,8 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import PixelBlast from '../common/PixelBlast';
-import pixelBlastConfig from '../../config/pixelBlastConfig';
+import GridScan from '../common/GridScan';
+import { activeBackground, pixelBlastConfig, gridScanConfig } from '../../config';
 
 const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -16,11 +17,22 @@ const MainLayout = () => {
     }
   }, []);
 
+  // Renderizar o background ativo
+  const renderBackground = () => {
+    switch (activeBackground) {
+      case 'gridscan':
+        return <GridScan {...gridScanConfig} />;
+      case 'pixelblast':
+      default:
+        return <PixelBlast {...pixelBlastConfig} />;
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen bg-surface-base text-text-primary relative overflow-hidden">
-      {/* Background PixelBlast */}
+      {/* Background Animado */}
       <div className="absolute inset-0 z-0">
-        <PixelBlast {...pixelBlastConfig} />
+        {renderBackground()}
       </div>
 
       {/* Content */}

@@ -22,6 +22,17 @@ export const enUS = {
     myAssets: 'My Assets',
     discussions: 'Discussions',
     settings: 'Settings',
+    // Forum
+    forum: 'Forum',
+    forumPopular: 'Popular',
+    forumSupport: 'Support',
+    forumIdeas: 'Ideas',
+    forumGeneral: 'General',
+    // VRChat API
+    vrchatApi: 'VRChat API',
+    vrchatProfile: 'Profile',
+    vrchatFriends: 'Friends',
+    vrchatStatus: 'Status',
   },
 
   // For You Page
@@ -72,6 +83,8 @@ export const enUS = {
     filter: 'Filter',
     sort: 'Sort',
     clear: 'Clear',
+    comingSoon: 'Coming soon...',
+    comingSoonDescription: 'This page is under development and will be available soon.',
   },
 
   // Categories

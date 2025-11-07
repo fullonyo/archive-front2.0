@@ -1,10 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
 
 const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // Auto-colapsar sidebar em mobile no primeiro load
+  useEffect(() => {
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  }, []);
 
   return (
     <div className="flex flex-col h-screen bg-surface-base text-text-primary">

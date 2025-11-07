@@ -22,6 +22,17 @@ export const ptBR = {
     myAssets: 'Meus Assets',
     discussions: 'Discussões',
     settings: 'Configurações',
+    // Forum
+    forum: 'Fórum',
+    forumPopular: 'Popular',
+    forumSupport: 'Suporte',
+    forumIdeas: 'Ideias',
+    forumGeneral: 'Geral',
+    // VRChat API
+    vrchatApi: 'VRChat API',
+    vrchatProfile: 'Perfil',
+    vrchatFriends: 'Amigos',
+    vrchatStatus: 'Status',
   },
 
   // For You Page
@@ -72,6 +83,8 @@ export const ptBR = {
     filter: 'Filtrar',
     sort: 'Ordenar',
     clear: 'Limpar',
+    comingSoon: 'Em breve...',
+    comingSoonDescription: 'Esta página está sendo desenvolvida e estará disponível em breve.',
   },
 
   // Categories

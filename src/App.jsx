@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { AppProviders } from './contexts/AppProviders';
+import ErrorBoundary from './components/common/ErrorBoundary';
 import MainLayout from './components/layout/MainLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import DevTools from './components/dev/DevTools';
@@ -33,22 +34,23 @@ const PlaceholderPage = ({ title }) => (
 
 function App() {
   return (
-    <LanguageProvider>
-      <AppProviders>
-      <Router>
-        {/* Dev Tools - Only visible in development */}
-        <DevTools />
-        
-        <Routes>
-          {/* Public Routes - Login without MainLayout */}
-          <Route path="/login" element={<LoginPage />} />
-          
-          {/* Protected Routes with MainLayout */}
-          <Route path="/" element={
-            <ProtectedRoute>
-              <MainLayout />
-            </ProtectedRoute>
-          }>
+    <ErrorBoundary>
+      <LanguageProvider>
+        <AppProviders>
+          <Router>
+            {/* Dev Tools - Only visible in development */}
+            <DevTools />
+            
+            <Routes>
+              {/* Public Routes - Login without MainLayout */}
+              <Route path="/login" element={<LoginPage />} />
+              
+              {/* Protected Routes with MainLayout */}
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <MainLayout />
+                </ProtectedRoute>
+              }>
             <Route index element={<ForYouPage />} />
             <Route path="explore" element={<ExplorePage />} />
             <Route path="history" element={<HistoryPage />} />
@@ -80,8 +82,9 @@ function App() {
           </Route>
         </Routes>
       </Router>
-      </AppProviders>
-    </LanguageProvider>
+        </AppProviders>
+      </LanguageProvider>
+    </ErrorBoundary>
   );
 }
 

@@ -1,4 +1,4 @@
-import { createContext, useContext, useRef, useCallback } from 'react';
+import { createContext, useContext, useRef, useCallback, useEffect } from 'react';
 
 const CacheContext = createContext();
 
@@ -46,6 +46,49 @@ export const useCache = () => {
  */
 export const CacheProvider = ({ children }) => {
   const cache = useRef(new Map());
+  const cleanupIntervalRef = useRef(null);
+
+  /**
+   * Limpa itens expirados do cache
+   * @returns {number} Número de itens removidos
+   */
+  const cleanExpired = useCallback(() => {
+    const now = Date.now();
+    let count = 0;
+
+    for (const [key, item] of cache.current.entries()) {
+      if (now > item.expiresAt) {
+        cache.current.delete(key);
+        count++;
+      }
+    }
+
+    if (import.meta.env.DEV && count > 0) {
+      console.log(`[Cache] Cleaned ${count} expired items`);
+    }
+
+    return count;
+  }, []);
+
+  // Auto-cleanup de itens expirados a cada 5 minutos
+  useEffect(() => {
+    cleanupIntervalRef.current = setInterval(() => {
+      const count = cleanExpired();
+      
+      // Se cache está muito grande, limpar mais agressivamente
+      if (cache.current.size > 100) {
+        if (import.meta.env.DEV) {
+          console.warn(`[Cache] Size is ${cache.current.size}, consider clearing old items`);
+        }
+      }
+    }, 5 * 60 * 1000); // 5 minutos
+
+    return () => {
+      if (cleanupIntervalRef.current) {
+        clearInterval(cleanupIntervalRef.current);
+      }
+    };
+  }, [cleanExpired]);
 
   /**
    * Busca item do cache
@@ -161,28 +204,6 @@ export const CacheProvider = ({ children }) => {
       approximateSizeKB: Math.round(totalSize / 1024),
       keys: Array.from(cache.current.keys())
     };
-  }, []);
-
-  /**
-   * Limpa itens expirados do cache
-   * @returns {number} Número de itens removidos
-   */
-  const cleanExpired = useCallback(() => {
-    const now = Date.now();
-    let count = 0;
-
-    for (const [key, item] of cache.current.entries()) {
-      if (now > item.expiresAt) {
-        cache.current.delete(key);
-        count++;
-      }
-    }
-
-    if (import.meta.env.DEV && count > 0) {
-      console.log(`[Cache] Cleaned ${count} expired items`);
-    }
-
-    return count;
   }, []);
 
   const contextValue = {

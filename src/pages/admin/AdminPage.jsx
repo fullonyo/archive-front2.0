@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Shield, AlertCircle, Loader } from 'lucide-react';
+import { Shield, AlertCircle, Loader, Package, Users, BarChart3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from '../../hooks/useTranslation';
 import Breadcrumb from '../../components/common/Breadcrumb';
-import PendingAssetsTab from '../../components/admin/PendingAssetsTab';
+import { UsersTab, AssetsTab, AnalyticsTab } from '../../components/admin';
 import adminService from '../../services/adminService';
 
 const AdminPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
-  const [activeTab, setActiveTab] = useState('pending');
+  const [activeTab, setActiveTab] = useState('assets');
   const [hasPermission, setHasPermission] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userPermissions, setUserPermissions] = useState([]);
@@ -60,16 +60,29 @@ const AdminPage = () => {
 
   const tabs = [
     {
-      id: 'pending',
-      label: t('admin.pendingApprovals') || 'Pending Approvals',
-      icon: Shield,
-      component: PendingAssetsTab,
+      id: 'assets',
+      label: t('admin.assetsManagement') || 'Assets',
+      icon: Package,
+      component: AssetsTab,
       permissions: ['approve_assets', 'moderate_assets']
+    },
+    {
+      id: 'users',
+      label: t('admin.userManagement') || 'Users',
+      icon: Users,
+      component: UsersTab,
+      permissions: ['manage_users', 'view_user_details']
+    },
+    {
+      id: 'analytics',
+      label: t('admin.analytics') || 'Analytics',
+      icon: BarChart3,
+      component: AnalyticsTab,
+      permissions: ['view_analytics', 'view_stats']
     }
-    // Future tabs can be added here:
-    // { id: 'users', label: 'User Management', icon: Users, component: UserManagementTab },
+    // Future tabs:
     // { id: 'reports', label: 'Reports', icon: Flag, component: ReportsTab },
-    // { id: 'analytics', label: 'Analytics', icon: BarChart3, component: AnalyticsTab },
+    // { id: 'system', label: 'System', icon: Settings, component: SystemTab },
   ];
 
   // Filter tabs based on permissions

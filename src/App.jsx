@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { LanguageProvider } from './contexts/LanguageContext';
-import { UserProvider } from './contexts/UserContext';
+import { AppProviders } from './contexts/AppProviders';
 import MainLayout from './components/layout/MainLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import DevTools from './components/dev/DevTools';
@@ -34,7 +34,7 @@ const PlaceholderPage = ({ title }) => (
 function App() {
   return (
     <LanguageProvider>
-      <UserProvider>
+      <AppProviders>
       <Router>
         {/* Dev Tools - Only visible in development */}
         <DevTools />
@@ -80,7 +80,7 @@ function App() {
           </Route>
         </Routes>
       </Router>
-      </UserProvider>
+      </AppProviders>
     </LanguageProvider>
   );
 }

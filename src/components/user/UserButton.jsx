@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '../../contexts/UserContext';
-import { useAuth } from '../../hooks/user/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { useTranslation } from '../../hooks/useTranslation';
 import {
   User,
@@ -17,8 +17,8 @@ import {
 const UserButton = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { isAuthenticated, user, userStats } = useUser();
-  const { logout } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
+  const { user, stats: userStats } = useCurrentUser();
   
   const [showUserMenu, setShowUserMenu] = useState(false);
   

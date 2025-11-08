@@ -1,11 +1,11 @@
 import { Navigate } from 'react-router-dom';
-import { useUser } from '../../contexts/UserContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 /**
  * ProtectedRoute - Redireciona para login se não autenticado
  */
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useUser();
+  const { isAuthenticated, loading } = useAuth();
 
   // Mostrar loading enquanto verifica autenticação
   if (loading) {

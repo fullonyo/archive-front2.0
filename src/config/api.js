@@ -26,22 +26,63 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle errors
+// Response interceptor to handle errors AND auto-refresh tokens
 api.interceptors.response.use(
   (response) => {
     return response;
   },
-  (error) => {
-    // Handle common error scenarios
+  async (error) => {
+    const originalRequest = error.config;
+    
+    // Handle token refresh for 401 errors
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
+      try {
+        // Attempt to refresh token
+        const refreshToken = localStorage.getItem('refresh_token');
+        
+        if (!refreshToken) {
+          // No refresh token, redirect to login
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('refresh_token');
+          window.location.href = '/login';
+          return Promise.reject(error);
+        }
+        
+        // Call refresh endpoint
+        const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+          refreshToken
+        });
+        
+        const { accessToken, refreshToken: newRefreshToken } = response.data.data || response.data;
+        
+        // Update tokens
+        localStorage.setItem('auth_token', accessToken);
+        if (newRefreshToken) {
+          localStorage.setItem('refresh_token', newRefreshToken);
+        }
+        
+        // Update authorization header
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        
+        // Retry original request
+        return api(originalRequest);
+        
+      } catch (refreshError) {
+        // Refresh failed, clear tokens and redirect
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('refresh_token');
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      }
+    }
+    
+    // Handle other error scenarios
     if (error.response) {
       const { status, data } = error.response;
       
       switch (status) {
-        case 401:
-          // Unauthorized - clear token and redirect to login
-          localStorage.removeItem('auth_token');
-          window.location.href = '/login';
-          break;
         case 403:
           // Forbidden
           throw new Error(data.message || 'Access forbidden');

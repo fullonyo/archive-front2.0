@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { useUser } from '../../contexts/UserContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { Settings, User, LogOut, X } from 'lucide-react';
 
 const DevTools = () => {
-  const { isAuthenticated, logout, user, userStats } = useUser();
+  const { isAuthenticated, logout } = useAuth();
+  const { user, stats: userStats } = useCurrentUser();
   const [isOpen, setIsOpen] = useState(false);
 
   // Mostrar apenas em desenvolvimento

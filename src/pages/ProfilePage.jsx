@@ -1,8 +1,11 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useUser } from '../contexts/UserContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../hooks/useTranslation';
+import { useCache } from '../contexts';
 import { userService } from '../services/userService';
+import { useCachedQuery } from '../hooks/useCachedQuery';
+import { CACHE_KEYS, CACHE_TTL, CACHE_PATTERNS } from '../config/cache';
 import AssetDetailModal from '../components/assets/AssetDetailModal';
 import AssetCard from '../components/assets/AssetCard';
 import {
@@ -47,7 +50,8 @@ const ProfilePage = () => {
   const { t } = useTranslation();
   const { username } = useParams();
   const navigate = useNavigate();
-  const { user: currentUser, isAuthenticated } = useUser();
+  const { user: currentUser, isAuthenticated } = useAuth();
+  const { invalidate } = useCache();
   
   // Estados de dados
   const [profileUser, setProfileUser] = useState(null);
@@ -79,54 +83,73 @@ const ProfilePage = () => {
     return currentUser.id === profileUser.id;
   }, [isAuthenticated, currentUser, profileUser]);
 
-  // Carregar dados do perfil
-  useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        let userData;
-        
-        if (!username && isAuthenticated) {
-          // Sem username = perfil próprio
-          userData = await userService.getCurrentProfile();
-        } else if (username) {
-          // Com username = perfil público (busca por username)
-          userData = await userService.getProfileByUsername(username);
-        } else {
-          // Sem autenticação e sem username
-          navigate('/login');
-          return;
-        }
-        
-        setProfileUser(userData);
-        
-        // Inicializar form data com dados do usuário
-        if (userData) {
-          setFormData({
-            username: userData.username || '',
-            bio: userData.bio || '',
-            country: userData.country || '',
-            city: userData.city || '',
-            socialLinks: {
-              twitter: userData.socialLinks?.twitter || '',
-              discord: userData.socialLinks?.discord || '',
-              vrchat: userData.socialLinks?.vrchat || '',
-              website: userData.socialLinks?.website || ''
-            }
-          });
-        }
-      } catch (err) {
-        console.error('Error loading profile:', err);
-        setError(err.message || 'Failed to load profile');
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Cache key baseado no username ou current user
+  const profileCacheKey = useMemo(() => {
+    if (!username && isAuthenticated && currentUser) {
+      return CACHE_KEYS.userProfile(currentUser.username);
+    } else if (username) {
+      return CACHE_KEYS.userProfile(username);
+    }
+    return null;
+  }, [username, isAuthenticated, currentUser]);
 
-    loadProfile();
+  // Fetch function para cache
+  const fetchProfile = useCallback(async () => {
+    if (!username && isAuthenticated) {
+      return await userService.getCurrentProfile();
+    } else if (username) {
+      return await userService.getProfileByUsername(username);
+    } else {
+      navigate('/login');
+      return null;
+    }
   }, [username, isAuthenticated, navigate]);
+
+  // Usar cache para profile data
+  const { 
+    data: profileData, 
+    loading: profileLoading, 
+    error: profileError,
+    refetch: refetchProfile,
+    isCached
+  } = useCachedQuery(
+    profileCacheKey,
+    fetchProfile,
+    { 
+      ttl: CACHE_TTL.USER_PROFILE,
+      enabled: profileCacheKey !== null // Só executa se tiver cache key
+    }
+  );
+
+  // Processar dados do profile quando carregados
+  useEffect(() => {
+    if (profileData && profileData !== null) {
+      setProfileUser(profileData);
+      setLoading(false);
+      
+      // Inicializar form data com dados do usuário
+      setFormData({
+        username: profileData.username || '',
+        bio: profileData.bio || '',
+        country: profileData.country || '',
+        city: profileData.city || '',
+        socialLinks: {
+          twitter: profileData.socialLinks?.twitter || '',
+          discord: profileData.socialLinks?.discord || '',
+          vrchat: profileData.socialLinks?.vrchat || '',
+          website: profileData.socialLinks?.website || ''
+        }
+      });
+    }
+  }, [profileData]);
+
+  // Processar erros
+  useEffect(() => {
+    if (profileError) {
+      setError(profileError.message || 'Failed to load profile');
+      setLoading(false);
+    }
+  }, [profileError]);
 
   // Handler para alterações no form
   const handleInputChange = (field, value) => {
@@ -163,6 +186,14 @@ const ProfilePage = () => {
       const updatedUser = await userService.updateProfile(updateData);
       setProfileUser(updatedUser);
       setIsEditing(false);
+      
+      // Invalidar cache do perfil
+      if (profileUser?.username) {
+        invalidate(CACHE_PATTERNS.USER_PROFILE(profileUser.username));
+      }
+      
+      // Refetch para atualizar com dados do servidor
+      refetchProfile();
       
       // TODO: Mostrar notificação de sucesso
     } catch (err) {
@@ -221,6 +252,11 @@ const ProfilePage = () => {
         avatarUrl: result.avatar_url
       }));
       
+      // Invalidar cache do perfil
+      if (profileUser?.username) {
+        invalidate(CACHE_PATTERNS.USER_PROFILE(profileUser.username));
+      }
+      
       // TODO: Mostrar notificação de sucesso
       console.log('Avatar uploaded successfully:', result);
     } catch (err) {
@@ -229,7 +265,7 @@ const ProfilePage = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [invalidate, profileUser?.username]);
 
   // Upload de banner
   const handleBannerUpload = useCallback(async (event) => {
@@ -258,6 +294,11 @@ const ProfilePage = () => {
         bannerUrl: result.banner_url
       }));
       
+      // Invalidar cache do perfil
+      if (profileUser?.username) {
+        invalidate(CACHE_PATTERNS.USER_PROFILE(profileUser.username));
+      }
+      
       // TODO: Mostrar notificação de sucesso
       console.log('Banner uploaded successfully:', result);
     } catch (err) {
@@ -266,7 +307,7 @@ const ProfilePage = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [invalidate, profileUser?.username]);
 
   // Estados para assets do usuário
   const [userAssets, setUserAssets] = useState([]);

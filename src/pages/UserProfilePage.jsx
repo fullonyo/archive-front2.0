@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useUser } from '../contexts/UserContext';
-import { useProfile } from '../hooks/user/useProfile';
-import { useAvatarLab } from '../hooks/user/useAvatarLab';
-import { useForumProfile } from '../hooks/user/useForumProfile';
+import { useAuth } from '../contexts/AuthContext';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import { useTranslation } from '../hooks/useTranslation';
 import {
   User,
@@ -23,10 +21,8 @@ import {
 const UserProfilePage = () => {
   const { t } = useTranslation();
   const { username } = useParams();
-  const { user: currentUser, isAuthenticated } = useUser();
-  const { user: profileUser, userStats, loading: profileLoading } = useProfile();
-  const { userAvatars, favoriteAvatars, getAvatarStats } = useAvatarLab();
-  const { forumProfile, userPosts, getForumStats } = useForumProfile();
+  const { isAuthenticated } = useAuth();
+  const { user: currentUser, stats: userStats } = useCurrentUser();
   
   const [activeTab, setActiveTab] = useState('overview');
   const [profileData, setProfileData] = useState(null);

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useUser } from '../contexts/UserContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../hooks/useTranslation';
 import TextType from '../components/common/TextType';
 import PixelBlast from '../components/common/PixelBlast';
@@ -23,7 +23,7 @@ import {
 const LoginPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { login } = useUser();
+  const { login } = useAuth();
   const { t } = useTranslation();
   
   // Detectar modo inicial da URL (login ou register)

@@ -143,11 +143,18 @@ export const UserProvider = ({ children }) => {
       
       const response = await userService.login({ username, password });
       
-      // Backend retorna: { success: true, data: { user, token, ... } }
+      // Backend retorna: { success: true, data: { user, token, tokens: { accessToken, refreshToken } } }
       const { data } = response;
       
       if (data && data.token) {
+        // Salvar access token (retrocompatibilidade)
         localStorage.setItem('auth_token', data.token);
+        
+        // Salvar refresh token se disponível
+        if (data.tokens?.refreshToken) {
+          localStorage.setItem('refresh_token', data.tokens.refreshToken);
+        }
+        
         setUser(data.user);
         setIsAuthenticated(true);
         
@@ -172,6 +179,7 @@ export const UserProvider = ({ children }) => {
 
   const logout = useCallback(() => {
     localStorage.removeItem('auth_token');
+    localStorage.removeItem('refresh_token');
     setUser(null);
     setIsAuthenticated(false);
     setUserAvatars([]);

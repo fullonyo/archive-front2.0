@@ -1,6 +1,7 @@
 import { Heart, Download, Eye, MessageCircle, MoreVertical } from 'lucide-react';
 import { useState } from 'react';
 import AssetDetailModal from './AssetDetailModal';
+import { PLACEHOLDER_IMAGES } from '../../constants';
 
 const AssetCard = ({ asset }) => {
   const [isLiked, setIsLiked] = useState(asset.isLiked || false);
@@ -31,9 +32,13 @@ const AssetCard = ({ asset }) => {
       {/* Thumbnail Container - Mais compacto */}
       <div className="relative overflow-hidden bg-surface-float2 rounded-t-xl">
         <img
-          src={asset.thumbnail || 'https://via.placeholder.com/400x225'}
+          src={asset.thumbnail || PLACEHOLDER_IMAGES.ASSET_THUMBNAIL}
           alt={asset.title}
+          loading="lazy"
           className="asset-thumbnail w-full h-40 object-cover"
+          onError={(e) => {
+            e.target.src = PLACEHOLDER_IMAGES.ASSET_THUMBNAIL;
+          }}
         />
         
         {/* Gradient Overlay */}

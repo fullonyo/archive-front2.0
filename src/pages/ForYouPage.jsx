@@ -2,6 +2,7 @@
 import AssetCard from '../components/assets/AssetCard';
 import Breadcrumb from '../components/common/Breadcrumb';
 import { useTranslation } from '../hooks/useTranslation';
+import { assetService } from '../services/assetService';
 import { TrendingUp, Clock, Sparkles, ArrowUp, AlertCircle, Upload, RefreshCw } from 'lucide-react';
 
 const ForYouPage = () => {
@@ -15,37 +16,100 @@ const ForYouPage = () => {
   const [error, setError] = useState(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isFirstLoad, setIsFirstLoad] = useState(true);
+  const [totalAssets, setTotalAssets] = useState(0);
   const observerTarget = useRef(null);
   const contentRef = useRef(null);
 
-  const generateMockAssets = (startId, count = 12) => {
-    const categories = ['Avatars', 'Worlds', 'Shaders', 'Effects', 'Tools', 'Accessories'];
-    const titles = ['Anime Avatar', 'Cyberpunk Shader', 'Medieval World', 'Particle Effects', 'Hair Physics', 'Kawaii Pack', 'Dynamic Light', 'Animations', 'Sound Pack', 'UI Elements'];
+  // Fetch assets from backend
+  const fetchAssets = useCallback(async (pageNum = 1, currentSort = sortBy) => {
+    try {
+      setLoading(pageNum === 1);
+      setLoadingMore(pageNum > 1);
+      setError(null);
+
+      const response = await assetService.getAssets({
+        page: pageNum,
+        limit: 15,
+        sort: currentSort
+      });
+
+      // Processar dados do backend
+      if (response.success && response.data) {
+        const backendAssets = response.data.assets || response.data.data?.assets || [];
+        const total = response.data.total || response.data.data?.total || 0;
+
+        // Transformar para o formato do frontend
+        const transformedAssets = backendAssets.map(asset => {
+          // Asset já vem normalizado do assetService (URLs corrigidas)
+          const thumbnail = asset.thumbnailUrl || 
+                           (Array.isArray(asset.imageUrls) && asset.imageUrls[0]) ||
+                           null;
+
+          return {
+            id: asset.id,
+            title: asset.title,
+            description: asset.description,
+            category: asset.category?.name || 'Unknown',
+            thumbnail,
+            author: {
+              name: asset.user?.username || 'Unknown',
+              avatar: asset.user?.avatarUrl || null
+            },
+            uploadedAt: formatUploadDate(asset.createdAt),
+            likes: asset._count?.favorites || asset.favoritesCount || 0,
+            downloads: asset._count?.downloads || asset.downloadCount || 0,
+            comments: asset._count?.reviews || asset.reviewsCount || 0,
+            tags: asset.tags || [],
+            isLiked: asset.isLiked || false,
+            averageRating: asset.averageRating || 0
+          };
+        });
+
+        if (pageNum === 1) {
+          setAssets(transformedAssets);
+        } else {
+          setAssets(prev => [...prev, ...transformedAssets]);
+        }
+
+        setTotalAssets(total);
+        setHasMore(transformedAssets.length === 15 && assets.length + transformedAssets.length < total);
+      }
+    } catch (err) {
+      console.error('❌ Error fetching assets:', err);
+      console.error('Error details:', {
+        message: err.message,
+        stack: err.stack,
+        response: err.response
+      });
+      
+      setError(err.message || 'Failed to load assets. Make sure the backend is running on http://localhost:3001');
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+      setIsFirstLoad(false);
+    }
+  }, [sortBy, assets.length]);
+
+  // Formatar data de upload
+  const formatUploadDate = (dateString) => {
+    if (!dateString) return 'Recently';
     
-    return Array.from({ length: count }, (_, i) => ({
-      id: startId + i,
-      title: titles[i % titles.length] + ` #${startId + i}`,
-      description: 'High quality asset',
-      category: categories[i % categories.length],
-      thumbnail: 'https://via.placeholder.com/400x225',
-      author: { name: 'Creator' + ((startId + i) % 10), avatar: null },
-      uploadedAt: `${Math.floor(Math.random() * 24)}h ago`,
-      likes: Math.floor(Math.random() * 500),
-      downloads: Math.floor(Math.random() * 2000),
-      comments: Math.floor(Math.random() * 50),
-      tags: ['tag1', 'tag2', 'tag3'],
-      isLiked: false
-    }));
+    const now = new Date();
+    const uploaded = new Date(dateString);
+    const diffMs = now - uploaded;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return uploaded.toLocaleDateString();
   };
 
+  // Initial load
   useEffect(() => {
-    const mockAssets = generateMockAssets(1, 15);
-    setTimeout(() => {
-      setAssets(mockAssets);
-      setLoading(false);
-      setError(null);
-      setIsFirstLoad(false);
-    }, 800);
+    fetchAssets(1, sortBy);
   }, []);
 
   // Scroll to top button visibility
@@ -73,25 +137,17 @@ const ForYouPage = () => {
 
   const retryFetch = useCallback(() => {
     setError(null);
-    setLoading(true);
-    const mockAssets = generateMockAssets(1, 15);
-    setTimeout(() => {
-      setAssets(mockAssets);
-      setLoading(false);
-    }, 800);
-  }, []);
+    setPage(1);
+    setAssets([]);
+    fetchAssets(1, sortBy);
+  }, [fetchAssets, sortBy]);
 
   const loadMoreAssets = useCallback(() => {
     if (loadingMore || !hasMore) return;
-    setLoadingMore(true);
-    setTimeout(() => {
-      const newAssets = generateMockAssets(assets.length + 1, 15);
-      setAssets(prev => [...prev, ...newAssets]);
-      setPage(prev => prev + 1);
-      setLoadingMore(false);
-      if (page >= 5) setHasMore(false);
-    }, 800);
-  }, [assets.length, loadingMore, hasMore, page]);
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchAssets(nextPage, sortBy);
+  }, [loadingMore, hasMore, page, fetchAssets, sortBy]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(entries => {
@@ -119,16 +175,13 @@ const ForYouPage = () => {
         mainElement.scrollTo({ top: 0, behavior: 'auto' });
       }
       
-      // Simulate refresh
-      setLoading(true);
-      setTimeout(() => {
-        const mockAssets = generateMockAssets(1, 15);
-        setAssets(mockAssets);
-        setLoading(false);
-        setIsFirstLoad(false);
-      }, 500);
+      // Reset and fetch with new sort
+      setPage(1);
+      setAssets([]);
+      setIsFirstLoad(false);
+      fetchAssets(1, newSort);
     }
-  }, [sortBy]);
+  }, [sortBy, fetchAssets]);
 
   return (
     <div className="max-w-[1600px] mx-auto" ref={contentRef}>
@@ -184,7 +237,7 @@ const ForYouPage = () => {
           {/* Asset Count */}
           {!loading && !error && assets.length > 0 && (
             <span className="text-xs text-text-tertiary">
-              {assets.length} {assets.length === 1 ? t('forYou.asset') : t('forYou.assets')}
+              {assets.length} {totalAssets > 0 && `/ ${totalAssets}`} {assets.length === 1 ? t('forYou.asset') : t('forYou.assets')}
             </span>
           )}
         </div>

@@ -1,6 +1,6 @@
 import { FolderOpen } from 'lucide-react';
-import ComingSoon from '../components/common/ComingSoon';
-import { useTranslation } from '../hooks/useTranslation';
+import ComingSoon from '../../components/common/ComingSoon';
+import { useTranslation } from '../../hooks/useTranslation';
 
 const MyAssetsPage = () => {
   const { t } = useTranslation();

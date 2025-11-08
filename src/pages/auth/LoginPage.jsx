@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { useTranslation } from '../hooks/useTranslation';
-import TextType from '../components/common/TextType';
-import PixelBlast from '../components/common/PixelBlast';
-import GridScan from '../components/common/GridScan';
-import { textTypeConfig, activeBackground, pixelBlastConfig, gridScanConfig } from '../config';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { useTranslation } from '../../hooks/useTranslation';
+import registerService from '../../services/registerService';
+import TextType from '../../components/common/TextType';
+import PixelBlast from '../../components/common/PixelBlast';
+import GridScan from '../../components/common/GridScan';
+import PendingConfirmationModal from '../../components/auth/PendingConfirmationModal';
+import { textTypeConfig, activeBackground, pixelBlastConfig, gridScanConfig } from '../../config';
 import { 
   User, 
   Lock, 
@@ -17,12 +19,15 @@ import {
   Globe,
   MessageCircle,
   Star,
-  Mail
+  Mail,
+  CheckCircle,
+  X
 } from 'lucide-react';
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const { login } = useAuth();
   const { t } = useTranslation();
   
@@ -43,6 +48,13 @@ const LoginPage = () => {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
+  
+  // Registration success modal
+  const [showPendingModal, setShowPendingModal] = useState(false);
+  const [registrationData, setRegistrationData] = useState(null);
+  
+  // Success message from location state (after email confirmation)
+  const [successMessage, setSuccessMessage] = useState(null);
 
   // Carregar "Remember Me" do localStorage ao montar
   useEffect(() => {
@@ -56,7 +68,23 @@ const LoginPage = () => {
         setFormData(prev => ({ ...prev, username: savedUsername }));
       }
     }
-  }, []);
+    
+    // Check for success message from location state (after email confirmation)
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message);
+      
+      // Pre-fill username if provided
+      if (location.state?.username) {
+        setFormData(prev => ({ ...prev, username: location.state.username }));
+      }
+      
+      // Clear location state
+      window.history.replaceState({}, document.title);
+      
+      // Auto-hide message after 10 seconds
+      setTimeout(() => setSuccessMessage(null), 10000);
+    }
+  }, [location.state]);
 
   // Atualizar modo quando URL mudar
   useEffect(() => {
@@ -106,13 +134,26 @@ const LoginPage = () => {
   const validateForm = () => {
     const newErrors = {};
     
-    // Validação de username
+    // Validação de username (flexível para login, rigorosa para registro)
     if (!formData.username.trim()) {
-      newErrors.username = 'Username is required';
-    } else if (formData.username.length < 3) {
-      newErrors.username = 'Username must be at least 3 characters';
-    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
-      newErrors.username = 'Username can only contain letters, numbers, and underscores';
+      newErrors.username = mode === 'login' ? 'Username or email is required' : 'Username is required';
+    } else if (mode === 'register') {
+      // Registro: validação rigorosa de username
+      if (formData.username.length < 3) {
+        newErrors.username = 'Username must be at least 3 characters';
+      } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
+        newErrors.username = 'Username can only contain letters, numbers, and underscores';
+      }
+    } else {
+      // Login: aceita email OU username
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.username);
+      const isUsername = /^[a-zA-Z0-9_]+$/.test(formData.username);
+      
+      if (!isEmail && !isUsername) {
+        newErrors.username = 'Enter a valid username or email';
+      } else if (isUsername && formData.username.length < 3) {
+        newErrors.username = 'Username must be at least 3 characters';
+      }
     }
     
     // Validação de email (apenas registro)
@@ -179,19 +220,43 @@ const LoginPage = () => {
         
         navigate('/');
       } else {
-        // Registro - implementar posteriormente
-        console.log('Register:', formData);
-        setErrors({
-          general: 'Registration is not yet available. Please contact an administrator.'
+        // Registration - Create pending registration
+        const response = await registerService.register({
+          username: formData.username,
+          email: formData.email,
+          password: formData.password
         });
+        
+        if (response.success) {
+          // Show pending confirmation modal
+          setRegistrationData({
+            email: formData.email,
+            username: formData.username
+          });
+          setShowPendingModal(true);
+          
+          // Clear form
+          setFormData({
+            username: '',
+            email: '',
+            password: '',
+            confirmPassword: ''
+          });
+        }
       }
     } catch (error) {
-      // Erro genérico para não revelar se username existe
-      setErrors({
-        general: mode === 'login' 
-          ? 'Invalid credentials. Please check your username and password.' 
-          : 'Registration failed. Please try again.'
-      });
+      console.error('Submit error:', error);
+      
+      // Handle specific error messages
+      if (error.response?.data?.message) {
+        setErrors({ general: error.response.data.message });
+      } else {
+        setErrors({
+          general: mode === 'login' 
+            ? 'Invalid credentials. Please check your username and password.' 
+            : 'Registration failed. Please try again.'
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -311,6 +376,25 @@ const LoginPage = () => {
               {/* Form Body */}
               <form onSubmit={handleSubmit} className="px-8 py-8 space-y-6">
                 
+                {/* Success Message from Email Confirmation */}
+                {successMessage && (
+                  <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 flex items-start gap-3 animate-fade-in">
+                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-green-500 mb-1">
+                        Email Confirmed!
+                      </p>
+                      <p className="text-sm text-text-secondary">{successMessage}</p>
+                    </div>
+                    <button
+                      onClick={() => setSuccessMessage(null)}
+                      className="text-text-tertiary hover:text-text-primary transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+                
                 {/* General Error */}
                 {errors.general && (
                   <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 flex items-start gap-3 animate-shake">
@@ -322,7 +406,7 @@ const LoginPage = () => {
                 {/* Username Field */}
                 <div className="space-y-2">
                   <label htmlFor="username" className="block text-sm font-semibold text-text-primary">
-                    Username
+                    {mode === 'login' ? 'Username or Email' : 'Username'}
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -338,7 +422,7 @@ const LoginPage = () => {
                         input pl-12
                         ${errors.username ? 'border-red-500/50 bg-red-500/5' : ''}
                       `}
-                      placeholder="Enter your username"
+                      placeholder={mode === 'login' ? 'Enter username or email' : 'Enter your username'}
                       disabled={isLoading}
                       autoComplete="username"
                     />
@@ -580,6 +664,16 @@ const LoginPage = () => {
           </div>
         </div>
       </div>
+      
+      {/* Pending Confirmation Modal */}
+      {registrationData && (
+        <PendingConfirmationModal
+          isOpen={showPendingModal}
+          onClose={() => setShowPendingModal(false)}
+          email={registrationData.email}
+          username={registrationData.username}
+        />
+      )}
     </div>
   );
 };

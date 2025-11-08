@@ -188,6 +188,18 @@
     @apply text-text-secondary hover:bg-surface-float hover:text-text-primary;
   }
 
+  .btn-success {
+    @apply bg-green-600 text-white hover:bg-green-700 transition-colors;
+  }
+
+  .btn-danger {
+    @apply bg-red-600 text-white hover:bg-red-700 transition-colors;
+  }
+
+  .btn-sm {
+    @apply px-3 py-1.5 text-sm;
+  }
+
   /* Input com estilo de papel escrito */
   .input {
     @apply w-full px-4 py-3 bg-surface-float rounded-lg text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-theme-active transition-colors;

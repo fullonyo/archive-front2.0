@@ -1,8 +1,8 @@
 import { Shirt, Globe, Sparkles, Wand2, Box, Star, Grid3x3, Package, Search, TrendingUp, Flame, Clock } from 'lucide-react';
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Breadcrumb from '../components/common/Breadcrumb';
-import { useTranslation } from '../hooks/useTranslation';
+import Breadcrumb from '../../components/common/Breadcrumb';
+import { useTranslation } from '../../hooks/useTranslation';
 
 const ExplorePage = () => {
   const navigate = useNavigate();

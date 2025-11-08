@@ -1,15 +1,15 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { useTranslation } from '../hooks/useTranslation';
-import { useCache } from '../contexts';
-import { userService } from '../services/userService';
-import { useCachedQuery } from '../hooks/useCachedQuery';
-import { CACHE_KEYS, CACHE_TTL, CACHE_PATTERNS } from '../config/cache';
+import { useAuth } from '../../contexts/AuthContext';
+import { useTranslation } from '../../hooks/useTranslation';
+import { useCache } from '../../contexts';
+import { userService } from '../../services/userService';
+import { useCachedQuery } from '../../hooks/useCachedQuery';
+import { CACHE_KEYS, CACHE_TTL, CACHE_PATTERNS } from '../../config/cache';
 import toast from 'react-hot-toast';
-import AssetDetailModal from '../components/assets/AssetDetailModal';
-import AssetCard from '../components/assets/AssetCard';
-import { handleImageError } from '../utils/imageUtils';
+import AssetDetailModal from '../../components/assets/AssetDetailModal';
+import AssetCard from '../../components/assets/AssetCard';
+import { handleImageError } from '../../utils/imageUtils';
 import {
   User,
   Calendar,

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { useCurrentUser } from '../hooks/useCurrentUser';
-import { useTranslation } from '../hooks/useTranslation';
-import { handleImageError } from '../utils/imageUtils';
+import { useAuth } from '../../contexts/AuthContext';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
+import { useTranslation } from '../../hooks/useTranslation';
+import { handleImageError } from '../../utils/imageUtils';
 import {
   User,
   Calendar,

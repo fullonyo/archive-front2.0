@@ -1,13 +1,18 @@
-import { Home, Compass, History, Users, Bookmark, FolderOpen, MessageSquare, Settings, Plus, ChevronRight, ChevronLeft, X, Hash, TrendingUp, HelpCircle, Lightbulb, Link2, UserCircle, Activity, PenTool } from 'lucide-react';
+import { Home, Compass, History, Users, Bookmark, FolderOpen, MessageSquare, Settings, Plus, ChevronRight, ChevronLeft, X, Hash, TrendingUp, HelpCircle, Lightbulb, Link2, UserCircle, Activity, PenTool, Shield } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from '../../hooks/useTranslation';
+import { useAuth } from '../../contexts/AuthContext';
 import { useEffect, useState } from 'react';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
+
+  // Check if user is admin/moderator
+  const isAdminUser = user && ['SISTEMA', 'ADMIN', 'MODERATOR'].includes(user.role);
 
   // Detectar mobile e persistir estado da sidebar
   useEffect(() => {
@@ -360,6 +365,45 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             </div>
           )}
 
+          {/* Admin Panel - Only for ADMIN/MODERATOR */}
+          {isAdminUser && (
+            <>
+              <div className="my-4 border-t border-white/10" />
+              
+              {isOpen ? (
+                <div>
+                  <h3 className="px-3 mb-1.5 text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                    Admin
+                  </h3>
+                  <div className="space-y-0.5">
+                    <button 
+                      onClick={() => handleNavigation('/admin')} 
+                      className={`nav-item w-full justify-start overflow-hidden text-sm py-2 ${isActive('/admin') ? 'active' : ''}`}
+                      aria-label={t('sidebar.admin') || 'Admin Panel'}
+                      aria-current={isActive('/admin') ? 'page' : undefined}
+                    >
+                      <Shield size={18} className="flex-shrink-0" />
+                      <span className="whitespace-nowrap ml-3">
+                        {t('sidebar.admin') || 'Admin Panel'}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-0.5">
+                  <button 
+                    onClick={() => handleNavigation('/admin')} 
+                    className={`nav-item w-full justify-start overflow-hidden text-sm py-2 ${isActive('/admin') ? 'active' : ''}`}
+                    aria-label={t('sidebar.admin') || 'Admin Panel'}
+                    aria-current={isActive('/admin') ? 'page' : undefined}
+                    title={t('sidebar.admin') || 'Admin Panel'}
+                  >
+                    <Shield size={18} className="flex-shrink-0" />
+                  </button>
+                </div>
+              )}
+            </>
+          )}
 
         </nav>
 

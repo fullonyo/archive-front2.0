@@ -26,6 +26,7 @@ export const ptBR = {
     myAssets: 'Meus Assets',
     discussions: 'Discussões',
     settings: 'Configurações',
+    admin: 'Painel Admin',
     // Forum
     forum: 'Fórum',
     newTopic: 'Novo Tópico',
@@ -38,6 +39,17 @@ export const ptBR = {
     vrchatProfile: 'Perfil',
     vrchatFriends: 'Amigos',
     vrchatStatus: 'Status',
+  },
+
+  // Admin
+  admin: {
+    title: 'Painel Administrativo',
+    subtitle: 'Gerencie assets, usuários e configurações da plataforma',
+    pendingApprovals: 'Aprovações Pendentes',
+    userManagement: 'Gerenciar Usuários',
+    reports: 'Relatórios',
+    analytics: 'Análises',
+    settings: 'Configurações',
   },
 
   // For You Page

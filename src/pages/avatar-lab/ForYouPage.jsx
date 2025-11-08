@@ -1,10 +1,10 @@
-Ôªøimport { useState, useEffect, useRef, useCallback } from 'react';
-import AssetCard from '../components/assets/AssetCard';
-import Breadcrumb from '../components/common/Breadcrumb';
-import { useTranslation } from '../hooks/useTranslation';
-import { assetService } from '../services/assetService';
-import { useCachedQuery } from '../hooks/useCachedQuery';
-import { CACHE_KEYS, CACHE_TTL } from '../config/cache';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import AssetCard from '../../components/assets/AssetCard';
+import Breadcrumb from '../../components/common/Breadcrumb';
+import { useTranslation } from '../../hooks/useTranslation';
+import { assetService } from '../../services/assetService';
+import { useCachedQuery } from '../../hooks/useCachedQuery';
+import { CACHE_KEYS, CACHE_TTL } from '../../config/cache';
 import { TrendingUp, Clock, Sparkles, ArrowUp, AlertCircle, Upload, RefreshCw } from 'lucide-react';
 
 const ForYouPage = () => {
@@ -18,10 +18,10 @@ const ForYouPage = () => {
   const observerTarget = useRef(null);
   const contentRef = useRef(null);
 
-  // Cache key para a p√°gina atual
+  // Cache key para a p·gina atual
   const cacheKey = CACHE_KEYS.assetsList(page, { sortBy });
 
-  // Usar cache query para a p√°gina atual
+  // Usar cache query para a p·gina atual
   const { 
     data: pageData, 
     loading: pageLoading, 

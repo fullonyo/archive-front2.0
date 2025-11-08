@@ -26,6 +26,7 @@ export const enUS = {
     myAssets: 'My Assets',
     discussions: 'Discussions',
     settings: 'Settings',
+    admin: 'Admin Panel',
     // Forum
     forum: 'Forum',
     newTopic: 'New Topic',
@@ -38,6 +39,17 @@ export const enUS = {
     vrchatProfile: 'Profile',
     vrchatFriends: 'Friends',
     vrchatStatus: 'Status',
+  },
+
+  // Admin
+  admin: {
+    title: 'Admin Panel',
+    subtitle: 'Manage assets, users, and platform settings',
+    pendingApprovals: 'Pending Approvals',
+    userManagement: 'User Management',
+    reports: 'Reports',
+    analytics: 'Analytics',
+    settings: 'Settings',
   },
 
   // For You Page

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../hooks/useTranslation';
@@ -6,6 +6,7 @@ import { useCache } from '../contexts';
 import { userService } from '../services/userService';
 import { useCachedQuery } from '../hooks/useCachedQuery';
 import { CACHE_KEYS, CACHE_TTL, CACHE_PATTERNS } from '../config/cache';
+import toast from 'react-hot-toast';
 import AssetDetailModal from '../components/assets/AssetDetailModal';
 import AssetCard from '../components/assets/AssetCard';
 import {
@@ -50,7 +51,7 @@ const ProfilePage = () => {
   const { t } = useTranslation();
   const { username } = useParams();
   const navigate = useNavigate();
-  const { user: currentUser, isAuthenticated } = useAuth();
+  const { user: currentUser, isAuthenticated, updateUser } = useAuth();
   const { invalidate } = useCache();
   
   // Estados de dados
@@ -62,6 +63,11 @@ const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedFilter, setSelectedFilter] = useState('recent');
   const [isEditing, setIsEditing] = useState(false);
+  
+  // Estados de upload específicos
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [bannerUploading, setBannerUploading] = useState(false);
+  const uploadingRef = useRef(false);
   
   // Form states para edição
   const [formData, setFormData] = useState({
@@ -230,84 +236,168 @@ const ProfilePage = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Prevenir uploads simultâneos
+    if (uploadingRef.current) {
+      toast('Aguarde o upload anterior completar', { icon: '⚠️' });
+      return;
+    }
+
     // Validar tipo de arquivo
     if (!file.type.startsWith('image/')) {
-      setError('Por favor, selecione uma imagem válida');
+      toast.error('Por favor, selecione uma imagem válida');
       return;
     }
 
     // Validar tamanho (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      setError('A imagem deve ter no máximo 5MB');
+      toast.error('A imagem deve ter no máximo 5MB');
       return;
     }
 
+    // Salvar URL anterior ANTES de qualquer atualização
+    const previousAvatarUrl = profileUser?.avatarUrl;
+    
+    uploadingRef.current = true;
+
     try {
-      setLoading(true);
-      const result = await userService.uploadAvatar(file);
+      // OTIMISTIC UPDATE: Preview imediato
+      const previewUrl = URL.createObjectURL(file);
       
-      // Atualizar profileUser com nova URL
-      setProfileUser(prev => ({
-        ...prev,
-        avatarUrl: result.avatar_url
-      }));
+      setProfileUser(prev => ({ ...prev, avatarUrl: previewUrl }));
       
-      // Invalidar cache do perfil
-      if (profileUser?.username) {
-        invalidate(CACHE_PATTERNS.USER_PROFILE(profileUser.username));
+      if (isOwnProfile) {
+        updateUser(prev => ({ ...prev, avatarUrl: previewUrl }));
       }
       
-      // TODO: Mostrar notificação de sucesso
-      console.log('Avatar uploaded successfully:', result);
+      // Loading específico
+      setAvatarUploading(true);
+      toast.loading('Fazendo upload da foto...', { id: 'avatar-upload' });
+      
+      // Upload real
+      const result = await userService.uploadAvatar(file);
+      const newAvatarUrl = result.avatar_url;
+      
+      // Atualizar com URL real
+      setProfileUser(prev => ({ ...prev, avatarUrl: newAvatarUrl }));
+      
+      // CRÍTICO: Atualizar AuthContext (sincroniza header)
+      if (isOwnProfile) {
+        updateUser(prev => ({ ...prev, avatarUrl: newAvatarUrl }));
+      }
+      
+      // Invalidar cache
+      if (profileUser?.username) {
+        invalidate(CACHE_PATTERNS.USER_PROFILE(profileUser.username));
+        invalidate(/^assets_list_/); // Pode ter foto do autor
+      }
+      
+      // Feedback de sucesso
+      toast.success('Foto de perfil atualizada!', { id: 'avatar-upload' });
+      
+      // Cleanup preview
+      URL.revokeObjectURL(previewUrl);
+      
     } catch (err) {
       console.error('Error uploading avatar:', err);
-      setError(err.message || 'Failed to upload avatar');
+      
+      // Reverter em caso de erro
+      if (previousAvatarUrl) {
+        setProfileUser(prev => ({ ...prev, avatarUrl: previousAvatarUrl }));
+        if (isOwnProfile) {
+          updateUser(prev => ({ ...prev, avatarUrl: previousAvatarUrl }));
+        }
+      }
+      
+      toast.error('Falha ao atualizar foto. Tente novamente.', { id: 'avatar-upload' });
     } finally {
-      setLoading(false);
+      setAvatarUploading(false);
+      uploadingRef.current = false;
     }
-  }, [invalidate, profileUser?.username]);
+  }, [profileUser, isOwnProfile, updateUser, invalidate]);
 
   // Upload de banner
   const handleBannerUpload = useCallback(async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Prevenir uploads simultâneos
+    if (uploadingRef.current) {
+      toast('Aguarde o upload anterior completar', { icon: '⚠️' });
+      return;
+    }
+
     // Validar tipo de arquivo
     if (!file.type.startsWith('image/')) {
-      setError('Por favor, selecione uma imagem válida');
+      toast.error('Por favor, selecione uma imagem válida');
       return;
     }
 
     // Validar tamanho (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      setError('A imagem deve ter no máximo 10MB');
+      toast.error('A imagem deve ter no máximo 10MB');
       return;
     }
 
+    // Salvar URL anterior ANTES de qualquer atualização
+    const previousBannerUrl = profileUser?.bannerUrl;
+    
+    uploadingRef.current = true;
+
     try {
-      setLoading(true);
+      // OTIMISTIC UPDATE: Preview imediato
+      const previewUrl = URL.createObjectURL(file);
+      
+      
+      setProfileUser(prev => ({ ...prev, bannerUrl: previewUrl }));
+      
+      if (isOwnProfile) {
+        updateUser(prev => ({ ...prev, bannerUrl: previewUrl }));
+      }
+      
+      // Loading específico
+      setBannerUploading(true);
+      toast.loading('Fazendo upload do banner...', { id: 'banner-upload' });
+      
+      // Upload real
       const result = await userService.uploadBanner(file);
+      const newBannerUrl = result.banner_url;
       
-      // Atualizar profileUser com nova URL
-      setProfileUser(prev => ({
-        ...prev,
-        bannerUrl: result.banner_url
-      }));
+      // Atualizar com URL real
+      setProfileUser(prev => ({ ...prev, bannerUrl: newBannerUrl }));
       
-      // Invalidar cache do perfil
+      // CRÍTICO: Atualizar AuthContext (sincroniza header)
+      if (isOwnProfile) {
+        updateUser(prev => ({ ...prev, bannerUrl: newBannerUrl }));
+      }
+      
+      // Invalidar cache
       if (profileUser?.username) {
         invalidate(CACHE_PATTERNS.USER_PROFILE(profileUser.username));
       }
       
-      // TODO: Mostrar notificação de sucesso
-      console.log('Banner uploaded successfully:', result);
+      // Feedback de sucesso
+      toast.success('Banner atualizado!', { id: 'banner-upload' });
+      
+      // Cleanup preview
+      URL.revokeObjectURL(previewUrl);
+      
     } catch (err) {
       console.error('Error uploading banner:', err);
-      setError(err.message || 'Failed to upload banner');
+      
+      // Reverter em caso de erro
+      if (previousBannerUrl) {
+        setProfileUser(prev => ({ ...prev, bannerUrl: previousBannerUrl }));
+        if (isOwnProfile) {
+          updateUser(prev => ({ ...prev, bannerUrl: previousBannerUrl }));
+        }
+      }
+      
+      toast.error('Falha ao atualizar banner. Tente novamente.', { id: 'banner-upload' });
     } finally {
-      setLoading(false);
+      setBannerUploading(false);
+      uploadingRef.current = false;
     }
-  }, [invalidate, profileUser?.username]);
+  }, [profileUser, isOwnProfile, updateUser, invalidate]);
 
   // Estados para assets do usuário
   const [userAssets, setUserAssets] = useState([]);
@@ -419,7 +509,11 @@ const ProfilePage = () => {
         <div className="text-center">
           <p className="text-red-500 mb-4">{error}</p>
           <button 
-            onClick={() => window.location.reload()}
+            onClick={() => {
+              setError(null);
+              setLoading(true);
+              refetchProfile();
+            }}
             className="px-4 py-2 bg-theme-active text-white rounded-lg hover:bg-theme-hover transition-colors"
           >
             Tentar Novamente

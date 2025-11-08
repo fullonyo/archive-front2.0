@@ -108,10 +108,10 @@ const UserButton = () => {
       >
         {/* User Avatar */}
         <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium text-xs">
-          {user?.avatar ? (
+          {user?.avatarUrl ? (
             <img 
-              src={user.avatar} 
-              alt={user.displayName}
+              src={user.avatarUrl} 
+              alt={user.displayName || user.username}
               className="w-7 h-7 rounded-full object-cover"
             />
           ) : (
@@ -129,10 +129,10 @@ const UserButton = () => {
           <div className="p-4 border-b border-white/5 bg-surface-base/30">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium text-lg">
-                {user?.avatar ? (
+                {user?.avatarUrl ? (
                   <img 
-                    src={user.avatar} 
-                    alt={user.displayName}
+                    src={user.avatarUrl} 
+                    alt={user.displayName || user.username}
                     className="w-12 h-12 rounded-full object-cover"
                   />
                 ) : (

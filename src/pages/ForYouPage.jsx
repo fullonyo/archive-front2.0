@@ -65,7 +65,7 @@ const ForYouPage = () => {
         thumbnail,
         author: {
           name: asset.user?.username || 'Unknown',
-          avatar: asset.user?.avatarUrl || null
+          avatarUrl: asset.user?.avatarUrl || null
         },
         uploadedAt: formatUploadDate(asset.createdAt),
         likes: asset._count?.favorites || asset.favoritesCount || 0,

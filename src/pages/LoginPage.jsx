@@ -37,10 +37,26 @@ const LoginPage = () => {
     confirmPassword: ''
   });
   
+  const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState(0);
+
+  // Carregar "Remember Me" do localStorage ao montar
+  useEffect(() => {
+    const savedRememberMe = localStorage.getItem('rememberMe') === 'true';
+    setRememberMe(savedRememberMe);
+    
+    // Se remember me estava ativo, tentar carregar username salvo
+    if (savedRememberMe) {
+      const savedUsername = localStorage.getItem('savedUsername');
+      if (savedUsername) {
+        setFormData(prev => ({ ...prev, username: savedUsername }));
+      }
+    }
+  }, []);
 
   // Atualizar modo quando URL mudar
   useEffect(() => {
@@ -56,6 +72,12 @@ const LoginPage = () => {
       ...prev,
       [name]: value
     }));
+    
+    // Calcular força da senha em tempo real
+    if (name === 'password') {
+      setPasswordStrength(calculatePasswordStrength(value));
+    }
+    
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -64,25 +86,63 @@ const LoginPage = () => {
     }
   };
 
+  // Calcular força da senha (0-4)
+  const calculatePasswordStrength = (password) => {
+    let strength = 0;
+    if (password.length >= 8) strength++;
+    if (password.length >= 12) strength++;
+    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+    if (/\d/.test(password)) strength++;
+    if (/[^a-zA-Z0-9]/.test(password)) strength++;
+    return Math.min(strength, 4);
+  };
+
+  const getPasswordStrengthLabel = () => {
+    const labels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+    const colors = ['text-red-500', 'text-orange-500', 'text-yellow-500', 'text-blue-500', 'text-green-500'];
+    return { label: labels[passwordStrength], color: colors[passwordStrength] };
+  };
+
   const validateForm = () => {
     const newErrors = {};
     
+    // Validação de username
     if (!formData.username.trim()) {
       newErrors.username = 'Username is required';
+    } else if (formData.username.length < 3) {
+      newErrors.username = 'Username must be at least 3 characters';
+    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
+      newErrors.username = 'Username can only contain letters, numbers, and underscores';
     }
     
-    if (mode === 'register' && !formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (mode === 'register' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Invalid email format';
+    // Validação de email (apenas registro)
+    if (mode === 'register') {
+      if (!formData.email.trim()) {
+        newErrors.email = 'Email is required';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        newErrors.email = 'Invalid email format';
+      }
     }
     
+    // Validação de senha (mais rigorosa para registro)
     if (!formData.password) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+    } else if (mode === 'register') {
+      if (formData.password.length < 8) {
+        newErrors.password = 'Password must be at least 8 characters';
+      } else if (!/(?=.*[a-z])(?=.*[A-Z])/.test(formData.password)) {
+        newErrors.password = 'Password must contain uppercase and lowercase letters';
+      } else if (!/(?=.*\d)/.test(formData.password)) {
+        newErrors.password = 'Password must contain at least one number';
+      }
+    } else {
+      // Login: mínimo 6 caracteres (para compatibilidade com contas antigas)
+      if (formData.password.length < 6) {
+        newErrors.password = 'Password must be at least 6 characters';
+      }
     }
     
+    // Confirmação de senha (apenas registro)
     if (mode === 'register') {
       if (!formData.confirmPassword) {
         newErrors.confirmPassword = 'Please confirm your password';
@@ -105,15 +165,32 @@ const LoginPage = () => {
     try {
       if (mode === 'login') {
         await login(formData.username, formData.password);
+        
+        // Salvar preferência de "Remember Me"
+        localStorage.setItem('rememberMe', rememberMe.toString());
+        
+        if (rememberMe) {
+          // Salvar apenas o username (NUNCA a senha!)
+          localStorage.setItem('savedUsername', formData.username);
+        } else {
+          // Limpar username salvo se desmarcou
+          localStorage.removeItem('savedUsername');
+        }
+        
         navigate('/');
       } else {
         // Registro - implementar posteriormente
         console.log('Register:', formData);
-        // await register(formData);
+        setErrors({
+          general: 'Registration is not yet available. Please contact an administrator.'
+        });
       }
     } catch (error) {
+      // Erro genérico para não revelar se username existe
       setErrors({
-        general: error.message || (mode === 'login' ? 'Login failed. Please check your credentials.' : 'Registration failed. Please try again.')
+        general: mode === 'login' 
+          ? 'Invalid credentials. Please check your username and password.' 
+          : 'Registration failed. Please try again.'
       });
     } finally {
       setIsLoading(false);
@@ -329,13 +406,14 @@ const LoginPage = () => {
                       `}
                       placeholder="Enter your password"
                       disabled={isLoading}
-                      autoComplete="current-password"
+                      autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute inset-y-0 right-0 pr-4 flex items-center text-text-tertiary hover:text-text-primary transition-colors"
                       disabled={isLoading}
+                      tabIndex={-1}
                     >
                       {showPassword ? (
                         <EyeOff className="h-5 w-5" />
@@ -344,6 +422,34 @@ const LoginPage = () => {
                       )}
                     </button>
                   </div>
+                  
+                  {/* Password Strength Indicator - Only for Register */}
+                  {mode === 'register' && formData.password && (
+                    <div className="mt-2 space-y-2">
+                      <div className="flex gap-1">
+                        {[...Array(4)].map((_, idx) => (
+                          <div
+                            key={idx}
+                            className={`h-1 flex-1 rounded-full transition-all ${
+                              idx < passwordStrength
+                                ? passwordStrength === 1
+                                  ? 'bg-red-500'
+                                  : passwordStrength === 2
+                                  ? 'bg-yellow-500'
+                                  : passwordStrength === 3
+                                  ? 'bg-blue-500'
+                                  : 'bg-green-500'
+                                : 'bg-white/10'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <p className={`text-xs ${getPasswordStrengthLabel().color}`}>
+                        {getPasswordStrengthLabel().label}
+                      </p>
+                    </div>
+                  )}
+                  
                   {errors.password && (
                     <p className="mt-2 text-sm text-red-500 flex items-center gap-1.5">
                       <AlertTriangle className="w-4 h-4" />
@@ -404,7 +510,10 @@ const LoginPage = () => {
                     <label className="flex items-center cursor-pointer group">
                       <input
                         type="checkbox"
-                        className="w-4 h-4 rounded border-white/20 bg-surface-base/50 text-theme-active focus:ring-2 focus:ring-theme-active/50 transition-all"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                        className="w-4 h-4 rounded border-white/20 bg-surface-base/50 text-theme-active focus:ring-2 focus:ring-theme-active/50 transition-all cursor-pointer"
+                        disabled={isLoading}
                       />
                       <span className="ml-2.5 text-sm text-text-secondary group-hover:text-text-primary transition-colors">
                         Remember me
@@ -412,6 +521,7 @@ const LoginPage = () => {
                     </label>
                     <button
                       type="button"
+                      onClick={() => setErrors({ general: 'Password reset is not yet available. Please contact support.' })}
                       className="text-sm text-theme-active hover:text-theme-hover font-medium transition-colors"
                       disabled={isLoading}
                     >

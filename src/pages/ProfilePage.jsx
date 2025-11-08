@@ -1,8 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
 import { useTranslation } from '../hooks/useTranslation';
+import { userService } from '../services/userService';
 import AssetDetailModal from '../components/assets/AssetDetailModal';
+import AssetCard from '../components/assets/AssetCard';
 import {
   User,
   Calendar,
@@ -45,17 +47,24 @@ const ProfilePage = () => {
   const { t } = useTranslation();
   const { username } = useParams();
   const navigate = useNavigate();
-  const { user: currentUser, isAuthenticated, userStats } = useUser();
+  const { user: currentUser, isAuthenticated } = useUser();
   
+  // Estados de dados
+  const [profileUser, setProfileUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // Estados de UI
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedFilter, setSelectedFilter] = useState('recent');
   const [isEditing, setIsEditing] = useState(false);
   
   // Form states para edição
   const [formData, setFormData] = useState({
-    displayName: '',
+    username: '',
     bio: '',
-    location: '',
+    country: '',
+    city: '',
     socialLinks: {
       twitter: '',
       discord: '',
@@ -64,26 +73,60 @@ const ProfilePage = () => {
     }
   });
 
-  // Simular se é perfil próprio
-  const isOwnProfile = isAuthenticated && currentUser?.username === username;
-  const displayUser = currentUser; // TODO: Carregar perfil de outro usuário se necessário
+  // Determinar se é perfil próprio
+  const isOwnProfile = useMemo(() => {
+    if (!isAuthenticated || !currentUser || !profileUser) return false;
+    return currentUser.id === profileUser.id;
+  }, [isAuthenticated, currentUser, profileUser]);
 
-  // Inicializar form data quando o usuário carregar
-  useState(() => {
-    if (displayUser) {
-      setFormData({
-        displayName: displayUser.displayName || '',
-        bio: displayUser.bio || '',
-        location: displayUser.location || '',
-        socialLinks: {
-          twitter: displayUser.socialLinks?.twitter || '',
-          discord: displayUser.socialLinks?.discord || '',
-          vrchat: displayUser.socialLinks?.vrchat || '',
-          website: displayUser.socialLinks?.website || ''
+  // Carregar dados do perfil
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        let userData;
+        
+        if (!username && isAuthenticated) {
+          // Sem username = perfil próprio
+          userData = await userService.getCurrentProfile();
+        } else if (username) {
+          // Com username = perfil público (busca por username)
+          userData = await userService.getProfileByUsername(username);
+        } else {
+          // Sem autenticação e sem username
+          navigate('/login');
+          return;
         }
-      });
-    }
-  }, [displayUser]);
+        
+        setProfileUser(userData);
+        
+        // Inicializar form data com dados do usuário
+        if (userData) {
+          setFormData({
+            username: userData.username || '',
+            bio: userData.bio || '',
+            country: userData.country || '',
+            city: userData.city || '',
+            socialLinks: {
+              twitter: userData.socialLinks?.twitter || '',
+              discord: userData.socialLinks?.discord || '',
+              vrchat: userData.socialLinks?.vrchat || '',
+              website: userData.socialLinks?.website || ''
+            }
+          });
+        }
+      } catch (err) {
+        console.error('Error loading profile:', err);
+        setError(err.message || 'Failed to load profile');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, [username, isAuthenticated, navigate]);
 
   // Handler para alterações no form
   const handleInputChange = (field, value) => {
@@ -104,59 +147,177 @@ const ProfilePage = () => {
   };
 
   // Salvar alterações
-  const handleSave = () => {
-    // TODO: Implementar chamada à API para salvar
-    console.log('Saving profile data:', formData);
-    setIsEditing(false);
-    // Aqui você faria: updateUser(formData)
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+      
+      // Preparar dados para envio
+      const updateData = {
+        username: formData.username,
+        bio: formData.bio,
+        country: formData.country,
+        city: formData.city,
+        socialLinks: formData.socialLinks
+      };
+      
+      const updatedUser = await userService.updateProfile(updateData);
+      setProfileUser(updatedUser);
+      setIsEditing(false);
+      
+      // TODO: Mostrar notificação de sucesso
+    } catch (err) {
+      console.error('Error saving profile:', err);
+      setError(err.message || 'Failed to save profile');
+      // TODO: Mostrar notificação de erro
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Cancelar edição
   const handleCancel = () => {
     // Resetar para dados originais
-    setFormData({
-      displayName: displayUser.displayName || '',
-      bio: displayUser.bio || '',
-      location: displayUser.location || '',
-      socialLinks: {
-        twitter: displayUser.socialLinks?.twitter || '',
-        discord: displayUser.socialLinks?.discord || '',
-        vrchat: displayUser.socialLinks?.vrchat || '',
-        website: displayUser.socialLinks?.website || ''
-      }
-    });
+    if (profileUser) {
+      setFormData({
+        username: profileUser.username || '',
+        bio: profileUser.bio || '',
+        country: profileUser.country || '',
+        city: profileUser.city || '',
+        socialLinks: {
+          twitter: profileUser.socialLinks?.twitter || '',
+          discord: profileUser.socialLinks?.discord || '',
+          vrchat: profileUser.socialLinks?.vrchat || '',
+          website: profileUser.socialLinks?.website || ''
+        }
+      });
+    }
     setIsEditing(false);
   };
 
-  // Dados mockup para demonstração
-  const mockAvatars = [
-    { id: 1, name: 'Cyber Fox', preview: 'https://images.unsplash.com/photo-1614680376593-902f74cf0d41?w=400', likes: 234, downloads: 1203, views: 5432, uploadDate: '2024-10-15' },
-    { id: 2, name: 'Neon Cat', preview: 'https://images.unsplash.com/photo-1573865526739-10c1d3a1f0ed?w=400', likes: 189, downloads: 892, views: 4123, uploadDate: '2024-10-10' },
-    { id: 3, name: 'Space Wolf', preview: 'https://images.unsplash.com/photo-1614680376408-81e91ffe3db7?w=400', likes: 312, downloads: 1534, views: 6789, uploadDate: '2024-09-28' },
-    { id: 4, name: 'Crystal Dragon', preview: 'https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?w=400', likes: 445, downloads: 2103, views: 8234, uploadDate: '2024-09-15' },
-    { id: 5, name: 'Galaxy Girl', preview: 'https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?w=400', likes: 567, downloads: 2834, views: 9876, uploadDate: '2024-08-30' },
-    { id: 6, name: 'Tech Warrior', preview: 'https://images.unsplash.com/photo-1614680376739-414d95ff43df?w=400', likes: 123, downloads: 543, views: 2345, uploadDate: '2024-08-20' }
-  ];
+  // Upload de avatar
+  const handleAvatarUpload = useCallback(async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-  const mockPosts = [
-    { id: 1, title: 'Best practices for avatar optimization', category: 'Tutorial', replies: 45, likes: 123, views: 2340, date: '2024-10-01', isPinned: true },
-    { id: 2, title: 'New avatar showcase - Cyber collection', category: 'Showcase', replies: 28, likes: 89, views: 1234, date: '2024-09-28' },
-    { id: 3, title: 'Looking for feedback on my latest creation', category: 'Discussion', replies: 67, likes: 156, views: 3456, date: '2024-09-25' },
-    { id: 4, title: 'Avatar creation tools comparison', category: 'Guide', replies: 34, likes: 78, views: 1876, date: '2024-09-20' }
-  ];
+    // Validar tipo de arquivo
+    if (!file.type.startsWith('image/')) {
+      setError('Por favor, selecione uma imagem válida');
+      return;
+    }
 
-  const mockActivities = [
-    { id: 1, type: 'upload', content: 'Uploaded new avatar "Cyber Fox"', time: '2h ago', icon: Upload, color: 'text-blue-500' },
-    { id: 2, type: 'post', content: 'Posted in Tutorial: "Best practices for avatar optimization"', time: '5h ago', icon: MessageSquare, color: 'text-green-500' },
-    { id: 3, type: 'like', content: 'Liked 3 avatars', time: '1d ago', icon: Heart, color: 'text-red-500' },
-    { id: 4, type: 'comment', content: 'Commented on "New VRChat update discussion"', time: '2d ago', icon: MessageCircle, color: 'text-purple-500' },
-    { id: 5, type: 'achievement', content: 'Earned "Creator" badge', time: '3d ago', icon: Award, color: 'text-yellow-500' }
-  ];
+    // Validar tamanho (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('A imagem deve ter no máximo 5MB');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const result = await userService.uploadAvatar(file);
+      
+      // Atualizar profileUser com nova URL
+      setProfileUser(prev => ({
+        ...prev,
+        avatarUrl: result.avatar_url
+      }));
+      
+      // TODO: Mostrar notificação de sucesso
+      console.log('Avatar uploaded successfully:', result);
+    } catch (err) {
+      console.error('Error uploading avatar:', err);
+      setError(err.message || 'Failed to upload avatar');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Upload de banner
+  const handleBannerUpload = useCallback(async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de arquivo
+    if (!file.type.startsWith('image/')) {
+      setError('Por favor, selecione uma imagem válida');
+      return;
+    }
+
+    // Validar tamanho (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setError('A imagem deve ter no máximo 10MB');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const result = await userService.uploadBanner(file);
+      
+      // Atualizar profileUser com nova URL
+      setProfileUser(prev => ({
+        ...prev,
+        bannerUrl: result.banner_url
+      }));
+      
+      // TODO: Mostrar notificação de sucesso
+      console.log('Banner uploaded successfully:', result);
+    } catch (err) {
+      console.error('Error uploading banner:', err);
+      setError(err.message || 'Failed to upload banner');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Estados para assets do usuário
+  const [userAssets, setUserAssets] = useState([]);
+  const [assetsLoading, setAssetsLoading] = useState(false);
+  const [assetsPage, setAssetsPage] = useState(1);
+  const [hasMoreAssets, setHasMoreAssets] = useState(true);
+
+  // TODO: Implement posts and activities loading from real API endpoints
+  const mockPosts = []; // Placeholder - will be replaced with real posts data
+  const mockActivities = []; // Placeholder - will be replaced with real activities data
+
+
+  // Carregar assets do usuário
+  useEffect(() => {
+    const loadUserAssets = async () => {
+      if (!profileUser?.id) return;
+      
+      try {
+        setAssetsLoading(true);
+        const result = await userService.getUserAssets(profileUser.id, {
+          page: assetsPage,
+          limit: 20,
+          includeUnapproved: isOwnProfile,
+          includeInactive: isOwnProfile
+        });
+        
+        if (assetsPage === 1) {
+          setUserAssets(result.assets || []);
+        } else {
+          setUserAssets(prev => [...prev, ...(result.assets || [])]);
+        }
+        
+        setHasMoreAssets(result.pagination?.page < result.pagination?.pages);
+      } catch (err) {
+        console.error('Error loading user assets:', err);
+      } finally {
+        setAssetsLoading(false);
+      }
+    };
+
+    if (activeTab === 'avatars') {
+      loadUserAssets();
+    }
+  }, [profileUser?.id, assetsPage, isOwnProfile, activeTab]);
 
   // Cálculo de nível e progresso
   const levelProgress = useMemo(() => {
-    const currentLevel = userStats?.level || 1;
-    const currentRep = userStats?.reputation || 0;
+    if (!profileUser?.stats) return { level: 1, progress: 0, currentRep: 0, nextThreshold: 100, repToNext: 100 };
+    
+    const currentLevel = profileUser.stats.level || 1;
+    const currentRep = profileUser.stats.reputation || 0;
     const levelThresholds = [0, 100, 250, 500, 1000, 2000, 4000, 8000, 15000, 30000, 50000, 75000, 100000];
     
     const currentThreshold = levelThresholds[currentLevel - 1] || 0;
@@ -170,53 +331,110 @@ const ProfilePage = () => {
       nextThreshold,
       repToNext: Math.max(0, nextThreshold - currentRep)
     };
-  }, [userStats]);
+  }, [profileUser?.stats]);
 
   // Estatísticas calculadas
-  const stats = useMemo(() => ({
-    totalEngagement: (userStats?.avatarsCount * 10) + (userStats?.postsCount * 5) + (userStats?.repliesCount * 2),
-    averageRating: 4.8,
-    successRate: 94,
-    responseTime: '< 2h'
-  }), [userStats]);
+  const stats = useMemo(() => {
+    const uploads = profileUser?.stats?.totalUploads || 0;
+    const reviews = profileUser?.stats?.totalReviews || 0;
+    const totalEngagement = (uploads * 10) + (reviews * 5);
+    
+    // Calculate success rate based on approved vs total uploads
+    const approved = profileUser?.stats?.approvedUploads || 0;
+    const successRate = uploads > 0 ? Math.round((approved / uploads) * 100) : 0;
+    
+    return {
+      totalEngagement,
+      averageRating: profileUser?.stats?.averageRating || 0,
+      successRate,
+      responseTime: '< 2h' // TODO: Calculate from real response data
+    };
+  }, [profileUser?.stats]);
 
   const tabs = [
     { id: 'overview', label: 'Visão Geral', icon: Activity },
-    { id: 'avatars', label: 'Avatares', icon: User, count: userStats?.avatarsCount },
-    { id: 'posts', label: 'Posts', icon: MessageSquare, count: userStats?.postsCount },
+    { id: 'avatars', label: 'Avatares', icon: User, count: profileUser?.stats?.totalUploads },
+    { id: 'posts', label: 'Posts', icon: MessageSquare, count: 0 },
     { id: 'activity', label: 'Atividade', icon: TrendingUp },
     { id: 'achievements', label: 'Conquistas', icon: Trophy }
   ];
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-theme-primary mb-4"></div>
+          <p className="text-text-secondary">Carregando perfil...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-theme-active text-white rounded-lg hover:bg-theme-hover transition-colors"
+          >
+            Tentar Novamente
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // No user data
+  if (!profileUser) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-text-secondary">Perfil não encontrado</p>
+      </div>
+    );
+  }
 
   return (
     <div className="pb-6">
       {/* Banner/Cover - Estilo Redes Sociais (Twitter/LinkedIn) */}
       <div className="relative bg-gradient-to-br from-theme-primary via-theme-secondary to-theme-accent h-48 sm:h-56 md:h-64 overflow-hidden">
         {/* Imagem do banner (se existir) */}
-        {displayUser?.bannerImage && (
+        {profileUser?.bannerUrl && (
           <img 
-            src={displayUser.bannerImage}
+            src={profileUser.bannerUrl}
             alt="Banner do perfil"
             className="absolute inset-0 w-full h-full object-cover"
           />
         )}
         
         {/* Padrão de fundo (fallback ou overlay) */}
-        {!displayUser?.bannerImage && (
+        {!profileUser?.bannerUrl && (
           <div className="absolute inset-0 bg-grid-pattern opacity-10" />
         )}
         
         {/* Overlay de edição do banner - Só aparece quando editando */}
         {isEditing && isOwnProfile && (
-          <div 
-            className="absolute inset-0 bg-black/0 hover:bg-black/50 transition-colors cursor-pointer group flex items-center justify-center"
-            onClick={() => console.log('Abrir modal de edição de banner')}
-          >
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 px-4 py-2 bg-black/70 backdrop-blur-sm text-white rounded-lg">
-              <ImagePlus className="w-5 h-5" />
-              <span className="text-sm font-medium">Alterar Banner</span>
-            </div>
-          </div>
+          <>
+            <input 
+              type="file"
+              id="banner-upload"
+              accept="image/*"
+              className="hidden"
+              onChange={handleBannerUpload}
+            />
+            <label 
+              htmlFor="banner-upload"
+              className="absolute inset-0 bg-black/0 hover:bg-black/50 transition-colors cursor-pointer group flex items-center justify-center"
+            >
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 px-4 py-2 bg-black/70 backdrop-blur-sm text-white rounded-lg">
+                <ImagePlus className="w-5 h-5" />
+                <span className="text-sm font-medium">Alterar Banner</span>
+              </div>
+            </label>
+          </>
         )}
       </div>
 
@@ -225,26 +443,29 @@ const ProfilePage = () => {
         <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           {/* Avatar sobrepondo o banner */}
           <div className="relative -mt-16 sm:-mt-20 mb-4">
-            <div 
+            <input 
+              type="file"
+              id="avatar-upload"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarUpload}
+            />
+            <label 
+              htmlFor={isEditing && isOwnProfile ? "avatar-upload" : undefined}
               className={`inline-block relative ${isEditing && isOwnProfile ? 'cursor-pointer group' : ''}`}
-              onClick={() => {
-                if (isEditing && isOwnProfile) {
-                  console.log('Abrir modal de edição de avatar');
-                }
-              }}
             >
             {/* Avatar redondo com borda */}
             <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-40 lg:h-40 rounded-full border-4 border-surface-base bg-gradient-to-br from-theme-primary to-theme-accent p-1 shadow-2xl">
               <div className="w-full h-full rounded-full bg-surface-float flex items-center justify-center overflow-hidden relative">
-                {displayUser?.avatar ? (
+                {profileUser?.avatarUrl ? (
                   <img 
-                    src={displayUser.avatar} 
-                    alt={displayUser.displayName}
+                    src={profileUser.avatarUrl} 
+                    alt={profileUser.username}
                     className="w-full h-full object-cover"
                   />
                 ) : (
                   <span className="text-4xl sm:text-5xl font-bold text-text-primary">
-                    {displayUser?.displayName?.[0]?.toUpperCase() || 'U'}
+                    {profileUser?.username?.[0]?.toUpperCase() || 'U'}
                   </span>
                 )}
                 
@@ -263,12 +484,12 @@ const ProfilePage = () => {
             )}
             
             {/* Badge de verificado */}
-            {displayUser?.isVerified && (
+            {profileUser?.isVerified && (
               <div className="absolute top-0 right-0 w-10 h-10 bg-theme-primary rounded-full flex items-center justify-center shadow-lg border-4 border-surface-base">
                 <CheckCircle className="w-5 h-5 text-white" />
               </div>
             )}
-          </div>
+          </label>
         </div>
 
         {/* Profile Info */}
@@ -281,24 +502,24 @@ const ProfilePage = () => {
                   {/* Nome e badges */}
                   <div className="flex flex-wrap items-center gap-3 mb-3">
                     <h1 className="text-3xl lg:text-4xl font-bold text-text-primary">
-                      {displayUser?.displayName || displayUser?.username}
+                      {profileUser?.username}
                     </h1>
                     
-                    {userStats?.isVerified && (
+                    {profileUser.stats?.isVerified && (
                       <div className="flex items-center gap-1 px-3 py-1 bg-blue-500/10 text-blue-500 rounded-full text-sm font-medium">
                         <Star className="w-4 h-4" />
                         Verificado
                       </div>
                     )}
                     
-                    {userStats?.isAdmin && (
+                    {profileUser.stats?.isAdmin && (
                       <div className="flex items-center gap-1 px-3 py-1 bg-red-500/10 text-red-500 rounded-full text-sm font-medium">
                         <Award className="w-4 h-4" />
                         Admin
                       </div>
                     )}
                     
-                    {userStats?.isModerator && !userStats?.isAdmin && (
+                    {profileUser.stats?.isModerator && !profileUser.stats?.isAdmin && (
                       <div className="flex items-center gap-1 px-3 py-1 bg-green-500/10 text-green-500 rounded-full text-sm font-medium">
                         <Award className="w-4 h-4" />
                         Moderador
@@ -306,12 +527,12 @@ const ProfilePage = () => {
                     )}
                   </div>
 
-                  <p className="text-text-secondary mb-4">@{displayUser?.username}</p>
+                  <p className="text-text-secondary mb-4">@{profileUser?.username}</p>
 
                   {/* Bio */}
-                  {displayUser?.bio && (
+                  {profileUser?.bio && (
                     <p className="text-sm sm:text-base text-text-primary max-w-3xl mb-3 sm:mb-4 leading-relaxed">
-                      {displayUser.bio}
+                      {profileUser.bio}
                     </p>
                   )}
 
@@ -321,13 +542,13 @@ const ProfilePage = () => {
                       <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       <span className="hidden sm:inline">Membro desde</span>
                       <span className="sm:hidden">Desde</span>
-                      {' '}{new Date(displayUser?.createdAt || Date.now()).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })}
+                      {' '}{new Date(profileUser?.createdAt || Date.now()).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })}
                     </div>
                     
-                    {displayUser?.location && (
+                    {(profileUser?.city || profileUser?.country) && (
                       <div className="flex items-center gap-1">
                         <MapPin className="w-4 h-4" />
-                        {displayUser.location}
+                        {[profileUser?.city, profileUser?.country].filter(Boolean).join(', ')}
                       </div>
                     )}
                     
@@ -361,7 +582,7 @@ const ProfilePage = () => {
                     </label>
                     <input
                       type="text"
-                      value={displayUser?.username}
+                      value={profileUser?.username}
                       disabled
                       className="w-full px-4 py-2.5 bg-surface-base border border-white/5 rounded-lg text-text-tertiary cursor-not-allowed opacity-60"
                     />
@@ -463,11 +684,11 @@ const ProfilePage = () => {
               )}
 
               {/* Social Links - Só mostrar no modo visualização */}
-              {!isEditing && displayUser?.socialLinks && (
+              {!isEditing && profileUser?.socialLinks && (
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {displayUser.socialLinks.twitter && (
+                  {profileUser.socialLinks.twitter && (
                     <a 
-                      href={`https://twitter.com/${displayUser.socialLinks.twitter.replace('@', '')}`}
+                      href={`https://twitter.com/${profileUser.socialLinks.twitter.replace('@', '')}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 bg-surface-elevated hover:bg-surface-elevated/80 rounded-lg transition-colors text-text-secondary hover:text-theme-primary text-xs sm:text-sm"
@@ -477,20 +698,20 @@ const ProfilePage = () => {
                     </a>
                   )}
                   
-                  {displayUser.socialLinks.discord && (
+                  {profileUser.socialLinks.discord && (
                     <a 
                       href="#"
                       className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 bg-surface-elevated hover:bg-surface-elevated/80 rounded-lg transition-colors text-text-secondary hover:text-theme-primary text-xs sm:text-sm"
                     >
                       <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      <span className="hidden xs:inline">{displayUser.socialLinks.discord}</span>
+                      <span className="hidden xs:inline">{profileUser.socialLinks.discord}</span>
                       <span className="xs:hidden">Discord</span>
                     </a>
                   )}
                   
-                  {displayUser.socialLinks.vrchat && (
+                  {profileUser.socialLinks.vrchat && (
                     <a 
-                      href={`https://vrchat.com/home/user/${displayUser.socialLinks.vrchat}`}
+                      href={`https://vrchat.com/home/user/${profileUser.socialLinks.vrchat}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 bg-surface-elevated hover:bg-surface-elevated/80 rounded-lg transition-colors text-text-secondary hover:text-theme-primary text-xs sm:text-sm"
@@ -598,35 +819,35 @@ const ProfilePage = () => {
             <StatCard 
               icon={User}
               label="Avatares"
-              value={userStats?.avatarsCount || 0}
+              value={profileUser.stats?.avatarsCount || 0}
               color="text-blue-500"
             />
             
             <StatCard 
               icon={MessageSquare}
               label="Posts"
-              value={userStats?.postsCount || 0}
+              value={profileUser.stats?.postsCount || 0}
               color="text-green-500"
             />
             
             <StatCard 
               icon={Heart}
               label="Curtidas"
-              value={userStats?.favoritesCount || 0}
+              value={profileUser.stats?.favoritesCount || 0}
               color="text-red-500"
             />
             
             <StatCard 
               icon={Download}
               label="Downloads"
-              value={userStats?.downloadsCount || 0}
+              value={profileUser.stats?.downloadsCount || 0}
               color="text-purple-500"
             />
             
             <StatCard 
               icon={Trophy}
               label="Reputação"
-              value={userStats?.reputation || 0}
+              value={profileUser.stats?.reputation || 0}
               color="text-yellow-500"
             />
             
@@ -704,8 +925,8 @@ const ProfilePage = () => {
                   </div>
                   
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-                    {mockAvatars.slice(0, 6).map(avatar => (
-                      <AvatarCard key={avatar.id} avatar={avatar} />
+                    {userAssets.slice(0, 6).map(asset => (
+                      <AssetCard key={asset.id} asset={asset} />
                     ))}
                   </div>
                 </section>
@@ -741,7 +962,7 @@ const ProfilePage = () => {
                   </h3>
                   
                   <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                    {userStats?.badges?.map(badge => (
+                    {profileUser.stats?.badges?.map(badge => (
                       <div 
                         key={badge.id}
                         className="flex flex-col items-center p-3 bg-surface-elevated rounded-lg hover:bg-surface-elevated/80 transition-colors cursor-pointer group"
@@ -799,7 +1020,7 @@ const ProfilePage = () => {
                     <div className="pt-4 border-t border-white/5">
                       <div className="text-sm text-text-tertiary mb-2">Trending</div>
                       <div className="flex items-center justify-between">
-                        <span className="text-text-primary font-medium">+{userStats?.reputation || 0}</span>
+                        <span className="text-text-primary font-medium">+{profileUser.stats?.reputation || 0}</span>
                         <span className="text-green-500 text-sm flex items-center gap-1">
                           <TrendingUp className="w-4 h-4" />
                           +15% este mês
@@ -817,7 +1038,7 @@ const ProfilePage = () => {
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
                 <div>
                   <h2 className="text-xl sm:text-2xl font-bold text-text-primary">Todos os Avatares</h2>
-                  <p className="text-xs sm:text-sm text-text-tertiary mt-1">{userStats?.avatarsCount || 0} avatares publicados</p>
+                  <p className="text-xs sm:text-sm text-text-tertiary mt-1">{profileUser.stats?.avatarsCount || 0} avatares publicados</p>
                 </div>
                 
                 <div className="flex gap-2 w-full sm:w-auto">
@@ -835,9 +1056,19 @@ const ProfilePage = () => {
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-                {mockAvatars.map(avatar => (
-                  <AvatarCard key={avatar.id} avatar={avatar} expanded />
-                ))}
+                {assetsLoading && userAssets.length === 0 ? (
+                  <div className="col-span-full text-center py-8">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-theme-primary"></div>
+                  </div>
+                ) : userAssets.length === 0 ? (
+                  <div className="col-span-full text-center py-8">
+                    <p className="text-text-secondary">Nenhum avatar encontrado</p>
+                  </div>
+                ) : (
+                  userAssets.map(asset => (
+                    <AssetCard key={asset.id} asset={asset} expanded />
+                  ))
+                )}
               </div>
             </div>
           )}
@@ -847,7 +1078,7 @@ const ProfilePage = () => {
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
                 <div>
                   <h2 className="text-xl sm:text-2xl font-bold text-text-primary">Todos os Posts</h2>
-                  <p className="text-xs sm:text-sm text-text-tertiary mt-1">{userStats?.postsCount || 0} posts no fórum</p>
+                  <p className="text-xs sm:text-sm text-text-tertiary mt-1">{profileUser.stats?.postsCount || 0} posts no fórum</p>
                 </div>
               </div>
               
@@ -880,7 +1111,7 @@ const ProfilePage = () => {
               <h2 className="text-xl sm:text-2xl font-bold text-text-primary mb-4 sm:mb-6">Conquistas & Badges</h2>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                {userStats?.badges?.map(badge => (
+                {profileUser.stats?.badges?.map(badge => (
                   <div 
                     key={badge.id}
                     className="card-gradient p-4 sm:p-6 text-center hover:scale-105 transition-transform cursor-pointer rounded-xl"
@@ -914,88 +1145,6 @@ const StatCard = ({ icon: Icon, label, value, color }) => (
     </div>
   </div>
 );
-
-const AvatarCard = ({ avatar, expanded = false }) => {
-  const [showModal, setShowModal] = useState(false);
-  
-  return (
-    <>
-      <article 
-        className="group relative bg-surface-float rounded-xl border border-white/5 overflow-hidden hover:border-white/10 transition-all duration-300 hover:shadow-xl cursor-pointer"
-        onClick={() => setShowModal(true)}
-      >
-        {/* Thumbnail Container */}
-        <div className="relative overflow-hidden bg-surface-float2">
-          <img 
-            src={avatar.preview}
-            alt={avatar.name}
-            className="w-full h-40 object-cover group-hover:scale-110 transition-transform duration-500"
-          />
-          
-          {/* Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          
-          {/* Hover Actions */}
-          <div className="absolute inset-x-0 bottom-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-            <button 
-              className="btn btn-primary w-full justify-center text-xs py-1.5 shadow-lg"
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowModal(true);
-              }}
-            >
-              <Eye size={14} />
-              <span>Ver Detalhes</span>
-            </button>
-          </div>
-        </div>
-        
-        {/* Content */}
-        <div className="p-3">
-          <h3 className="font-semibold text-sm mb-1.5 line-clamp-2 group-hover:text-theme-active transition-colors leading-tight">
-            {avatar.name}
-          </h3>
-          
-          {/* Stats */}
-          <div className="flex items-center gap-3 text-xs text-text-tertiary">
-            <span className="flex items-center gap-1">
-              <Heart className="w-3 h-3" />
-              {avatar.likes}
-            </span>
-            <span className="flex items-center gap-1">
-              <Download className="w-3 h-3" />
-              {avatar.downloads}
-            </span>
-            {expanded && (
-              <span className="flex items-center gap-1">
-                <Eye className="w-3 h-3" />
-                {avatar.views}
-              </span>
-            )}
-          </div>
-        </div>
-      </article>
-      
-      {/* Modal de detalhes do avatar */}
-      <AssetDetailModal 
-        isOpen={showModal}
-        asset={{
-          ...avatar,
-          title: avatar.name,
-          category: 'Avatar',
-          thumbnail: avatar.preview,
-          author: { name: 'Você', avatar: null },
-          description: `Avatar ${avatar.name} - ${avatar.likes} curtidas, ${avatar.downloads} downloads`,
-          tags: ['Avatar', 'VRChat'],
-          uploadedAt: avatar.uploadDate
-        }}
-        onClose={() => {
-          setShowModal(false);
-        }}
-      />
-    </>
-  );
-};
 
 const PostCard = ({ post, expanded = false }) => (
   <div className="flex items-start gap-2 sm:gap-3 lg:gap-4 p-3 sm:p-4 bg-surface-elevated rounded-lg hover:bg-surface-elevated/80 transition-colors cursor-pointer group">

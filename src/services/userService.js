@@ -1,9 +1,39 @@
 import api from '../config/api';
+import { apiConfig } from '../config/apiConfig';
+import { PLACEHOLDER_IMAGES } from '../constants';
 
 class UserService {
+  /**
+   * Normaliza dados do usuário
+   * - Normaliza avatarUrl e bannerUrl via apiConfig
+   * - Adiciona placeholder para avatares ausentes
+   * - Parse de socialLinks se necessário
+   */
+  normalizeUser(user) {
+    if (!user) return null;
+
+    return {
+      ...user,
+      avatarUrl: apiConfig.normalizeImageUrl(user.avatarUrl, PLACEHOLDER_IMAGES.AVATAR),
+      bannerUrl: apiConfig.normalizeImageUrl(user.bannerUrl, PLACEHOLDER_IMAGES.BANNER),
+      socialLinks: typeof user.socialLinks === 'string' 
+        ? JSON.parse(user.socialLinks) 
+        : user.socialLinks
+    };
+  }
+
+  /**
+   * Normaliza array de usuários
+   */
+  normalizeUsers(users) {
+    if (!Array.isArray(users)) return [];
+    return users.map(user => this.normalizeUser(user));
+  }
+
   // Authentication
   async login(credentials) {
     const response = await api.post('/auth/login', credentials);
+    // Backend retorna: { success: true, data: { user, token, ... } }
     return response.data;
   }
 
@@ -30,207 +60,121 @@ class UserService {
   }
 
   // Profile management
-  async getProfile(userId) {
+  async getCurrentProfile() {
+    const response = await api.get('/users/profile');
+    return this.normalizeUser(response.data.data.user);
+  }
+
+  async getProfileById(userId) {
     const response = await api.get(`/users/${userId}`);
-    return response.data;
+    return this.normalizeUser(response.data.data);
   }
 
-  async updateProfile(userId, profileData) {
-    const response = await api.put(`/users/${userId}`, profileData);
-    return response.data;
+  async getProfileByUsername(username) {
+    const response = await api.get(`/users/username/${username}`);
+    return this.normalizeUser(response.data.data);
   }
 
-  async uploadAvatar(userId, file) {
+  async updateProfile(profileData) {
+    const response = await api.put('/users/profile', profileData);
+    return this.normalizeUser(response.data.data.user);
+  }
+
+  async uploadAvatar(file) {
     const formData = new FormData();
     formData.append('avatar', file);
     
-    const response = await api.post(`/users/${userId}/avatar`, formData, {
+    const response = await api.post('/users/avatar', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
-    return response.data;
+    return response.data.data;
   }
 
-  async changePassword(userId, passwordData) {
-    const response = await api.put(`/users/${userId}/password`, passwordData);
-    return response.data;
-  }
-
-  // User search and discovery
-  async searchUsers(query, filters = {}) {
-    const params = new URLSearchParams({
-      q: query,
-      ...filters
-    });
+  async uploadBanner(file) {
+    const formData = new FormData();
+    formData.append('banner', file);
     
-    const response = await api.get(`/users/search?${params}`);
+    const response = await api.post('/users/banner', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data.data;
+  }
+
+  async changePassword(passwordData) {
+    const response = await api.put('/users/password', passwordData);
     return response.data;
   }
 
-  async getTopUsers(criteria = 'reputation', limit = 20) {
-    const response = await api.get(`/users/leaderboard?criteria=${criteria}&limit=${limit}`);
-    return response.data;
-  }
-
-  async getUsersByRole(role) {
-    const response = await api.get(`/users/role/${role}`);
-    return response.data;
-  }
-
-  // User statistics and activity
-  async getUserStats(userId) {
-    const response = await api.get(`/users/${userId}/stats`);
-    return response.data;
-  }
-
-  async getUserActivity(userId, options = {}) {
+  // User assets and favorites
+  async getUserAssets(userId, options = {}) {
     const params = new URLSearchParams({
+      userId: userId || '',
       page: options.page || 1,
       limit: options.limit || 20,
-      type: options.type || 'all'
+      includeUnapproved: options.includeUnapproved || false,
+      includeInactive: options.includeInactive || false
     });
     
-    const response = await api.get(`/users/${userId}/activity?${params}`);
-    return response.data;
+    const response = await api.get(`/users/assets?${params}`);
+    return response.data.data;
   }
 
-  // Social features
-  async followUser(userId) {
-    const response = await api.post(`/users/${userId}/follow`);
-    return response.data;
+  async getUserFavorites(userId, options = {}) {
+    const params = new URLSearchParams({
+      userId: userId,
+      page: options.page || 1,
+      limit: options.limit || 20
+    });
+    
+    const response = await api.get(`/users/favorites?${params}`);
+    return response.data.data;
   }
 
-  async unfollowUser(userId) {
-    const response = await api.delete(`/users/${userId}/follow`);
-    return response.data;
-  }
-
-  async getFollowers(userId) {
-    const response = await api.get(`/users/${userId}/followers`);
-    return response.data;
-  }
-
-  async getFollowing(userId) {
-    const response = await api.get(`/users/${userId}/following`);
-    return response.data;
-  }
-
-  // Notifications
-  async getNotifications(userId, options = {}) {
+  async getMyFavorites(options = {}) {
     const params = new URLSearchParams({
       page: options.page || 1,
-      limit: options.limit || 50,
-      unread: options.unreadOnly || false
+      limit: options.limit || 20
     });
     
-    const response = await api.get(`/users/${userId}/notifications?${params}`);
-    return response.data;
+    const response = await api.get(`/users/my-favorites?${params}`);
+    return response.data.data;
   }
 
-  async markNotificationAsRead(notificationId) {
-    const response = await api.put(`/notifications/${notificationId}/read`);
-    return response.data;
+  // Rankings
+  async getTopUploaders(limit = 10) {
+    const response = await api.get(`/users/top-uploaders?limit=${limit}`);
+    return this.normalizeUsers(response.data.data);
   }
 
-  async markAllNotificationsAsRead(userId) {
-    const response = await api.put(`/users/${userId}/notifications/read-all`);
-    return response.data;
+  async getTopByDownloads(limit = 10) {
+    const response = await api.get(`/users/top-downloads?limit=${limit}`);
+    return this.normalizeUsers(response.data.data);
   }
 
-  async clearAllNotifications(userId) {
-    const response = await api.delete(`/users/${userId}/notifications`);
-    return response.data;
+  async getTopByLikes(limit = 10) {
+    const response = await api.get(`/users/top-likes?limit=${limit}`);
+    return this.normalizeUsers(response.data.data);
   }
 
-  async updateNotificationSettings(userId, settings) {
-    const response = await api.put(`/users/${userId}/notification-settings`, settings);
-    return response.data;
+  async getTopByRating(limit = 10) {
+    const response = await api.get(`/users/top-rating?limit=${limit}`);
+    return this.normalizeUsers(response.data.data);
   }
 
-  // VRChat Integration
-  async linkVRChatAccount(userId, vrchatData) {
-    const response = await api.post(`/users/${userId}/vrchat/link`, vrchatData);
-    return response.data;
-  }
-
-  async unlinkVRChatAccount(userId) {
-    const response = await api.delete(`/users/${userId}/vrchat/link`);
-    return response.data;
-  }
-
-  async getVRChatProfile(vrchatId) {
-    const response = await api.get(`/vrchat/users/${vrchatId}`);
-    return response.data;
-  }
-
-  async getVRChatFriends(vrchatId) {
-    const response = await api.get(`/vrchat/users/${vrchatId}/friends`);
-    return response.data;
-  }
-
-  async syncVRChatData(userId) {
-    const response = await api.post(`/users/${userId}/vrchat/sync`);
-    return response.data;
-  }
-
-  // User preferences
-  async getUserPreferences(userId) {
-    const response = await api.get(`/users/${userId}/preferences`);
-    return response.data;
-  }
-
-  async updateUserPreferences(userId, preferences) {
-    const response = await api.put(`/users/${userId}/preferences`, preferences);
-    return response.data;
-  }
-
-  // User roles and permissions
-  async updateUserRole(userId, role) {
-    const response = await api.put(`/users/${userId}/role`, { role });
-    return response.data;
-  }
-
-  async getUserPermissions(userId) {
-    const response = await api.get(`/users/${userId}/permissions`);
-    return response.data;
-  }
-
-  // User reports and moderation
-  async reportUser(userId, reportData) {
-    const response = await api.post(`/users/${userId}/report`, reportData);
-    return response.data;
-  }
-
-  async getUserReports(userId) {
-    const response = await api.get(`/users/${userId}/reports`);
-    return response.data;
-  }
-
-  async banUser(userId, banData) {
-    const response = await api.post(`/users/${userId}/ban`, banData);
-    return response.data;
-  }
-
-  async unbanUser(userId) {
-    const response = await api.delete(`/users/${userId}/ban`);
-    return response.data;
-  }
-
-  // User deletion and privacy
-  async deactivateAccount(userId, reason) {
-    const response = await api.put(`/users/${userId}/deactivate`, { reason });
-    return response.data;
-  }
-
-  async deleteAccount(userId, confirmationData) {
-    const response = await api.delete(`/users/${userId}`, { data: confirmationData });
-    return response.data;
-  }
-
-  async exportUserData(userId) {
-    const response = await api.get(`/users/${userId}/export`, {
-      responseType: 'blob'
+  // Profile comments
+  async getProfileComments(userId, options = {}) {
+    const params = new URLSearchParams({
+      page: options.page || 1,
+      limit: options.limit || 20
     });
-    return response.data;
+    
+    const response = await api.get(`/users/${userId}/comments?${params}`);
+    return response.data.data;
+  }
+
+  async createProfileComment(userId, commentData) {
+    const response = await api.post(`/users/${userId}/comments`, commentData);
+    return response.data.data;
   }
 }
 

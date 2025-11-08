@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { UserProvider } from './contexts/UserContext';
 import MainLayout from './components/layout/MainLayout';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 import DevTools from './components/dev/DevTools';
 import ForYouPage from './pages/ForYouPage';
 import ExplorePage from './pages/ExplorePage';
@@ -43,7 +44,11 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           
           {/* Protected Routes with MainLayout */}
-          <Route path="/" element={<MainLayout />}>
+          <Route path="/" element={
+            <ProtectedRoute>
+              <MainLayout />
+            </ProtectedRoute>
+          }>
             <Route index element={<ForYouPage />} />
             <Route path="explore" element={<ExplorePage />} />
             <Route path="history" element={<HistoryPage />} />

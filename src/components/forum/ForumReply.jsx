@@ -36,8 +36,8 @@ const ForumReply = ({ reply, postAuthorId, onReply, formatDate, depth = 0 }) => 
           <div className="flex items-start gap-3">
             {/* Avatar - Menor que o post principal */}
             <img
-              src={reply.author.avatar}
-              alt={reply.author.displayName}
+              src={reply.author.avatarUrl || '/default-avatar.png'}
+              alt={reply.author.displayName || reply.author.username}
               className="w-9 h-9 rounded-full shrink-0 ring-1 ring-white/10"
             />
 

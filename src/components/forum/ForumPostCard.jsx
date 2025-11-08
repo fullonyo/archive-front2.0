@@ -48,16 +48,16 @@ const ForumPostCard = ({ post }) => {
       <div className="flex items-start gap-3 mb-3">
         {/* Avatar */}
         <div className="flex-shrink-0">
-          {post.author.avatar ? (
+          {post.author.avatarUrl ? (
             <img 
-              src={post.author.avatar} 
-              alt={post.author.name}
+              src={post.author.avatarUrl} 
+              alt={post.author.name || post.author.username}
               className="w-10 h-10 rounded-full ring-2 ring-surface-float2"
             />
           ) : (
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
               <span className="text-white font-semibold text-sm">
-                {post.author.name.charAt(0).toUpperCase()}
+                {(post.author.name || post.author.username)?.charAt(0).toUpperCase() || 'U'}
               </span>
             </div>
           )}

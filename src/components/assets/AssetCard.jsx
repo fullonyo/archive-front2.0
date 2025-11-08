@@ -94,9 +94,9 @@ const AssetCard = ({ asset }) => {
         
         {/* Author Info - Compacto */}
         <div className="flex items-center gap-1.5 mb-3 pb-2 border-b border-white/5">
-          {asset.author.avatar ? (
+          {asset.author.avatarUrl ? (
             <img 
-              src={asset.author.avatar} 
+              src={asset.author.avatarUrl} 
               alt={asset.author.name}
               className="w-5 h-5 rounded-full ring-1 ring-surface-float2"
             />

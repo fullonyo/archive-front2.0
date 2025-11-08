@@ -429,8 +429,8 @@ No frontend, inclua o token em todas as requisições de mutação.`,
             <div className="flex items-start gap-4 mb-6">
               <div className="relative">
                 <img
-                  src={post.author.avatar}
-                  alt={post.author.displayName}
+                  src={post.author.avatarUrl || '/default-avatar.png'}
+                  alt={post.author.displayName || post.author.username}
                   className="w-14 h-14 rounded-full ring-2 ring-theme-active/30"
                 />
                 <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-theme-active rounded-full border-2 border-surface-float flex items-center justify-center">

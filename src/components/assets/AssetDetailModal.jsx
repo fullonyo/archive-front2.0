@@ -88,8 +88,8 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
           >
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                {asset.author?.avatar ? (
-                  <img src={asset.author.avatar} alt={asset.author.name} className="w-full h-full rounded-full object-cover" loading="lazy" />
+                {asset.author?.avatarUrl ? (
+                  <img src={asset.author.avatarUrl} alt={asset.author.name} className="w-full h-full rounded-full object-cover" loading="lazy" />
                 ) : (
                   <User size={16} />
                 )}
@@ -302,8 +302,8 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
               <h3 className="text-xs font-semibold text-text-tertiary uppercase tracking-wide mb-2">Author</h3>
               <div className="flex items-center gap-2.5 mb-2.5">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                  {asset.author?.avatar ? (
-                    <img src={asset.author.avatar} alt={asset.author.name} className="w-full h-full rounded-full object-cover" loading="lazy" />
+                  {asset.author?.avatarUrl ? (
+                    <img src={asset.author.avatarUrl} alt={asset.author.name} className="w-full h-full rounded-full object-cover" loading="lazy" />
                   ) : (
                     <User size={20} />
                   )}

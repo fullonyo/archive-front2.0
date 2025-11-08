@@ -83,14 +83,14 @@ const UserProfilePage = () => {
               {/* Avatar */}
               <div className="relative">
                 <div className="w-24 h-24 lg:w-32 lg:h-32 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-3xl lg:text-4xl font-bold">
-                  {displayUser?.avatar ? (
+                  {displayUser?.avatarUrl ? (
                     <img 
-                      src={displayUser.avatar} 
-                      alt={displayUser.displayName || displayUser.username}
+                      src={displayUser.avatarUrl} 
+                      alt={displayUser.username}
                       className="w-full h-full rounded-full object-cover"
                     />
                   ) : (
-                    (displayUser?.displayName?.[0] || displayUser?.username?.[0] || 'U').toUpperCase()
+                    (displayUser?.username?.[0] || 'U').toUpperCase()
                   )}
                 </div>
                 
@@ -102,7 +102,7 @@ const UserProfilePage = () => {
               <div>
                 <div className="flex items-center space-x-3 mb-2">
                   <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
-                    {displayUser?.displayName || displayUser?.username}
+                    {displayUser?.username}
                   </h1>
                   {userStats?.isVerified && (
                     <Star className="w-6 h-6 text-yellow-500" />

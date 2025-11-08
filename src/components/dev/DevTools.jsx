@@ -56,12 +56,12 @@ const DevTools = () => {
                   <div className="mt-3 pt-3 border-t border-white/5">
                     <div className="flex items-center gap-2 mb-2">
                       <img
-                        src={user.avatar}
-                        alt={user.displayName}
+                        src={user.avatarUrl || '/default-avatar.png'}
+                        alt={user.username}
                         className="w-8 h-8 rounded-full"
                       />
                       <div>
-                        <p className="text-sm font-medium text-text-primary">{user.displayName}</p>
+                        <p className="text-sm font-medium text-text-primary">{user.username}</p>
                         <p className="text-xs text-text-tertiary">@{user.username}</p>
                       </div>
                     </div>

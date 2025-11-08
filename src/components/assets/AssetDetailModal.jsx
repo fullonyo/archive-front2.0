@@ -2,6 +2,7 @@ import { X, Heart, Download, MessageSquare, Share2, User, Calendar, Tag, Externa
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { handleImageError } from '../../utils/imageUtils';
+import { PLACEHOLDER_IMAGES } from '../../constants';
 
 const AssetDetailModal = ({ asset, isOpen, onClose }) => {
   const [isLiked, setIsLiked] = useState(asset?.isLiked || false);
@@ -127,7 +128,7 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
             {/* Image/Thumbnail */}
             <div className="relative aspect-video bg-surface-base">
               <img 
-                src={asset.thumbnail} 
+                src={asset.thumbnail || PLACEHOLDER_IMAGES.ASSET_THUMBNAIL} 
                 alt={asset.title}
                 className="w-full h-full object-cover"
                 loading="lazy"

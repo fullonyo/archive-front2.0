@@ -2,6 +2,7 @@ import { Heart, Download, Eye, MessageCircle, MoreVertical } from 'lucide-react'
 import { useState } from 'react';
 import AssetDetailModal from './AssetDetailModal';
 import { PLACEHOLDER_IMAGES } from '../../constants';
+import { handleImageError } from '../../utils/imageUtils';
 
 const AssetCard = ({ asset }) => {
   const [isLiked, setIsLiked] = useState(asset.isLiked || false);
@@ -36,9 +37,7 @@ const AssetCard = ({ asset }) => {
           alt={asset.title}
           loading="lazy"
           className="asset-thumbnail w-full h-40 object-cover"
-          onError={(e) => {
-            e.target.src = PLACEHOLDER_IMAGES.ASSET_THUMBNAIL;
-          }}
+          onError={handleImageError('thumbnail')}
         />
         
         {/* Gradient Overlay */}
@@ -99,9 +98,15 @@ const AssetCard = ({ asset }) => {
               src={asset.author.avatarUrl} 
               alt={asset.author.name}
               className="w-5 h-5 rounded-full ring-1 ring-surface-float2"
+              loading="lazy"
+              onError={handleImageError('avatar')}
             />
           ) : (
-            <div className="w-5 h-5 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full ring-1 ring-surface-float2" />
+            <div className="w-5 h-5 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full ring-1 ring-surface-float2 flex items-center justify-center">
+              <span className="text-white text-[10px] font-semibold">
+                {asset.author.name?.[0]?.toUpperCase() || 'U'}
+              </span>
+            </div>
           )}
           <div className="flex-1 min-w-0">
             <span className="text-xs text-text-secondary hover:text-text-primary transition-colors cursor-pointer font-medium truncate block">

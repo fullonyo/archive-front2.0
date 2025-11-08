@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { useTranslation } from '../../hooks/useTranslation';
+import { handleImageError } from '../../utils/imageUtils';
 import {
   User,
   ChevronDown,
@@ -113,6 +114,8 @@ const UserButton = () => {
               src={user.avatarUrl} 
               alt={user.displayName || user.username}
               className="w-7 h-7 rounded-full object-cover"
+              loading="lazy"
+              onError={handleImageError('avatar')}
             />
           ) : (
             user?.displayName?.[0]?.toUpperCase() || user?.username?.[0]?.toUpperCase() || 'U'
@@ -134,6 +137,8 @@ const UserButton = () => {
                     src={user.avatarUrl} 
                     alt={user.displayName || user.username}
                     className="w-12 h-12 rounded-full object-cover"
+                    loading="lazy"
+                    onError={handleImageError('avatar')}
                   />
                 ) : (
                   user?.displayName?.[0]?.toUpperCase() || user?.username?.[0]?.toUpperCase() || 'U'

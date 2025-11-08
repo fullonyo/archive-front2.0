@@ -1,6 +1,7 @@
 import { X, Heart, Download, MessageSquare, Share2, User, Calendar, Tag, ExternalLink, Copy, Flag } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { handleImageError } from '../../utils/imageUtils';
 
 const AssetDetailModal = ({ asset, isOpen, onClose }) => {
   const [isLiked, setIsLiked] = useState(asset?.isLiked || false);
@@ -89,9 +90,15 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                 {asset.author?.avatarUrl ? (
-                  <img src={asset.author.avatarUrl} alt={asset.author.name} className="w-full h-full rounded-full object-cover" loading="lazy" />
+                  <img 
+                    src={asset.author.avatarUrl} 
+                    alt={asset.author.name} 
+                    className="w-full h-full rounded-full object-cover" 
+                    loading="lazy"
+                    onError={handleImageError('avatar')}
+                  />
                 ) : (
-                  <User size={16} />
+                  <User size={16} className="text-white" />
                 )}
               </div>
               <div>
@@ -124,6 +131,7 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
                 alt={asset.title}
                 className="w-full h-full object-cover"
                 loading="lazy"
+                onError={handleImageError('thumbnail')}
               />
               <div className="absolute top-3 left-3">
                 <span className="px-2.5 py-1 bg-surface-float/90 backdrop-blur-sm rounded-lg text-xs font-medium border border-white/10">
@@ -303,9 +311,15 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
               <div className="flex items-center gap-2.5 mb-2.5">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                   {asset.author?.avatarUrl ? (
-                    <img src={asset.author.avatarUrl} alt={asset.author.name} className="w-full h-full rounded-full object-cover" loading="lazy" />
+                    <img 
+                      src={asset.author.avatarUrl} 
+                      alt={asset.author.name} 
+                      className="w-full h-full rounded-full object-cover" 
+                      loading="lazy"
+                      onError={handleImageError('avatar')}
+                    />
                   ) : (
-                    <User size={20} />
+                    <User size={20} className="text-white" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">

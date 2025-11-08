@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { ArrowUp, MessageSquare, MoreVertical, Check } from 'lucide-react';
+import { handleImageError } from '../../utils/imageUtils';
 
 const ForumReply = ({ reply, postAuthorId, onReply, formatDate, depth = 0 }) => {
   const [upvoted, setUpvoted] = useState(false);
@@ -39,6 +40,8 @@ const ForumReply = ({ reply, postAuthorId, onReply, formatDate, depth = 0 }) => 
               src={reply.author.avatarUrl || '/default-avatar.png'}
               alt={reply.author.displayName || reply.author.username}
               className="w-9 h-9 rounded-full shrink-0 ring-1 ring-white/10"
+              loading="lazy"
+              onError={handleImageError('avatar')}
             />
 
             {/* Content */}

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { Settings, User, LogOut, X } from 'lucide-react';
+import { handleImageError } from '../../utils/imageUtils';
 
 const DevTools = () => {
   const { isAuthenticated, logout } = useAuth();
@@ -59,6 +60,8 @@ const DevTools = () => {
                         src={user.avatarUrl || '/default-avatar.png'}
                         alt={user.username}
                         className="w-8 h-8 rounded-full"
+                        loading="lazy"
+                        onError={handleImageError('avatar')}
                       />
                       <div>
                         <p className="text-sm font-medium text-text-primary">{user.username}</p>

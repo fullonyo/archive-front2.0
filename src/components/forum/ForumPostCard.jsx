@@ -1,6 +1,7 @@
 import { MessageSquare, ThumbsUp, Eye, Clock, TrendingUp, Pin, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { handleImageError } from '../../utils/imageUtils';
 
 const ForumPostCard = ({ post }) => {
   const navigate = useNavigate();
@@ -53,6 +54,8 @@ const ForumPostCard = ({ post }) => {
               src={post.author.avatarUrl} 
               alt={post.author.name || post.author.username}
               className="w-10 h-10 rounded-full ring-2 ring-surface-float2"
+              loading="lazy"
+              onError={handleImageError('avatar')}
             />
           ) : (
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">

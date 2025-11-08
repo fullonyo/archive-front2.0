@@ -9,6 +9,7 @@ import { CACHE_KEYS, CACHE_TTL, CACHE_PATTERNS } from '../config/cache';
 import toast from 'react-hot-toast';
 import AssetDetailModal from '../components/assets/AssetDetailModal';
 import AssetCard from '../components/assets/AssetCard';
+import { handleImageError } from '../utils/imageUtils';
 import {
   User,
   Calendar,
@@ -542,6 +543,7 @@ const ProfilePage = () => {
             src={profileUser.bannerUrl}
             alt="Banner do perfil"
             className="absolute inset-0 w-full h-full object-cover"
+            onError={handleImageError('banner')}
           />
         )}
         
@@ -597,6 +599,7 @@ const ProfilePage = () => {
                     src={profileUser.avatarUrl} 
                     alt={profileUser.username}
                     className="w-full h-full object-cover"
+                    onError={handleImageError('avatar')}
                   />
                 ) : (
                   <span className="text-4xl sm:text-5xl font-bold text-text-primary">

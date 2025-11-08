@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import { useTranslation } from '../hooks/useTranslation';
+import { handleImageError } from '../utils/imageUtils';
 import {
   User,
   Calendar,
@@ -88,6 +89,8 @@ const UserProfilePage = () => {
                       src={displayUser.avatarUrl} 
                       alt={displayUser.username}
                       className="w-full h-full rounded-full object-cover"
+                      loading="lazy"
+                      onError={handleImageError('avatar')}
                     />
                   ) : (
                     (displayUser?.username?.[0] || 'U').toUpperCase()

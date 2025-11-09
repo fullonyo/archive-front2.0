@@ -368,7 +368,8 @@ class AssetService {
    * @returns {Promise} Lista de categorias
    */
   async getCategories() {
-    const response = await api.get('/categories');
+    // Add cache-busting timestamp to force fresh data
+    const response = await api.get(`/categories?_t=${Date.now()}`);
     return response.data;
   }
 

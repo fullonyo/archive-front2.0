@@ -490,6 +490,86 @@ const adminService = {
       console.error('Export analytics error:', error);
       throw error;
     }
+  },
+
+  // ============================================
+  // CATEGORIES MANAGEMENT
+  // ============================================
+
+  /**
+   * Get all categories (admin)
+   * @param {Object} params - Query parameters
+   * @returns {Promise} Categories with asset counts
+   */
+  getCategories: async (params = {}) => {
+    try {
+      const response = await api.get('/admin/categories', { params });
+      return response.data;
+    } catch (error) {
+      console.error('Get categories error:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get category by ID
+   * @param {number} id - Category ID
+   * @returns {Promise} Category details
+   */
+  getCategory: async (id) => {
+    try {
+      const response = await api.get(`/admin/categories/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Get category error:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Create new category
+   * @param {Object} data - Category data (name, description, icon, isActive)
+   * @returns {Promise} Created category
+   */
+  createCategory: async (data) => {
+    try {
+      const response = await api.post('/admin/categories', data);
+      return response.data;
+    } catch (error) {
+      console.error('Create category error:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update category
+   * @param {number} id - Category ID
+   * @param {Object} data - Updated data
+   * @returns {Promise} Updated category
+   */
+  updateCategory: async (id, data) => {
+    try {
+      const response = await api.put(`/admin/categories/${id}`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Update category error:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Delete category
+   * @param {number} id - Category ID
+   * @returns {Promise} Deletion confirmation
+   */
+  deleteCategory: async (id) => {
+    try {
+      const response = await api.delete(`/admin/categories/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Delete category error:', error);
+      throw error;
+    }
   }
 };
 

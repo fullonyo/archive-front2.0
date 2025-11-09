@@ -3,6 +3,71 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Breadcrumb from '../../components/common/Breadcrumb';
 import { useTranslation } from '../../hooks/useTranslation';
+import { assetService } from '../../services/assetService';
+import toast from 'react-hot-toast';
+import { onCategoriesUpdate } from '../../utils/categoryEvents';
+
+// Icon mapping for categories
+const ICON_MAP = {
+  // Lucide Icons (frontend expects)
+  'Shirt': Shirt,
+  'Globe': Globe,
+  'Sparkles': Sparkles,
+  'Wand2': Wand2,
+  'Box': Box,
+  'Star': Star,
+  'Grid3x3': Grid3x3,
+  'Package': Package,
+  'Flame': Flame,
+  'Clock': Clock,
+  // Backend icons (legacy) - exact matches
+  'user': Shirt,
+  'user-circle': Shirt,
+  'shirt': Shirt,
+  'gem': Star,
+  'star': Star,
+  'globe': Globe,
+  'globe-alt': Globe,
+  'cube': Box,
+  'wrench-screwdriver': Box,
+  'package': Package,
+  'sparkles': Sparkles,
+  'wand2': Wand2,
+  'grid3x3': Grid3x3
+};
+
+// Color mapping for categories
+const COLOR_MAP = {
+  'blue': 'from-blue-500 to-cyan-500',
+  'green': 'from-green-500 to-emerald-500',
+  'purple': 'from-purple-500 to-pink-500',
+  'orange': 'from-orange-500 to-red-500',
+  'yellow': 'from-yellow-500 to-orange-500',
+  'indigo': 'from-indigo-500 to-blue-500',
+  'pink': 'from-pink-500 to-rose-500',
+  'teal': 'from-teal-500 to-cyan-500'
+};
+
+// Name to color mapping (fallback)
+const getCategoryColor = (name) => {
+  const lowerName = name.toLowerCase();
+  if (lowerName.includes('avatar')) return COLOR_MAP['blue'];
+  if (lowerName.includes('world')) return COLOR_MAP['green'];
+  if (lowerName.includes('cloth') || lowerName.includes('shirt')) return COLOR_MAP['purple'];
+  if (lowerName.includes('accessor')) return COLOR_MAP['yellow'];
+  if (lowerName.includes('prop')) return COLOR_MAP['orange'];
+  if (lowerName.includes('tool')) return COLOR_MAP['indigo'];
+  return COLOR_MAP['blue']; // default
+};
+
+// Capitalize category name for display
+const capitalizeName = (name) => {
+  if (!name) return '';
+  // Special handling for hyphenated names
+  return name.split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
 
 const ExplorePage = () => {
   const navigate = useNavigate();
@@ -10,97 +75,7 @@ const ExplorePage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeView, setActiveView] = useState('all'); // all, featured, popular
   const [loading, setLoading] = useState(true);
-
-  const categories = [
-    {
-      id: 'avatars',
-      name: 'Avatars',
-      icon: Shirt,
-      description: 'Complete avatar models and packages',
-      count: 1234,
-      color: 'from-blue-500 to-cyan-500',
-      featured: true,
-      trending: true,
-      growth: '+12%'
-    },
-    {
-      id: 'worlds',
-      name: 'Worlds',
-      icon: Globe,
-      description: 'Virtual worlds and environments',
-      count: 856,
-      color: 'from-green-500 to-emerald-500',
-      featured: true,
-      trending: true,
-      growth: '+8%'
-    },
-    {
-      id: 'shaders',
-      name: 'Shaders',
-      icon: Sparkles,
-      description: 'Visual effects and shaders',
-      count: 432,
-      color: 'from-purple-500 to-pink-500',
-      featured: true,
-      trending: false,
-      growth: '+5%'
-    },
-    {
-      id: 'effects',
-      name: 'Effects',
-      icon: Wand2,
-      description: 'Particle effects and VFX',
-      count: 678,
-      color: 'from-orange-500 to-red-500',
-      featured: false,
-      trending: true,
-      growth: '+15%'
-    },
-    {
-      id: 'accessories',
-      name: 'Accessories',
-      icon: Star,
-      description: 'Avatar accessories and props',
-      count: 923,
-      color: 'from-yellow-500 to-orange-500',
-      featured: false,
-      trending: false,
-      growth: '+3%'
-    },
-    {
-      id: 'tools',
-      name: 'Tools',
-      icon: Box,
-      description: 'Unity scripts and tools',
-      count: 345,
-      color: 'from-indigo-500 to-blue-500',
-      featured: false,
-      trending: false,
-      growth: '+7%'
-    },
-    {
-      id: 'animations',
-      name: 'Animations',
-      icon: Package,
-      description: 'Animation packs and poses',
-      count: 567,
-      color: 'from-pink-500 to-rose-500',
-      featured: false,
-      trending: false,
-      growth: '+10%'
-    },
-    {
-      id: 'textures',
-      name: 'Textures',
-      icon: Grid3x3,
-      description: 'Texture packs and materials',
-      count: 789,
-      color: 'from-teal-500 to-cyan-500',
-      featured: false,
-      trending: false,
-      growth: '+6%'
-    },
-  ];
+  const [categories, setCategories] = useState([]);
 
   const popularTags = [
     { name: 'anime', count: 2341, trending: true },
@@ -136,20 +111,69 @@ const ExplorePage = () => {
     }
   }, [searchQuery, navigate]);
 
-  // Simular carregamento inicial
-  useEffect(() => {
-    const timer = setTimeout(() => {
+  // Load categories from API - using useCallback to stabilize function
+  const loadCategories = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await assetService.getCategories();
+      
+      // Support both formats: { success: true, data: [...] } or direct array [...]
+      let categoriesData = null;
+      
+      if (response.success && response.data) {
+        categoriesData = response.data;
+      } else if (Array.isArray(response)) {
+        categoriesData = response;
+      } else if (response.data && Array.isArray(response.data)) {
+        categoriesData = response.data;
+      }
+      
+      if (categoriesData && Array.isArray(categoriesData) && categoriesData.length > 0) {
+        // Transform API data to match component structure
+        const transformedCategories = categoriesData.map((cat, index) => {
+          return {
+            id: cat.id,
+            name: capitalizeName(cat.name),
+            icon: ICON_MAP[cat.icon] || ICON_MAP[cat.icon?.toLowerCase()] || Package,
+            description: cat.description || `Browse ${capitalizeName(cat.name).toLowerCase()}`,
+            count: cat.assetCount || cat.asset_count || cat._count?.assets || 0,
+            color: COLOR_MAP[cat.color] || getCategoryColor(cat.name),
+            featured: index < 3,
+            trending: (cat.assetCount || cat.asset_count || 0) > 2,
+            growth: (cat.assetCount || cat.asset_count || 0) > 100 ? '+12%' : (cat.assetCount || cat.asset_count || 0) > 50 ? '+8%' : '+5%',
+            isActive: cat.isActive !== false
+          };
+        }).filter(cat => cat.isActive !== false);
+        
+        setCategories(transformedCategories);
+      } else {
+        setCategories([]);
+      }
+    } catch (error) {
+      console.error('Load categories error:', error);
+      toast.error('Failed to load categories');
+      setCategories([]);
+    } finally {
       setLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
+    }
   }, []);
+
+  // Load categories on mount and listen for updates
+  useEffect(() => {
+    loadCategories();
+
+    // Listen for category updates from admin panel
+    return onCategoriesUpdate(() => {
+      loadCategories();
+    });
+  }, [loadCategories]);
 
   // Filter categories based on active view
   const filteredCategories = useMemo(() => {
     if (activeView === 'featured') return categories.filter(cat => cat.featured);
-    if (activeView === 'popular') return categories.sort((a, b) => b.count - a.count);
+    if (activeView === 'popular') return [...categories].sort((a, b) => b.count - a.count);
     return categories;
-  }, [activeView]);
+  }, [categories, activeView]);
 
   return (
     <div className="max-w-[1600px] mx-auto">

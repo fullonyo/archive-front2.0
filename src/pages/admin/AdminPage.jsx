@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react';
-import { Shield, AlertCircle, Loader, Package, Users, BarChart3 } from 'lucide-react';
+import { Shield, AlertCircle, Loader, Layers, Users, BarChart3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from '../../hooks/useTranslation';
 import Breadcrumb from '../../components/common/Breadcrumb';
-import { UsersTab, AssetsTab, AnalyticsTab } from '../../components/admin';
+import { UsersTab, AnalyticsTab } from '../../components/admin';
+import AvatarLabTab from '../../components/admin/tabs/AvatarLabTab';
 import adminService from '../../services/adminService';
 
 const AdminPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
-  const [activeTab, setActiveTab] = useState('assets');
+  const [activeTab, setActiveTab] = useState('avatarlab');
   const [hasPermission, setHasPermission] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userPermissions, setUserPermissions] = useState([]);
@@ -60,11 +61,11 @@ const AdminPage = () => {
 
   const tabs = [
     {
-      id: 'assets',
-      label: t('admin.assetsManagement') || 'Assets',
-      icon: Package,
-      component: AssetsTab,
-      permissions: ['approve_assets', 'moderate_assets']
+      id: 'avatarlab',
+      label: t('admin.avatarLabManagement') || 'Avatar Lab',
+      icon: Layers,
+      component: AvatarLabTab,
+      permissions: ['approve_assets', 'moderate_assets', 'manage_categories']
     },
     {
       id: 'users',

@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from '../../hooks/useTranslation';
 import api from '../../config/api';
+import { onCategoriesUpdate } from '../../utils/categoryEvents';
 
 const NewAssetPage = () => {
   const navigate = useNavigate();
@@ -34,10 +35,35 @@ const NewAssetPage = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [errors, setErrors] = useState({});
 
+  // Load categories - using useCallback to stabilize function
+  const loadCategories = useCallback(async () => {
+    try {
+      setLoadingCategories(true);
+      
+      // Add cache-busting timestamp
+      const response = await api.get(`/assets/categories/list?_t=${Date.now()}`);
+      
+      if (response.data.success) {
+        const cats = response.data.data || [];
+        setCategories(cats);
+      }
+    } catch (error) {
+      console.error('Failed to load categories:', error);
+      toast.error('Failed to load categories');
+    } finally {
+      setLoadingCategories(false);
+    }
+  }, []);
+
   // Load categories on mount
   useEffect(() => {
     loadCategories();
-  }, []);
+
+    // Listen for category updates from admin panel
+    return onCategoriesUpdate(() => {
+      loadCategories();
+    });
+  }, [loadCategories]);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -46,22 +72,6 @@ const NewAssetPage = () => {
       navigate('/login');
     }
   }, [isAuthenticated, navigate]);
-
-  const loadCategories = async () => {
-    try {
-      setLoadingCategories(true);
-      const response = await api.get('/assets/categories/list');
-      
-      if (response.data.success) {
-        setCategories(response.data.data || []);
-      }
-    } catch (error) {
-      console.error('Failed to load categories:', error);
-      toast.error('Failed to load categories');
-    } finally {
-      setLoadingCategories(false);
-    }
-  };
 
   // Handle form input changes
   const handleInputChange = useCallback((e) => {

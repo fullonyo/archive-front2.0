@@ -167,7 +167,7 @@ const ForYouPage = () => {
     { value: 'popular', label: t('forYou.popular'), icon: Sparkles },
   ];
 
-  // Handle sort change
+  // Handle sort change - Optimistic UI (keep old data visible)
   const handleSortChange = useCallback((newSort) => {
     if (newSort !== sortBy) {
       setSortBy(newSort);
@@ -178,10 +178,10 @@ const ForYouPage = () => {
         mainElement.scrollTo({ top: 0, behavior: 'auto' });
       }
       
-      // Reset page, assets and processed flag
+      // Reset page and processed flag
+      // CRITICAL: DON'T clear assets - keep old data visible during transition
       setPage(1);
-      setAssets([]);
-      setHasProcessedData(false); // ← Resetar flag ao trocar sort
+      setHasProcessedData(false);
     }
   }, [sortBy]);
 
@@ -246,7 +246,35 @@ const ForYouPage = () => {
       </div>
 
       {/* Content Area with padding */}
-      <div className="px-3 sm:px-4 lg:px-6 py-4">
+      <div className="px-3 sm:px-4 lg:px-6 py-4 relative">
+        {/* Optimistic UI: Smooth transition overlay when switching sorts */}
+        {pageLoading && page === 1 && assets.length > 0 && (
+          <div 
+            className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none"
+            style={{
+              background: 'rgba(13, 13, 15, 0.85)',
+              contain: 'layout style paint',
+              willChange: 'opacity',
+              animation: 'fade-in 150ms cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
+          >
+            <div 
+              className="flex flex-col items-center gap-3 px-6 py-4 rounded-xl bg-surface-float border border-white/10 shadow-2xl"
+              style={{
+                transform: 'translateZ(0)',
+                willChange: 'transform',
+              }}
+            >
+              <div className="w-8 h-8 border-2 border-theme-active border-t-transparent rounded-full animate-spin" />
+              <span className="text-sm font-medium text-text-primary">
+                {sortBy === 'trending' && 'Finding trending assets...'}
+                {sortBy === 'popular' && 'Loading popular assets...'}
+                {sortBy === 'latest' && 'Loading latest assets...'}
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Modern Skeleton Loading - Only show if not cached and takes > 150ms */}
         {shouldShowSkeleton && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">

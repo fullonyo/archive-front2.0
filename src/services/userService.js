@@ -107,16 +107,27 @@ class UserService {
 
   // User assets and favorites
   async getUserAssets(userId, options = {}) {
-    const params = new URLSearchParams({
-      userId: userId || '',
-      page: options.page || 1,
-      limit: options.limit || 20,
-      includeUnapproved: options.includeUnapproved || false,
-      includeInactive: options.includeInactive || false
-    });
+    const params = new URLSearchParams();
+    
+    // Se userId for fornecido, adicionar ao query (busca pública)
+    // Se não, a API usa req.user.id (busca privada - own assets)
+    if (userId) {
+      params.append('userId', userId);
+    }
+    
+    params.append('page', options.page || 1);
+    params.append('limit', options.limit || 20);
+    
+    // Só adicionar includeUnapproved/includeInactive se forem true
+    if (options.includeUnapproved === true) {
+      params.append('includeUnapproved', 'true');
+    }
+    if (options.includeInactive === true) {
+      params.append('includeInactive', 'true');
+    }
     
     const response = await api.get(`/users/assets?${params}`);
-    return response.data.data;
+    return response.data;
   }
 
   async getUserFavorites(userId, options = {}) {

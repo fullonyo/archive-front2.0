@@ -67,7 +67,8 @@ const MyAssetsPage = () => {
   } = useCachedQuery(
     cacheKey,
     async () => {
-      const response = await userService.getUserAssets(user.id, queryParams);
+      // NÃO passar userId - API usa req.user.id automaticamente
+      const response = await userService.getUserAssets(null, queryParams);
       return response;
     },
     { 
@@ -82,6 +83,29 @@ const MyAssetsPage = () => {
     isCached, 
     150
   );
+
+  // Helper functions - DEVEM estar antes do useMemo que as usa
+  const getAssetStatus = useCallback((asset) => {
+    if (!asset.isApproved) return 'pending';
+    if (!asset.isActive) return 'draft';
+    return 'published';
+  }, []);
+
+  const sortAssets = useCallback((assetList, sortOption) => {
+    const sorted = [...assetList];
+    switch (sortOption) {
+      case 'newest':
+        return sorted.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+      case 'oldest':
+        return sorted.sort((a, b) => new Date(a.uploadedAt) - new Date(b.uploadedAt));
+      case 'downloads':
+        return sorted.sort((a, b) => b.downloads - a.downloads);
+      case 'likes':
+        return sorted.sort((a, b) => b.likes - a.likes);
+      default:
+        return sorted;
+    }
+  }, []);
 
   // Memoizar transformação e filtragem de assets - PERFORMANCE: Evita processamento desnecessário
   const transformedAndFilteredAssets = useMemo(() => {
@@ -125,7 +149,7 @@ const MyAssetsPage = () => {
 
     // Client-side sort
     return sortAssets(filteredAssets, sortBy);
-  }, [pageData, statusFilter, sortBy, user]);
+  }, [pageData, statusFilter, sortBy, user, getAssetStatus, sortAssets]);
 
   // Process data
   useEffect(() => {
@@ -150,28 +174,6 @@ const MyAssetsPage = () => {
       console.log(`[MyAssets] ${isCached ? 'HIT' : 'MISS'} - Page ${page}, ${statusFilter}, ${sortBy}`);
     }
   }, [transformedAndFilteredAssets, page, isCached, pageData, assets.length]);
-
-  const getAssetStatus = (asset) => {
-    if (!asset.isApproved) return 'pending';
-    if (!asset.isActive) return 'draft';
-    return 'published';
-  };
-
-  const sortAssets = (assetList, sortOption) => {
-    const sorted = [...assetList];
-    switch (sortOption) {
-      case 'newest':
-        return sorted.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
-      case 'oldest':
-        return sorted.sort((a, b) => new Date(a.uploadedAt) - new Date(b.uploadedAt));
-      case 'downloads':
-        return sorted.sort((a, b) => b.downloads - a.downloads);
-      case 'likes':
-        return sorted.sort((a, b) => b.likes - a.likes);
-      default:
-        return sorted;
-    }
-  };
 
   // Scroll to top
   useEffect(() => {

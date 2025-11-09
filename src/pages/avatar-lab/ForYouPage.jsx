@@ -4,6 +4,7 @@ import Breadcrumb from '../../components/common/Breadcrumb';
 import { useTranslation } from '../../hooks/useTranslation';
 import { assetService } from '../../services/assetService';
 import { useCachedQuery } from '../../hooks/useCachedQuery';
+import { useOptimisticLoading } from '../../hooks/useOptimisticLoading';
 import { CACHE_KEYS, CACHE_TTL } from '../../config/cache';
 import { TrendingUp, Clock, Sparkles, ArrowUp, AlertCircle, Upload, RefreshCw } from 'lucide-react';
 
@@ -15,13 +16,14 @@ const ForYouPage = () => {
   const [sortBy, setSortBy] = useState('latest');
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [totalAssets, setTotalAssets] = useState(0);
+  const [hasProcessedData, setHasProcessedData] = useState(false);
   const observerTarget = useRef(null);
   const contentRef = useRef(null);
 
-  // Cache key para a página atual
+  // Cache key para a pï¿½gina atual
   const cacheKey = CACHE_KEYS.assetsList(page, { sortBy });
 
-  // Usar cache query para a página atual
+  // Usar cache query para a pï¿½gina atual
   const { 
     data: pageData, 
     loading: pageLoading, 
@@ -44,9 +46,15 @@ const ForYouPage = () => {
     }
   );
 
+  // Optimistic loading - sÃ³ mostra skeleton se demorar mais que 150ms
+  const shouldShowSkeleton = useOptimisticLoading(pageLoading && page === 1, isCached, 150);
+
   // Processar dados quando pageData mudar
   useEffect(() => {
-    if (!pageData?.success || !pageData?.data) return;
+    if (!pageData?.success || !pageData?.data) {
+      setHasProcessedData(false);
+      return;
+    }
 
     const backendAssets = pageData.data.assets || pageData.data.data?.assets || [];
     const total = pageData.data.total || pageData.data.data?.total || 0;
@@ -85,6 +93,7 @@ const ForYouPage = () => {
 
     setTotalAssets(total);
     setHasMore(transformedAssets.length === 15 && assets.length + transformedAssets.length < total);
+    setHasProcessedData(true);
 
     // Log cache status em dev
     if (import.meta.env.DEV) {
@@ -237,21 +246,26 @@ const ForYouPage = () => {
 
       {/* Content Area with padding */}
       <div className="px-3 sm:px-4 lg:px-6 py-4">
-        {/* Modern Skeleton Loading - Subtle and Minimal */}
-        {pageLoading && page === 1 && (
+        {/* Modern Skeleton Loading - Only show if not cached and takes > 150ms */}
+        {shouldShowSkeleton && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
             {[...Array(15)].map((_, i) => (
               <div 
                 key={i} 
                 className="rounded-xl border border-white/5 bg-surface-float overflow-hidden"
                 style={{
-                  opacity: 0.6,
-                  animation: `fade-in 0.3s ease-out ${i * 0.05}s backwards`,
+                  opacity: 0.7,
+                  animation: `stagger-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) ${i * 0.03}s backwards`,
                 }}
               >
-                {/* Thumbnail skeleton */}
-                <div className="relative h-40 bg-gradient-to-br from-surface-float2 to-surface-float overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
+                {/* Thumbnail skeleton with shimmer */}
+                <div className="relative h-40 bg-surface-float2 overflow-hidden">
+                  <div 
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer-smooth"
+                    style={{
+                      transform: 'translateX(-100%)',
+                    }}
+                  />
                 </div>
                 {/* Content skeleton */}
                 <div className="p-3 space-y-2">
@@ -288,8 +302,8 @@ const ForYouPage = () => {
           </div>
         )}
 
-        {/* Empty State */}
-        {!pageLoading && !pageError && assets.length === 0 && (
+        {/* Empty State - Only show after data processing */}
+        {!pageLoading && !pageError && assets.length === 0 && hasProcessedData && (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-20 h-20 rounded-full bg-surface-float flex items-center justify-center mb-4">
               <Upload size={40} className="text-text-tertiary" />
@@ -309,7 +323,15 @@ const ForYouPage = () => {
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
               {assets.map((asset, index) => (
-                <div key={asset.id}>
+                <div
+                  key={asset.id}
+                  className="animate-stagger-in"
+                  style={{
+                    animationDelay: `${Math.min(index * 30, 500)}ms`,
+                    opacity: 0,
+                    animationFillMode: 'forwards'
+                  }}
+                >
                   <AssetCard asset={asset} />
                 </div>
               ))}

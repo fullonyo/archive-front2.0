@@ -315,6 +315,55 @@
   animation: fade-in 0.8s ease-out forwards;
 }
 
+/* Optimistic fade-in with scale (smooth cache hit) */
+@keyframes fade-in-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-fade-in-scale {
+  animation: fade-in-scale 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+/* Staggered entrance animation */
+@keyframes stagger-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-stagger-in {
+  animation: stagger-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  will-change: transform, opacity;
+}
+
+/* Skeleton shimmer (smoother) */
+@keyframes shimmer-smooth {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer-smooth {
+  animation: shimmer-smooth 2s ease-in-out infinite;
+  will-change: transform;
+}
+
 @keyframes shake {
   0%, 100% {
     transform: translateX(0);

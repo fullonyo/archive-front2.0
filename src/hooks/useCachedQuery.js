@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useCache } from '../contexts/CacheContext';
 
 /**
@@ -49,6 +49,9 @@ export const useCachedQuery = (key, queryFn, options = {}) => {
   // Ref para evitar race conditions
   const mountedRef = useRef(true);
   const abortControllerRef = useRef(null);
+  const previousKeyRef = useRef(key);
+  const initialFetchDoneRef = useRef(false); // Flag para primeira execução
+  const isLoadingRef = useRef(false); // Flag para evitar chamadas duplicadas durante loading
 
   /**
    * Função interna para fetch com cache
@@ -59,8 +62,36 @@ export const useCachedQuery = (key, queryFn, options = {}) => {
       return;
     }
 
+    // Se já está carregando e não é force refresh, ignorar
+    if (isLoadingRef.current && !forceRefresh) {
+      if (import.meta.env.DEV) {
+        console.log(`[Cache SKIP - Already Loading] ${key}`);
+      }
+      return;
+    }
+
     try {
-      // Tentar buscar do cache primeiro
+      // Se key mudou, resetar flags e buscar novo cache
+      if (previousKeyRef.current !== key) {
+        initialFetchDoneRef.current = false;
+        isLoadingRef.current = false;
+        previousKeyRef.current = key;
+        
+        const newCache = get(key);
+        if (newCache) {
+          setData(newCache);
+          setIsCached(true);
+          setLoading(false);
+          initialFetchDoneRef.current = true;
+          
+          if (import.meta.env.DEV) {
+            console.log(`[Cache HIT - Key Changed] ${key}`);
+          }
+          return;
+        }
+      }
+
+      // Tentar buscar do cache primeiro (se não forçar refresh)
       if (!forceRefresh) {
         const cached = get(key);
         
@@ -73,10 +104,9 @@ export const useCachedQuery = (key, queryFn, options = {}) => {
             console.log(`[Cache HIT] ${key}`);
           }
           
-          // Se staleWhileRevalidate, buscar em background
-          if (staleWhileRevalidate) {
-            // Não seta loading, apenas atualiza em background
-            fetchData(true);
+          // Marcar como fetched só na primeira vez
+          if (!initialFetchDoneRef.current) {
+            initialFetchDoneRef.current = true;
           }
           
           return;
@@ -88,6 +118,8 @@ export const useCachedQuery = (key, queryFn, options = {}) => {
         console.log(`[Cache MISS] ${key}`);
       }
 
+      // Marcar como loading para evitar chamadas duplicadas
+      isLoadingRef.current = true;
       setLoading(true);
       setError(null);
       setIsCached(false);
@@ -111,6 +143,7 @@ export const useCachedQuery = (key, queryFn, options = {}) => {
       
       setData(result);
       setLoading(false);
+      isLoadingRef.current = false; // Liberar para novas chamadas
       
     } catch (err) {
       if (!mountedRef.current) return;
@@ -121,8 +154,9 @@ export const useCachedQuery = (key, queryFn, options = {}) => {
       console.error(`[Cache Error] ${key}:`, err);
       setError(err);
       setLoading(false);
+      isLoadingRef.current = false; // Liberar mesmo em erro
     }
-  }, [key, queryFn, enabled, ttl, get, set, staleWhileRevalidate]);
+  }, [key, queryFn, enabled, ttl, get, set]);
 
   /**
    * Refetch manual (ignora cache)
@@ -131,10 +165,14 @@ export const useCachedQuery = (key, queryFn, options = {}) => {
     return fetchData(true);
   }, [fetchData]);
 
-  // Effect principal
+  // Effect principal - executa quando key ou enabled mudar
   useEffect(() => {
     mountedRef.current = true;
-    fetchData();
+    
+    // Só chamar fetchData se necessário
+    if (enabled) {
+      fetchData();
+    }
 
     return () => {
       mountedRef.current = false;
@@ -144,7 +182,7 @@ export const useCachedQuery = (key, queryFn, options = {}) => {
         abortControllerRef.current.abort();
       }
     };
-  }, [fetchData]);
+  }, [key, enabled]); // Dependências reduzidas - só key e enabled
 
   return {
     data,

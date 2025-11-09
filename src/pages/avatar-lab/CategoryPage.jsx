@@ -4,6 +4,7 @@ import AssetCard from '../../components/assets/AssetCard';
 import Breadcrumb from '../../components/common/Breadcrumb';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useCachedQuery } from '../../hooks/useCachedQuery';
+import { useOptimisticLoading } from '../../hooks/useOptimisticLoading';
 import { assetService } from '../../services/assetService';
 import { formatUploadDate } from '../../utils/dateUtils';
 import { ASSET_SORT_OPTIONS } from '../../constants/sortOptions';
@@ -28,6 +29,7 @@ const CategoryPage = () => {
   const [sortBy, setSortBy] = useState('newest');
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [totalAssets, setTotalAssets] = useState(0);
+  const [hasProcessedData, setHasProcessedData] = useState(false);
   const observerTarget = useRef(null);
 
   // Cache key para a página atual
@@ -56,11 +58,17 @@ const CategoryPage = () => {
     }
   );
 
+  // Optimistic loading - só mostra skeleton se demorar mais que 150ms
+  const shouldShowSkeleton = useOptimisticLoading(loading && page === 1, isCached, 150);
+
   const error = fetchError ? 'Failed to load assets' : null;
 
   // Process data when pageData changes (similar to ForYouPage pattern)
   useEffect(() => {
-    if (!pageData?.success || !pageData?.data) return;
+    if (!pageData?.success || !pageData?.data) {
+      setHasProcessedData(false);
+      return;
+    }
 
     const categoryData = pageData.data.category;
     const backendAssets = pageData.data.assets || [];
@@ -111,6 +119,7 @@ const CategoryPage = () => {
     }
 
     setTotalAssets(total);
+    setHasProcessedData(true);
   }, [pageData, page, category]); // ✅ Removed assets.length - calculated inside setState
 
   // Log cache status in development
@@ -258,15 +267,28 @@ const CategoryPage = () => {
           </div>
         )}
 
-        {/* Loading State (first load) */}
-        {loading && page === 1 && (
+        {/* Loading State (first load) - Only show if not cached and takes > 150ms */}
+        {shouldShowSkeleton && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
             {[...Array(ASSETS_PER_PAGE)].map((_, i) => (
               <div
                 key={i}
-                className="bg-surface-float rounded-xl overflow-hidden border border-white/5 animate-pulse"
+                className="bg-surface-float rounded-xl overflow-hidden border border-white/5"
+                style={{
+                  opacity: 0.7,
+                  animation: `stagger-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) ${i * 0.03}s backwards`,
+                }}
               >
-                <div className="h-40 bg-surface-float2" />
+                {/* Thumbnail skeleton with shimmer */}
+                <div className="relative h-40 bg-surface-float2 overflow-hidden">
+                  <div 
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer-smooth"
+                    style={{
+                      transform: 'translateX(-100%)',
+                    }}
+                  />
+                </div>
+                {/* Content skeleton */}
                 <div className="p-3 space-y-2">
                   <div className="h-4 bg-surface-float2 rounded w-3/4" />
                   <div className="h-3 bg-surface-float2 rounded w-1/2" />
@@ -309,8 +331,8 @@ const CategoryPage = () => {
           </div>
         )}
 
-        {/* Empty State */}
-        {!loading && !error && assets.length === 0 && (
+        {/* Empty State - Only show after data processing */}
+        {!loading && !error && assets.length === 0 && hasProcessedData && (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-20 h-20 rounded-full bg-surface-float flex items-center justify-center mb-4">
               <Upload size={40} className="text-text-tertiary" />
@@ -328,12 +350,22 @@ const CategoryPage = () => {
           </div>
         )}
 
-        {/* Assets Grid */}
+        {/* Assets Grid with Staggered Animation */}
         {!loading && !error && assets.length > 0 && (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-              {assets.map((asset) => (
-                <AssetCard key={asset.id} asset={asset} />
+              {assets.map((asset, index) => (
+                <div
+                  key={asset.id}
+                  className="animate-stagger-in"
+                  style={{
+                    animationDelay: `${Math.min(index * 30, 500)}ms`,
+                    opacity: 0,
+                    animationFillMode: 'forwards'
+                  }}
+                >
+                  <AssetCard asset={asset} />
+                </div>
               ))}
             </div>
             

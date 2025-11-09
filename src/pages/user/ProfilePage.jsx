@@ -427,10 +427,27 @@ const ProfilePage = () => {
           includeInactive: isOwnProfile
         });
         
+        // Transform backend data to frontend format
+        // Maps: thumbnailUrl→thumbnail, user→author, _count→likes/downloads/comments
+        const transformedAssets = (result.assets || []).map(asset => ({
+          ...asset,
+          thumbnail: asset.thumbnailUrl || 
+                    (Array.isArray(asset.imageUrls) && asset.imageUrls.length > 0 ? asset.imageUrls[0] : null),
+          category: asset.category?.name || asset.category || 'Unknown',
+          author: asset.user || asset.author || {
+            id: asset.userId,
+            username: 'Unknown',
+            avatarUrl: null
+          },
+          likes: asset._count?.favorites || asset.favoritesCount || 0,
+          downloads: asset._count?.downloads || asset.downloadCount || 0,
+          comments: asset._count?.reviews || asset.reviewsCount || 0
+        }));
+        
         if (assetsPage === 1) {
-          setUserAssets(result.assets || []);
+          setUserAssets(transformedAssets);
         } else {
-          setUserAssets(prev => [...prev, ...(result.assets || [])]);
+          setUserAssets(prev => [...prev, ...transformedAssets]);
         }
         
         setHasMoreAssets(result.pagination?.page < result.pagination?.pages);

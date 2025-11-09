@@ -14,7 +14,7 @@ import { useState, useCallback, useMemo, memo, useRef, useEffect } from 'react';
 import AssetDetailModal from './AssetDetailModal';
 import SaveToCollectionDropdown from '../collections/SaveToCollectionDropdown';
 import { PLACEHOLDER_IMAGES } from '../../constants';
-import { handleImageError } from '../../utils/imageUtils';
+import { handleImageError, convertGoogleDriveUrl } from '../../utils/imageUtils';
 
 const AssetCard = memo(({ asset, showStatus = false }) => {
   // Normalize category data - can be string or object { id, name, icon }
@@ -35,6 +35,12 @@ const AssetCard = memo(({ asset, showStatus = false }) => {
       avatarUrl: authorData.avatarUrl || authorData.avatar || null
     };
   }, [asset.author, asset.user]);
+  
+  // Normalize thumbnail - backend may send 'thumbnailUrl' or 'thumbnail'
+  const thumbnailUrl = useMemo(() => {
+    const rawUrl = asset.thumbnail || asset.thumbnailUrl || PLACEHOLDER_IMAGES.ASSET_THUMBNAIL;
+    return convertGoogleDriveUrl(rawUrl);
+  }, [asset.thumbnail, asset.thumbnailUrl]);
   
   // State management
   const [isLiked, setIsLiked] = useState(asset.isLiked || false);
@@ -215,7 +221,7 @@ const AssetCard = memo(({ asset, showStatus = false }) => {
         }}
       >
         <img
-          src={asset.thumbnail || PLACEHOLDER_IMAGES.ASSET_THUMBNAIL}
+          src={thumbnailUrl}
           alt={asset.title}
           loading="lazy"
           className="asset-thumbnail w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"

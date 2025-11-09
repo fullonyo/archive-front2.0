@@ -17,6 +17,43 @@
 import { PLACEHOLDER_IMAGES } from '../constants';
 
 /**
+ * Converts Google Drive URLs to thumbnail-friendly format
+ * 
+ * @param {string} url - Original Google Drive URL
+ * @returns {string} Converted thumbnail URL
+ */
+export const convertGoogleDriveUrl = (url) => {
+  if (!url || typeof url !== 'string') return url;
+  
+  // Extract Google Drive file ID from various URL formats
+  let fileId = null;
+  
+  // Pattern 1: https://drive.google.com/uc?export=download&id=FILE_ID
+  // Pattern 2: https://drive.google.com/uc?id=FILE_ID
+  const ucPattern = /[?&]id=([a-zA-Z0-9_-]+)/;
+  const ucMatch = url.match(ucPattern);
+  if (ucMatch) {
+    fileId = ucMatch[1];
+  }
+  
+  // Pattern 3: https://drive.google.com/file/d/FILE_ID/view
+  const filePattern = /\/file\/d\/([a-zA-Z0-9_-]+)/;
+  const fileMatch = url.match(filePattern);
+  if (fileMatch) {
+    fileId = fileMatch[1];
+  }
+  
+  // If we found a file ID, convert to thumbnail URL
+  if (fileId) {
+    // Use thumbnail endpoint which works better for inline images
+    return `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
+  }
+  
+  // Return original URL if no conversion needed
+  return url;
+};
+
+/**
  * Image type to placeholder mapping
  */
 const FALLBACK_MAP = {
@@ -51,11 +88,6 @@ export const handleImageError = (type = 'avatar') => {
     // Prevent infinite error loops
     if (e.target.src !== fallbackSrc) {
       e.target.src = fallbackSrc;
-      
-      // Optional: Log errors in development
-      if (import.meta.env.DEV) {
-        console.warn(`Image load failed (${type}):`, e.target.dataset.originalSrc || 'unknown');
-      }
     }
   };
 };
@@ -135,6 +167,7 @@ export const preloadImages = (urls) => {
 };
 
 export default {
+  convertGoogleDriveUrl,
   handleImageError,
   getFallbackImage,
   isValidImageUrl,

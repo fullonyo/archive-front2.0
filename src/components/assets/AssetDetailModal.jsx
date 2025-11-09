@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { handleImageError } from '../../utils/imageUtils';
+import { handleImageError, convertGoogleDriveUrl } from '../../utils/imageUtils';
 import { PLACEHOLDER_IMAGES } from '../../constants';
 import { assetService } from '../../services/assetService';
 import { userService } from '../../services/userService';
@@ -30,6 +30,22 @@ import { userService } from '../../services/userService';
 const AssetDetailModal = ({ asset, isOpen, onClose }) => {
   // Normalize author/user naming (backend uses 'user', we use 'author' in UI)
   const author = useMemo(() => asset?.author || asset?.user, [asset]);
+  
+  // Backend returns tags and imageUrls as arrays after normalization
+  const tags = useMemo(() => Array.isArray(asset?.tags) ? asset.tags : [], [asset?.tags]);
+  const imageUrls = useMemo(() => Array.isArray(asset?.imageUrls) ? asset.imageUrls : [], [asset?.imageUrls]);
+  
+  // Normalize category - can be string or object {id, name, icon}
+  const categoryName = useMemo(() => {
+    if (!asset?.category) return 'Uncategorized';
+    return typeof asset.category === 'string' ? asset.category : asset.category.name;
+  }, [asset?.category]);
+  
+  // Normalize thumbnail and convert Google Drive URLs
+  const thumbnailUrl = useMemo(() => {
+    const rawUrl = asset?.thumbnail || asset?.thumbnailUrl || null;
+    return rawUrl ? convertGoogleDriveUrl(rawUrl) : null;
+  }, [asset?.thumbnail, asset?.thumbnailUrl]);
   
   // State management
   const [isLiked, setIsLiked] = useState(asset?.isLiked || false);
@@ -52,8 +68,11 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
   const modalRef = useRef(null);
   const shareButtonRef = useRef(null);
 
-  // Gallery images
-  const images = [asset?.thumbnail, ...(asset?.imageUrls || [])].filter(Boolean);
+  // Gallery images - convert all Google Drive URLs
+  const images = useMemo(() => {
+    const allImages = [thumbnailUrl, ...imageUrls].filter(Boolean);
+    return allImages.map(url => convertGoogleDriveUrl(url));
+  }, [thumbnailUrl, imageUrls]);
 
   // Sync states when asset changes
   useEffect(() => {
@@ -332,7 +351,7 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
                 {/* Category Badge */}
                 <div className="absolute top-3 left-3">
                   <span className="px-3 py-1.5 bg-surface-float/95 backdrop-blur-xl rounded-lg text-xs font-semibold border border-white/10 shadow-lg">
-                    {asset.category}
+                    {categoryName}
                   </span>
                 </div>
 
@@ -583,14 +602,14 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
               </div>
 
               {/* Tags */}
-              {asset.tags && asset.tags.length > 0 && (
+              {tags && tags.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <Tag size={16} className="text-text-tertiary" />
                     <h3 className="font-semibold text-sm">Tags</h3>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {asset.tags.slice(0, 10).map((tag, index) => (
+                    {tags.slice(0, 10).map((tag, index) => (
                       <span 
                         key={`${tag}-${index}`}
                         className="px-3 py-1.5 bg-surface-float2 hover:bg-surface-base text-text-secondary hover:text-text-primary rounded-lg text-xs font-medium transition-colors cursor-pointer"
@@ -619,7 +638,7 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
                   </div>
                   <div>
                     <p className="text-xs text-text-tertiary">Category</p>
-                    <p className="text-sm font-medium">{asset.category}</p>
+                    <p className="text-sm font-medium">{categoryName}</p>
                   </div>
                 </div>
               </div>

@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import AssetCard from '../../components/assets/AssetCard';
+import MasonryGrid from '../../components/assets/MasonryGrid';
 import Breadcrumb from '../../components/common/Breadcrumb';
 import { useTranslation } from '../../hooks/useTranslation';
 import { assetService } from '../../services/assetService';
 import { useCachedQuery } from '../../hooks/useCachedQuery';
 import { useOptimisticLoading } from '../../hooks/useOptimisticLoading';
 import { CACHE_KEYS, CACHE_TTL } from '../../config/cache';
-import { TrendingUp, Clock, Sparkles, ArrowUp, AlertCircle, Upload, RefreshCw } from 'lucide-react';
+import { TrendingUp, Clock, Sparkles, ArrowUp, AlertCircle, Upload, RefreshCw, Grid3x3, LayoutGrid } from 'lucide-react';
 import { formatUploadDate } from '../../utils/dateUtils';
 
 const ForYouPage = () => {
@@ -15,6 +16,10 @@ const ForYouPage = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [sortBy, setSortBy] = useState('latest');
+  const [viewMode, setViewMode] = useState(() => {
+    // Persistir preferência no localStorage
+    return localStorage.getItem('forYou_viewMode') || 'masonry';
+  });
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [totalAssets, setTotalAssets] = useState(0);
   const [hasProcessedData, setHasProcessedData] = useState(false);
@@ -174,6 +179,17 @@ const ForYouPage = () => {
     }
   }, [sortBy]);
 
+  // Handle view mode change
+  const handleViewModeChange = useCallback((mode) => {
+    setViewMode(mode);
+    localStorage.setItem('forYou_viewMode', mode);
+    
+    // Log em dev
+    if (import.meta.env.DEV) {
+      console.log(`[ForYouPage] View mode changed to: ${mode}`);
+    }
+  }, []);
+
   return (
     <div className="max-w-[1600px] mx-auto" ref={contentRef}>
       {/* Loading Progress Bar - Top */}
@@ -203,7 +219,7 @@ const ForYouPage = () => {
         style={{ contain: 'layout style' }}
       >
         <div className="flex items-center justify-between gap-4 flex-wrap">
-          {/* Sort Options */}
+          {/* Left: Sort Options */}
           <div className="flex gap-1">
             {sortOptions.map((option) => {
               const Icon = option.icon;
@@ -225,12 +241,45 @@ const ForYouPage = () => {
             })}
           </div>
           
-          {/* Asset Count */}
-          {!pageLoading && !pageError && assets.length > 0 && (
-            <span className="text-xs text-text-tertiary">
-              {assets.length} {totalAssets > 0 && `/ ${totalAssets}`} {assets.length === 1 ? t('forYou.asset') : t('forYou.assets')}
-            </span>
-          )}
+          {/* Right: View Mode Toggle + Asset Count */}
+          <div className="flex items-center gap-3">
+            {/* View Mode Toggle */}
+            <div className="flex gap-1 bg-surface-float rounded-md p-0.5">
+              <button
+                onClick={() => handleViewModeChange('masonry')}
+                className={`
+                  p-1.5 rounded transition-all
+                  ${viewMode === 'masonry' 
+                    ? 'bg-theme-active text-white' 
+                    : 'text-text-secondary hover:text-text-primary'}
+                `}
+                title="Masonry view"
+                aria-label="Switch to masonry view"
+              >
+                <LayoutGrid size={16} />
+              </button>
+              <button
+                onClick={() => handleViewModeChange('grid')}
+                className={`
+                  p-1.5 rounded transition-all
+                  ${viewMode === 'grid' 
+                    ? 'bg-theme-active text-white' 
+                    : 'text-text-secondary hover:text-text-primary'}
+                `}
+                title="Grid view"
+                aria-label="Switch to grid view"
+              >
+                <Grid3x3 size={16} />
+              </button>
+            </div>
+
+            {/* Asset Count */}
+            {!pageLoading && !pageError && assets.length > 0 && (
+              <span className="text-xs text-text-tertiary">
+                {assets.length} {totalAssets > 0 && `/ ${totalAssets}`} {assets.length === 1 ? t('forYou.asset') : t('forYou.assets')}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -311,21 +360,26 @@ const ForYouPage = () => {
         {/* Assets Grid with Staggered Animation */}
         {!pageLoading && !pageError && assets.length > 0 && (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-              {assets.map((asset, index) => (
-                <div
-                  key={asset.id}
-                  className="animate-stagger-in"
-                  style={{
-                    animationDelay: `${Math.min(index * 30, 500)}ms`,
-                    opacity: 0,
-                    animationFillMode: 'forwards'
-                  }}
-                >
-                  <AssetCard asset={asset} />
-                </div>
-              ))}
-            </div>
+            {/* Render baseado no viewMode */}
+            {viewMode === 'masonry' ? (
+              <MasonryGrid assets={assets} loading={false} />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                {assets.map((asset, index) => (
+                  <div
+                    key={asset.id}
+                    className="animate-stagger-in"
+                    style={{
+                      animationDelay: `${Math.min(index * 30, 500)}ms`,
+                      opacity: 0,
+                      animationFillMode: 'forwards'
+                    }}
+                  >
+                    <AssetCard asset={asset} />
+                  </div>
+                ))}
+              </div>
+            )}
             
             <div ref={observerTarget} className="py-8 flex justify-center">
               {pageLoading && page > 1 && (

@@ -3,173 +3,171 @@ import { useParams, useNavigate } from 'react-router-dom';
 import AssetCard from '../../components/assets/AssetCard';
 import Breadcrumb from '../../components/common/Breadcrumb';
 import { useTranslation } from '../../hooks/useTranslation';
+import { useCachedQuery } from '../../hooks/useCachedQuery';
 import { assetService } from '../../services/assetService';
-import { TrendingUp, Clock, Sparkles, ArrowUp, AlertCircle, Upload, RefreshCw, Package } from 'lucide-react';
-
-// Format upload date helper (moved outside component to avoid recreation)
-const formatUploadDate = (dateString) => {
-  if (!dateString) return 'Recently';
-  
-  const now = new Date();
-  const uploaded = new Date(dateString);
-  const diffMs = now - uploaded;
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  
-  return uploaded.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-};
-
-// Sort options constant (static data)
-const SORT_OPTIONS = [
-  { value: 'newest', label: 'Newest', icon: Clock },
-  { value: 'popular', label: 'Popular', icon: TrendingUp },
-  { value: 'trending', label: 'Trending', icon: Sparkles }
-];
+import { formatUploadDate } from '../../utils/dateUtils';
+import { ASSET_SORT_OPTIONS } from '../../constants/sortOptions';
+import { CACHE_KEYS, CACHE_TTL } from '../../config/cache';
+import { 
+  ASSETS_PER_PAGE, 
+  MAX_PAGES, 
+  SCROLL_TOP_THRESHOLD, 
+  INFINITE_SCROLL_THRESHOLD 
+} from '../../constants/pagination';
+import { ArrowUp, AlertCircle, Upload, RefreshCw, Package } from 'lucide-react';
 
 const CategoryPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  
   const [assets, setAssets] = useState([]);
   const [category, setCategory] = useState(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [sortBy, setSortBy] = useState('newest');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [totalAssets, setTotalAssets] = useState(0);
   const observerTarget = useRef(null);
-  const contentRef = useRef(null);
-  const abortControllerRef = useRef(null);
-  const MAX_PAGES = 20;
 
-  // Load assets for this category
-  const loadAssets = useCallback(async (pageNum = 1, sort = sortBy, append = false) => {
-    if (!append) setLoading(true);
-    setError(null);
+  // Cache key para a página atual
+  const cacheKey = CACHE_KEYS.categoryAssets(id, page, { sortBy });
 
-    try {
+  // Usar cache query para a página atual
+  const { 
+    data: pageData, 
+    loading, 
+    error: fetchError,
+    isCached,
+    refetch
+  } = useCachedQuery(
+    cacheKey,
+    async () => {
       const response = await assetService.getAssetsByCategory(id, {
-        page: pageNum,
-        limit: 15,
-        sort
+        page,
+        limit: ASSETS_PER_PAGE,
+        sort: sortBy
       });
-
-      if (response.success && response.data) {
-        // Backend returns { category, subcategories, assets, pagination }
-        const categoryData = response.data.category;
-        const backendAssets = response.data.assets || [];
-        const pagination = response.data.pagination || {};
-        const total = pagination.total || backendAssets.length;
-
-        // Set category info if not already set
-        if (!category && categoryData) {
-          setCategory(categoryData);
-        }
-
-        // Transform to frontend format
-        const transformedAssets = backendAssets.map(asset => {
-          const thumbnail = asset.thumbnailUrl || 
-                           (Array.isArray(asset.imageUrls) && asset.imageUrls[0]) ||
-                           null;
-
-          return {
-            id: asset.id,
-            title: asset.title,
-            description: asset.description,
-            category: asset.category?.name || categoryData?.name || 'Unknown',
-            thumbnail,
-            author: {
-              name: asset.user?.username || 'Unknown',
-              avatarUrl: asset.user?.avatarUrl || null
-            },
-            uploadedAt: formatUploadDate(asset.createdAt),
-            likes: asset._count?.favorites || asset.favoritesCount || 0,
-            downloads: asset._count?.downloads || asset.downloadCount || 0,
-            comments: asset._count?.reviews || asset.reviewsCount || 0,
-            tags: asset.tags || [],
-            isLiked: asset.isLiked || false,
-            averageRating: asset.averageRating || 0
-          };
-        });
-
-        if (append) {
-          setAssets(prev => {
-            const newAssets = [...prev, ...transformedAssets];
-            // Calculate hasMore based on NEW total, not stale state
-            setHasMore(transformedAssets.length === 15 && newAssets.length < total);
-            return newAssets;
-          });
-        } else {
-          setAssets(transformedAssets);
-          setHasMore(transformedAssets.length === 15 && transformedAssets.length < total);
-        }
-
-        setTotalAssets(total);
-      } else {
-        setAssets([]);
-        setHasMore(false);
-      }
-    } catch (err) {
-      console.error('Load assets error:', err);
-      setError('Failed to load assets');
-      setAssets([]);
-    } finally {
-      setLoading(false);
+      return response;
+    },
+    { 
+      ttl: CACHE_TTL.CATEGORY_ASSETS,
+      enabled: true
     }
-  }, [id, sortBy, category]); // ✅ Removed assets.length dependency
+  );
 
-  // Load more assets (infinite scroll)
+  const error = fetchError ? 'Failed to load assets' : null;
+
+  // Process data when pageData changes (similar to ForYouPage pattern)
+  useEffect(() => {
+    if (!pageData?.success || !pageData?.data) return;
+
+    const categoryData = pageData.data.category;
+    const backendAssets = pageData.data.assets || [];
+    const pagination = pageData.data.pagination || {};
+    const total = pagination.total || backendAssets.length;
+
+    // Set category info once
+    if (!category && categoryData) {
+      setCategory(categoryData);
+    }
+
+    // Transform assets
+    const transformedAssets = backendAssets.map(asset => {
+      const thumbnail = asset.thumbnailUrl || 
+                       (Array.isArray(asset.imageUrls) && asset.imageUrls[0]) ||
+                       null;
+
+      return {
+        id: asset.id,
+        title: asset.title,
+        description: asset.description,
+        category: asset.category?.name || categoryData?.name || 'Unknown',
+        thumbnail,
+        author: {
+          name: asset.user?.username || 'Unknown',
+          avatarUrl: asset.user?.avatarUrl || null
+        },
+        uploadedAt: formatUploadDate(asset.createdAt),
+        likes: asset._count?.favorites || asset.favoritesCount || 0,
+        downloads: asset._count?.downloads || asset.downloadCount || 0,
+        comments: asset._count?.reviews || asset.reviewsCount || 0,
+        tags: asset.tags || [],
+        isLiked: asset.isLiked || false,
+        averageRating: asset.averageRating || 0
+      };
+    });
+
+    // Update assets based on page
+    if (page === 1) {
+      setAssets(transformedAssets);
+      setHasMore(transformedAssets.length === ASSETS_PER_PAGE);
+    } else {
+      setAssets(prev => {
+        const newAssets = [...prev, ...transformedAssets];
+        setHasMore(transformedAssets.length === ASSETS_PER_PAGE && newAssets.length < total);
+        return newAssets;
+      });
+    }
+
+    setTotalAssets(total);
+  }, [pageData, page, category]); // ✅ Removed assets.length - calculated inside setState
+
+  // Log cache status in development
+  useEffect(() => {
+    if (import.meta.env.DEV && pageData) {
+      console.log(`[CategoryPage] ${isCached ? 'Cache HIT' : 'Cache MISS'} - Category ${id}, Page ${page}, Sort: ${sortBy}`);
+    }
+  }, [pageData, isCached, id, page, sortBy]);
+
+  // Load more (infinite scroll) - simplified like ForYouPage
   const loadMore = useCallback(() => {
     if (loading || !hasMore || page >= MAX_PAGES) return;
-    
-    const nextPage = page + 1;
-    setPage(nextPage);
-    loadAssets(nextPage, sortBy, true);
-  }, [loading, hasMore, page, sortBy, loadAssets]);
+    setPage(prev => prev + 1); // ✅ Just increment, useEffect handles fetch
+  }, [loading, hasMore, page]);
 
-  // Change sort
+  // Handle sort change - simplified like ForYouPage
   const handleSortChange = useCallback((newSort) => {
     if (newSort === sortBy) return;
     
+    // Scroll to top
+    const mainContent = document.querySelector('main');
+    mainContent?.scrollTo({ top: 0, behavior: 'auto' });
+    
+    // Reset state and change sort
     setSortBy(newSort);
     setPage(1);
     setAssets([]);
     setHasMore(true);
-    loadAssets(1, newSort, false);
-  }, [sortBy, loadAssets]);
+    // ✅ useEffect will detect sortBy change and refetch
+  }, [sortBy]);
 
   // Retry fetch
   const retryFetch = useCallback(() => {
     setPage(1);
     setAssets([]);
     setHasMore(true);
-    loadAssets(1, sortBy, false);
-  }, [sortBy, loadAssets]);
+    refetch(); // ✅ Use refetch from useCachedQuery (bypasses cache)
+  }, [refetch]);
 
-  // Scroll to top
+  // Scroll to top button
   const scrollToTop = useCallback(() => {
-    // Use instant scroll to avoid performance issues with smooth scrolling
-    contentRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+    const mainContent = document.querySelector('main');
+    mainContent?.scrollTo({ top: 0, behavior: 'auto' });
   }, []);
 
-  // Scroll tracking
+  // Scroll tracking for scroll-to-top button
   useEffect(() => {
     const handleScroll = () => {
-      if (contentRef.current) {
-        setShowScrollTop(contentRef.current.scrollTop > 400);
+      const mainContent = document.querySelector('main');
+      if (mainContent) {
+        setShowScrollTop(mainContent.scrollTop > SCROLL_TOP_THRESHOLD);
       }
     };
 
-    const scrollContainer = contentRef.current;
-    scrollContainer?.addEventListener('scroll', handleScroll);
-    return () => scrollContainer?.removeEventListener('scroll', handleScroll);
+    const mainContent = document.querySelector('main');
+    mainContent?.addEventListener('scroll', handleScroll);
+    return () => mainContent?.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Intersection Observer for infinite scroll
@@ -180,7 +178,7 @@ const CategoryPage = () => {
           loadMore();
         }
       },
-      { threshold: 0.1 }
+      { threshold: INFINITE_SCROLL_THRESHOLD }
     );
 
     const target = observerTarget.current;
@@ -191,26 +189,6 @@ const CategoryPage = () => {
     };
   }, [loadMore, hasMore, loading, page]);
 
-  // Initial load with cleanup
-  useEffect(() => {
-    // Cancel previous request if exists
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    // Create new abort controller
-    abortControllerRef.current = new AbortController();
-    
-    loadAssets(1, sortBy, false);
-
-    // Cleanup on unmount or when id changes
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, [id]); // Only reload when category ID changes
-
   // Memoize breadcrumb items
   const breadcrumbItems = useMemo(() => [
     { label: 'Home', path: '/' },
@@ -219,7 +197,7 @@ const CategoryPage = () => {
   ], [category?.name]);
 
   return (
-    <div className="max-w-[1600px] mx-auto" ref={contentRef}>
+    <div className="max-w-[1600px] mx-auto">
       {/* Sticky Filter Bar */}
       <div 
         className="sticky top-0 z-10 bg-surface-base px-3 sm:px-4 lg:px-6 py-3 border-b border-white/5"
@@ -231,7 +209,7 @@ const CategoryPage = () => {
 
           {/* Sort Options */}
           <div className="flex items-center gap-2">
-            {SORT_OPTIONS.map((option) => {
+            {ASSET_SORT_OPTIONS.map((option) => {
               const Icon = option.icon;
               return (
                 <button
@@ -283,7 +261,7 @@ const CategoryPage = () => {
         {/* Loading State (first load) */}
         {loading && page === 1 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-            {[...Array(15)].map((_, i) => (
+            {[...Array(ASSETS_PER_PAGE)].map((_, i) => (
               <div
                 key={i}
                 className="bg-surface-float rounded-xl overflow-hidden border border-white/5 animate-pulse"
@@ -370,7 +348,7 @@ const CategoryPage = () => {
               {!hasMore && assets.length > 0 && (
                 <p className="text-text-tertiary text-sm">
                   {page >= MAX_PAGES 
-                    ? `Showing first ${MAX_PAGES * 15} assets` 
+                    ? `Showing first ${MAX_PAGES * ASSETS_PER_PAGE} assets` 
                     : "You've reached the end"}
                 </p>
               )}

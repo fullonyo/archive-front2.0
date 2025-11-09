@@ -22,6 +22,7 @@ export const CACHE_TTL = {
   
   // Categories (30 minutos - raramente mudam)
   CATEGORIES: 30 * 60 * 1000,
+  CATEGORY_ASSETS: 2 * 60 * 1000, // Assets de uma categoria (mesmo TTL que ASSETS_LIST)
   TAGS: 30 * 60 * 1000,
   
   // Forum (5 minutos)
@@ -64,6 +65,11 @@ export const CACHE_KEYS = {
   categories: () => 'categories_all',
   
   categoryDetail: (id) => `category_detail_${id}`,
+  
+  categoryAssets: (id, page = 1, filters = {}) => {
+    const filterStr = JSON.stringify(filters);
+    return `category_${id}_assets_p${page}_${filterStr}`;
+  },
   
   tags: () => 'tags_all',
   

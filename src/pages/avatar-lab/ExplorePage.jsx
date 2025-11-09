@@ -203,25 +203,29 @@ const ExplorePage = () => {
     }
   }, []);
 
-  // Load categories on mount and listen for updates
+  // Load all data on mount - orchestrated to avoid race conditions
   useEffect(() => {
-    loadCategories();
+    const loadAllData = async () => {
+      // Load critical data first (categories)
+      await loadCategories();
+      
+      // Load secondary data in parallel (non-critical)
+      Promise.all([
+        loadPopularTags(),
+        loadStats()
+      ]).catch(err => {
+        console.error('Error loading secondary data:', err);
+        // Don't block UI for non-critical data
+      });
+    };
+
+    loadAllData();
 
     // Listen for category updates from admin panel
     return onCategoriesUpdate(() => {
       loadCategories();
     });
-  }, [loadCategories]);
-
-  // Load popular tags on mount
-  useEffect(() => {
-    loadPopularTags();
-  }, [loadPopularTags]);
-
-  // Load stats on mount
-  useEffect(() => {
-    loadStats();
-  }, [loadStats]);
+  }, [loadCategories, loadPopularTags, loadStats]);
 
   // Filter categories based on active view
   const filteredCategories = useMemo(() => {
@@ -229,6 +233,11 @@ const ExplorePage = () => {
     if (activeView === 'popular') return [...categories].sort((a, b) => b.count - a.count);
     return categories;
   }, [categories, activeView]);
+
+  // Memoize breadcrumb items to avoid recreation
+  const breadcrumbItems = useMemo(() => [
+    { label: t('explore.title'), path: '/explore' }
+  ], [t]);
 
   return (
     <div className="max-w-[1600px] mx-auto">
@@ -247,11 +256,7 @@ const ExplorePage = () => {
 
       {/* Breadcrumb */}
       <div className="px-3 sm:px-4 lg:px-6 pt-4">
-        <Breadcrumb
-          items={[
-            { label: t('explore.title'), path: '/explore' }
-          ]}
-        />
+        <Breadcrumb items={breadcrumbItems} />
       </div>
 
       {/* Sticky Search & Filter Bar */}

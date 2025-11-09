@@ -1,15 +1,15 @@
 import { Heart, Download, Eye, MessageCircle, MoreVertical } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useCallback, memo } from 'react';
 import AssetDetailModal from './AssetDetailModal';
 import { PLACEHOLDER_IMAGES } from '../../constants';
 import { handleImageError } from '../../utils/imageUtils';
 
-const AssetCard = ({ asset }) => {
+const AssetCard = memo(({ asset }) => {
   const [isLiked, setIsLiked] = useState(asset.isLiked || false);
   const [likes, setLikes] = useState(asset.likes || 0);
   const [showModal, setShowModal] = useState(false);
 
-  const handleLike = (e) => {
+  const handleLike = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
     
@@ -19,11 +19,15 @@ const AssetCard = ({ asset }) => {
       setLikes(likes + 1);
     }
     setIsLiked(!isLiked);
-  };
+  }, [isLiked, likes]);
 
-  const handleCardClick = () => {
+  const handleCardClick = useCallback(() => {
     setShowModal(true);
-  };
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setShowModal(false);
+  }, []);
 
   return (
     <article 
@@ -151,10 +155,12 @@ const AssetCard = ({ asset }) => {
       <AssetDetailModal 
         asset={asset}
         isOpen={showModal}
-        onClose={() => setShowModal(false)}
+        onClose={handleCloseModal}
       />
     </article>
   );
-};
+});
+
+AssetCard.displayName = 'AssetCard';
 
 export default AssetCard;

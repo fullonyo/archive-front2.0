@@ -1,10 +1,35 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AssetCard from '../../components/assets/AssetCard';
 import Breadcrumb from '../../components/common/Breadcrumb';
 import { useTranslation } from '../../hooks/useTranslation';
 import { assetService } from '../../services/assetService';
 import { TrendingUp, Clock, Sparkles, ArrowUp, AlertCircle, Upload, RefreshCw, Package } from 'lucide-react';
+
+// Format upload date helper (moved outside component to avoid recreation)
+const formatUploadDate = (dateString) => {
+  if (!dateString) return 'Recently';
+  
+  const now = new Date();
+  const uploaded = new Date(dateString);
+  const diffMs = now - uploaded;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  
+  return uploaded.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
+
+// Sort options constant (static data)
+const SORT_OPTIONS = [
+  { value: 'newest', label: 'Newest', icon: Clock },
+  { value: 'popular', label: 'Popular', icon: TrendingUp },
+  { value: 'trending', label: 'Trending', icon: Sparkles }
+];
 
 const CategoryPage = () => {
   const { id } = useParams();
@@ -21,6 +46,7 @@ const CategoryPage = () => {
   const [totalAssets, setTotalAssets] = useState(0);
   const observerTarget = useRef(null);
   const contentRef = useRef(null);
+  const abortControllerRef = useRef(null);
   const MAX_PAGES = 20;
 
   // Load assets for this category
@@ -74,13 +100,18 @@ const CategoryPage = () => {
         });
 
         if (append) {
-          setAssets(prev => [...prev, ...transformedAssets]);
+          setAssets(prev => {
+            const newAssets = [...prev, ...transformedAssets];
+            // Calculate hasMore based on NEW total, not stale state
+            setHasMore(transformedAssets.length === 15 && newAssets.length < total);
+            return newAssets;
+          });
         } else {
           setAssets(transformedAssets);
+          setHasMore(transformedAssets.length === 15 && transformedAssets.length < total);
         }
 
         setTotalAssets(total);
-        setHasMore(transformedAssets.length === 15 && (append ? assets.length : 0) + transformedAssets.length < total);
       } else {
         setAssets([]);
         setHasMore(false);
@@ -92,25 +123,7 @@ const CategoryPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [id, sortBy, category, assets.length]);
-
-  // Format upload date
-  const formatUploadDate = (dateString) => {
-    if (!dateString) return 'Recently';
-    
-    const now = new Date();
-    const uploaded = new Date(dateString);
-    const diffMs = now - uploaded;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    
-    return uploaded.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  };
+  }, [id, sortBy, category]); // ✅ Removed assets.length dependency
 
   // Load more assets (infinite scroll)
   const loadMore = useCallback(() => {
@@ -142,7 +155,8 @@ const CategoryPage = () => {
 
   // Scroll to top
   const scrollToTop = useCallback(() => {
-    contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    // Use instant scroll to avoid performance issues with smooth scrolling
+    contentRef.current?.scrollTo({ top: 0, behavior: 'auto' });
   }, []);
 
   // Scroll tracking
@@ -177,22 +191,32 @@ const CategoryPage = () => {
     };
   }, [loadMore, hasMore, loading, page]);
 
-  // Initial load
+  // Initial load with cleanup
   useEffect(() => {
+    // Cancel previous request if exists
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Create new abort controller
+    abortControllerRef.current = new AbortController();
+    
     loadAssets(1, sortBy, false);
+
+    // Cleanup on unmount or when id changes
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, [id]); // Only reload when category ID changes
 
-  const breadcrumbItems = [
+  // Memoize breadcrumb items
+  const breadcrumbItems = useMemo(() => [
     { label: 'Home', path: '/' },
     { label: 'Explore', path: '/explore' },
     { label: category?.name || 'Category', path: null }
-  ];
-
-  const sortOptions = [
-    { value: 'newest', label: 'Newest', icon: Clock },
-    { value: 'popular', label: 'Popular', icon: TrendingUp },
-    { value: 'trending', label: 'Trending', icon: Sparkles }
-  ];
+  ], [category?.name]);
 
   return (
     <div className="max-w-[1600px] mx-auto" ref={contentRef}>
@@ -207,7 +231,7 @@ const CategoryPage = () => {
 
           {/* Sort Options */}
           <div className="flex items-center gap-2">
-            {sortOptions.map((option) => {
+            {SORT_OPTIONS.map((option) => {
               const Icon = option.icon;
               return (
                 <button

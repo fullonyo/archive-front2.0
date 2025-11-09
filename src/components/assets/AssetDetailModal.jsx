@@ -68,10 +68,10 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
   const modalRef = useRef(null);
   const shareButtonRef = useRef(null);
 
-  // Gallery images - convert all Google Drive URLs
+  // Gallery images - USE DIRECTLY from backend (already normalized with proxy URLs)
   const images = useMemo(() => {
-    const allImages = [thumbnailUrl, ...imageUrls].filter(Boolean);
-    return allImages.map(url => convertGoogleDriveUrl(url));
+    // Backend já converte tudo para proxy URLs, então use direto
+    return imageUrls.length > 0 ? imageUrls : [thumbnailUrl].filter(Boolean);
   }, [thumbnailUrl, imageUrls]);
 
   // Sync states when asset changes
@@ -363,7 +363,7 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
                         e.stopPropagation();
                         handlePreviousImage();
                       }}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 p-2 bg-black/90 backdrop-blur-xl hover:bg-black rounded-lg transition-all opacity-0 group-hover/gallery:opacity-100"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 p-2 bg-black/90 backdrop-blur-xl hover:bg-black rounded-lg transition-all opacity-100 sm:opacity-0 sm:group-hover/gallery:opacity-100 shadow-xl"
                       aria-label="Previous image"
                     >
                       <ChevronLeft size={20} />
@@ -373,7 +373,7 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
                         e.stopPropagation();
                         handleNextImage();
                       }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-black/90 backdrop-blur-xl hover:bg-black rounded-lg transition-all opacity-0 group-hover/gallery:opacity-100"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-black/90 backdrop-blur-xl hover:bg-black rounded-lg transition-all opacity-100 sm:opacity-0 sm:group-hover/gallery:opacity-100 shadow-xl"
                       aria-label="Next image"
                     >
                       <ChevronRight size={20} />

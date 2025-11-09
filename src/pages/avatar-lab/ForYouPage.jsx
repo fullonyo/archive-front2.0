@@ -59,7 +59,7 @@ const ForYouPage = () => {
     const backendAssets = pageData.data.assets || pageData.data.data?.assets || [];
     const total = pageData.data.total || pageData.data.data?.total || 0;
 
-    // Transformar para o formato do frontend
+    // Transformar para o formato do frontend (backend já normaliza URLs via proxy)
     const transformedAssets = backendAssets.map(asset => {
       const thumbnail = asset.thumbnailUrl || 
                        (Array.isArray(asset.imageUrls) && asset.imageUrls[0]) ||
@@ -71,6 +71,8 @@ const ForYouPage = () => {
         description: asset.description,
         category: asset.category?.name || 'Unknown',
         thumbnail,
+        thumbnailUrl: asset.thumbnailUrl,
+        imageUrls: asset.imageUrls || [], // Backend já converte para proxy URLs
         author: {
           id: asset.user?.id,
           name: asset.user?.username || 'Unknown',

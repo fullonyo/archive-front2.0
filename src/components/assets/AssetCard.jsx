@@ -8,7 +8,9 @@ import {
   Clock, 
   CheckCircle, 
   XCircle,
-  Loader2
+  Loader2,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { useState, useCallback, useMemo, memo, useRef, useEffect } from 'react';
 import AssetDetailModal from './AssetDetailModal';
@@ -42,12 +44,20 @@ const AssetCard = memo(({ asset, showStatus = false }) => {
     return convertGoogleDriveUrl(rawUrl);
   }, [asset.thumbnail, asset.thumbnailUrl]);
   
+  // Gallery images - USE DIRECTLY from backend (already normalized with proxy URLs)
+  const galleryImages = useMemo(() => {
+    const imageUrls = Array.isArray(asset.imageUrls) ? asset.imageUrls : [];
+    // Backend já converte tudo para proxy URLs, então use direto
+    return imageUrls.length > 0 ? imageUrls : [thumbnailUrl].filter(Boolean);
+  }, [asset.imageUrls, thumbnailUrl]);
+  
   // State management
   const [isLiked, setIsLiked] = useState(asset.isLiked || false);
   const [likes, setLikes] = useState(asset.likes || 0);
   const [isBookmarked, setIsBookmarked] = useState(asset.isBookmarked || false);
   const [showModal, setShowModal] = useState(false);
   const [showSaveDropdown, setShowSaveDropdown] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
   // Loading states for micro-interactions
   const [isLiking, setIsLiking] = useState(false);
@@ -151,6 +161,19 @@ const AssetCard = memo(({ asset, showStatus = false }) => {
     setShowSaveDropdown(false);
   }, []);
 
+  // Gallery navigation handlers
+  const handlePreviousImage = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentImageIndex(prev => prev === 0 ? galleryImages.length - 1 : prev - 1);
+  }, [galleryImages.length]);
+
+  const handleNextImage = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentImageIndex(prev => prev === galleryImages.length - 1 ? 0 : prev + 1);
+  }, [galleryImages.length]);
+
   // Keyboard navigation
   const handleKeyDown = useCallback((e) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -214,15 +237,15 @@ const AssetCard = memo(({ asset, showStatus = false }) => {
     >
       {/* Thumbnail Container - Otimizado para 60 FPS */}
       <div 
-        className="relative overflow-hidden bg-surface-float2 rounded-t-xl"
+        className="relative overflow-hidden bg-surface-float2 rounded-t-xl group/gallery"
         style={{ 
           aspectRatio: '16/9',
           contain: 'layout style'
         }}
       >
         <img
-          src={thumbnailUrl}
-          alt={asset.title}
+          src={galleryImages[currentImageIndex]}
+          alt={`${asset.title} - Image ${currentImageIndex + 1}`}
           loading="lazy"
           className="asset-thumbnail w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           style={{ aspectRatio: '16/9' }}
@@ -232,6 +255,48 @@ const AssetCard = memo(({ asset, showStatus = false }) => {
         {/* Gradient Overlay - Sempre visível em mobile, hover em desktop */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300" 
              style={{ contain: 'layout style paint' }} />
+
+        {/* Gallery Navigation (if multiple images) */}
+        {galleryImages.length > 1 && (
+          <>
+            <button
+              onClick={handlePreviousImage}
+              className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 bg-black/90 backdrop-blur-xl hover:bg-black rounded-lg transition-all opacity-100 sm:opacity-0 sm:group-hover/gallery:opacity-100 shadow-xl z-20"
+              aria-label="Previous image"
+            >
+              <ChevronLeft size={16} strokeWidth={2.5} />
+            </button>
+            <button
+              onClick={handleNextImage}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-black/90 backdrop-blur-xl hover:bg-black rounded-lg transition-all opacity-100 sm:opacity-0 sm:group-hover/gallery:opacity-100 shadow-xl z-20"
+              aria-label="Next image"
+            >
+              <ChevronRight size={16} strokeWidth={2.5} />
+            </button>
+
+            {/* Image Indicators (dots) */}
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+              {galleryImages.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setCurrentImageIndex(idx);
+                  }}
+                  className={`
+                    h-1.5 rounded-full transition-all duration-200
+                    ${idx === currentImageIndex 
+                      ? 'w-6 bg-white' 
+                      : 'w-1.5 bg-white/50 hover:bg-white/75'
+                    }
+                  `}
+                  aria-label={`Go to image ${idx + 1}`}
+                />
+              ))}
+            </div>
+          </>
+        )}
 
         {/* Top Bar - Category/Status + Like */}
         <div className="absolute top-0 inset-x-0 flex items-start justify-between p-2.5 z-10">

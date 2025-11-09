@@ -92,6 +92,8 @@ const CategoryPage = () => {
         description: asset.description,
         category: asset.category?.name || categoryData?.name || 'Unknown',
         thumbnail,
+        thumbnailUrl: asset.thumbnailUrl, // Keep original for fallback
+        imageUrls: asset.imageUrls || [], // IMPORTANTE: Passar array de imagens para galeria
         author: {
           name: asset.user?.username || 'Unknown',
           avatarUrl: asset.user?.avatarUrl || null

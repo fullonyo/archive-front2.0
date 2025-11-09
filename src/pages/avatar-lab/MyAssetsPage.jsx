@@ -104,6 +104,8 @@ const MyAssetsPage = () => {
         description: asset.description,
         category: asset.category?.name || 'Unknown',
         thumbnail,
+        thumbnailUrl: asset.thumbnailUrl, // Keep original for fallback
+        imageUrls: asset.imageUrls || [], // IMPORTANTE: Passar array de imagens para galeria
         author: {
           name: user?.username || 'You',
           avatarUrl: user?.avatarUrl || null

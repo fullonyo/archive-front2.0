@@ -242,34 +242,6 @@ const CategoryPage = () => {
 
       {/* Content Area */}
       <div className="px-3 sm:px-4 lg:px-6 py-6 space-y-6 relative">
-        {/* Optimistic UI: Smooth transition overlay when switching sorts */}
-        {loading && page === 1 && assets.length > 0 && (
-          <div 
-            className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none"
-            style={{
-              background: 'rgba(13, 13, 15, 0.85)',
-              contain: 'layout style paint',
-              willChange: 'opacity',
-              animation: 'fade-in 150ms cubic-bezier(0.16, 1, 0.3, 1)',
-            }}
-          >
-            <div 
-              className="flex flex-col items-center gap-3 px-6 py-4 rounded-xl bg-surface-float border border-white/10 shadow-2xl"
-              style={{
-                transform: 'translateZ(0)',
-                willChange: 'transform',
-              }}
-            >
-              <div className="w-8 h-8 border-2 border-theme-active border-t-transparent rounded-full animate-spin" />
-              <span className="text-sm font-medium text-text-primary">
-                {sortBy === 'trending' && 'Finding trending assets...'}
-                {sortBy === 'popular' && 'Loading popular assets...'}
-                {sortBy === 'latest' && 'Loading latest assets...'}
-              </span>
-            </div>
-          </div>
-        )}
-
         {/* Category Header */}
         {category && !error && (
           <div className="bg-surface-float rounded-xl p-6 border border-white/5">

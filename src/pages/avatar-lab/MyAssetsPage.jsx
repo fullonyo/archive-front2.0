@@ -8,6 +8,7 @@ import { userService } from '../../services/userService';
 import { useCachedQuery } from '../../hooks/useCachedQuery';
 import { useOptimisticLoading } from '../../hooks/useOptimisticLoading';
 import { CACHE_KEYS, CACHE_TTL } from '../../config/cache';
+import { formatUploadDate } from '../../utils/dateUtils';
 import { 
   FolderOpen, 
   Clock, 
@@ -82,15 +83,11 @@ const MyAssetsPage = () => {
     150
   );
 
-  // Process data
-  useEffect(() => {
-    if (!pageData?.success || !pageData?.data) {
-      setHasProcessedData(false);
-      return;
-    }
+  // Memoizar transformação e filtragem de assets - PERFORMANCE: Evita processamento desnecessário
+  const transformedAndFilteredAssets = useMemo(() => {
+    if (!pageData?.success || !pageData?.data) return [];
 
     const backendAssets = pageData.data.assets || [];
-    const total = pageData.data.total || 0;
 
     // Transform assets - Backend já normaliza: tags, imageUrls, thumbnailUrl
     const transformedAssets = backendAssets.map(asset => ({
@@ -127,22 +124,32 @@ const MyAssetsPage = () => {
     });
 
     // Client-side sort
-    const sortedAssets = sortAssets(filteredAssets, sortBy);
+    return sortAssets(filteredAssets, sortBy);
+  }, [pageData, statusFilter, sortBy, user]);
+
+  // Process data
+  useEffect(() => {
+    if (transformedAndFilteredAssets.length === 0) {
+      setHasProcessedData(false);
+      return;
+    }
+
+    const total = pageData?.data?.total || 0;
 
     if (page === 1) {
-      setAssets(sortedAssets);
+      setAssets(transformedAndFilteredAssets);
     } else {
-      setAssets(prev => [...prev, ...sortedAssets]);
+      setAssets(prev => [...prev, ...transformedAndFilteredAssets]);
     }
 
     setTotalAssets(total);
-    setHasMore(transformedAssets.length === 15 && assets.length + transformedAssets.length < total);
+    setHasMore(transformedAndFilteredAssets.length === 15 && assets.length + transformedAndFilteredAssets.length < total);
     setHasProcessedData(true);
 
     if (import.meta.env.DEV) {
       console.log(`[MyAssets] ${isCached ? 'HIT' : 'MISS'} - Page ${page}, ${statusFilter}, ${sortBy}`);
     }
-  }, [pageData, page, statusFilter, sortBy, isCached, user]);
+  }, [transformedAndFilteredAssets, page, isCached, pageData, assets.length]);
 
   const getAssetStatus = (asset) => {
     if (!asset.isApproved) return 'pending';
@@ -164,21 +171,6 @@ const MyAssetsPage = () => {
       default:
         return sorted;
     }
-  };
-
-  const formatUploadDate = (dateString) => {
-    if (!dateString) return 'Recently';
-    const now = new Date();
-    const uploaded = new Date(dateString);
-    const diffMs = now - uploaded;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-    
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return uploaded.toLocaleDateString();
   };
 
   // Scroll to top

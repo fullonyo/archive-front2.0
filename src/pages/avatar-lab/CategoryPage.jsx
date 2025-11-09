@@ -63,22 +63,14 @@ const CategoryPage = () => {
 
   const error = fetchError ? 'Failed to load assets' : null;
 
-  // Process data when pageData changes (similar to ForYouPage pattern)
-  useEffect(() => {
+  // Memoizar transformação de assets - PERFORMANCE: Evita processamento desnecessário
+  const { transformedAssets, categoryData } = useMemo(() => {
     if (!pageData?.success || !pageData?.data) {
-      setHasProcessedData(false);
-      return;
+      return { transformedAssets: [], categoryData: null };
     }
 
     const categoryData = pageData.data.category;
     const backendAssets = pageData.data.assets || [];
-    const pagination = pageData.data.pagination || {};
-    const total = pagination.total || backendAssets.length;
-
-    // Set category info once
-    if (!category && categoryData) {
-      setCategory(categoryData);
-    }
 
     // Transform assets - Backend já normaliza: tags, imageUrls, thumbnailUrl
     const transformedAssets = backendAssets.map(asset => ({
@@ -102,6 +94,24 @@ const CategoryPage = () => {
       averageRating: asset.averageRating || 0
     }));
 
+    return { transformedAssets, categoryData };
+  }, [pageData]);
+
+  // Process data when transformedAssets changes
+  useEffect(() => {
+    if (transformedAssets.length === 0) {
+      setHasProcessedData(false);
+      return;
+    }
+
+    const pagination = pageData?.data?.pagination || {};
+    const total = pagination.total || transformedAssets.length;
+
+    // Set category info once
+    if (!category && categoryData) {
+      setCategory(categoryData);
+    }
+
     // Update assets based on page
     if (page === 1) {
       setAssets(transformedAssets);
@@ -116,7 +126,7 @@ const CategoryPage = () => {
 
     setTotalAssets(total);
     setHasProcessedData(true);
-  }, [pageData, page, category]); // ✅ Removed assets.length - calculated inside setState
+  }, [transformedAssets, page, categoryData, category, pageData]); // ✅ Removed assets.length - calculated inside setState
 
   // Log cache status in development
   useEffect(() => {

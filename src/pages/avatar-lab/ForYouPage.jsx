@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import AssetCard from '../../components/assets/AssetCard';
 import Breadcrumb from '../../components/common/Breadcrumb';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -7,6 +7,7 @@ import { useCachedQuery } from '../../hooks/useCachedQuery';
 import { useOptimisticLoading } from '../../hooks/useOptimisticLoading';
 import { CACHE_KEYS, CACHE_TTL } from '../../config/cache';
 import { TrendingUp, Clock, Sparkles, ArrowUp, AlertCircle, Upload, RefreshCw } from 'lucide-react';
+import { formatUploadDate } from '../../utils/dateUtils';
 
 const ForYouPage = () => {
   const { t } = useTranslation();
@@ -49,19 +50,15 @@ const ForYouPage = () => {
   // Optimistic loading - só mostra skeleton se demorar mais que 150ms
   const shouldShowSkeleton = useOptimisticLoading(pageLoading && page === 1, isCached, 150);
 
-  // Processar dados quando pageData mudar
-  useEffect(() => {
-    if (!pageData?.success || !pageData?.data) {
-      setHasProcessedData(false);
-      return;
-    }
+  // Memoizar transformação de assets - PERFORMANCE: Evita processamento desnecessário
+  const transformedAssets = useMemo(() => {
+    if (!pageData?.success || !pageData?.data) return [];
 
     const backendAssets = pageData.data.assets || pageData.data.data?.assets || [];
-    const total = pageData.data.total || pageData.data.data?.total || 0;
-
+    
     // Transformar para o formato do frontend
     // Backend já normaliza: tags, imageUrls, thumbnailUrl (todos com proxy)
-    const transformedAssets = backendAssets.map(asset => ({
+    return backendAssets.map(asset => ({
       id: asset.id,
       title: asset.title,
       description: asset.description,
@@ -83,6 +80,16 @@ const ForYouPage = () => {
       isLiked: asset.isLiked || false,
       averageRating: asset.averageRating || 0
     }));
+  }, [pageData]);
+
+  // Processar dados quando transformedAssets mudar
+  useEffect(() => {
+    if (transformedAssets.length === 0) {
+      setHasProcessedData(false);
+      return;
+    }
+
+    const total = pageData?.data?.total || pageData?.data?.data?.total || 0;
 
     if (page === 1) {
       setAssets(transformedAssets);
@@ -98,24 +105,7 @@ const ForYouPage = () => {
     if (import.meta.env.DEV) {
       console.log(`[ForYouPage] ${isCached ? 'Cache HIT' : 'Cache MISS'} - Page ${page}, Sort: ${sortBy}`);
     }
-  }, [pageData, page, sortBy, isCached, assets.length]);
-
-  // Formatar data de upload
-  const formatUploadDate = (dateString) => {
-    if (!dateString) return 'Recently';
-    
-    const now = new Date();
-    const uploaded = new Date(dateString);
-    const diffMs = now - uploaded;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-    
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return uploaded.toLocaleDateString();
-  };
+  }, [transformedAssets, page, sortBy, isCached, pageData, assets.length]);
 
   // Scroll to top button visibility
   useEffect(() => {

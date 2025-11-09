@@ -20,6 +20,7 @@ export const CACHE_TTL = {
   USER_STATS: 3 * 60 * 1000,
   USER_AVATARS: 3 * 60 * 1000,
   USER_ASSETS: 3 * 60 * 1000, // My Assets page
+  USER_FAVORITES: 3 * 60 * 1000, // Bookmarks page
   
   // Categories (30 minutos - raramente mudam)
   CATEGORIES: 30 * 60 * 1000,
@@ -65,6 +66,11 @@ export const CACHE_KEYS = {
   userAssets: (userId, page = 1, filters = {}) => {
     const filterStr = JSON.stringify(filters);
     return `user_assets_${userId}_p${page}_${filterStr}`;
+  },
+  
+  userFavorites: (userId, page = 1, filters = {}) => {
+    const filterStr = JSON.stringify(filters);
+    return `user_favorites_${userId}_p${page}_${filterStr}`;
   },
   
   // Categories

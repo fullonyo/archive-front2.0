@@ -17,6 +17,8 @@ import AssetDetailModal from './AssetDetailModal';
 import SaveToCollectionDropdown from '../collections/SaveToCollectionDropdown';
 import { PLACEHOLDER_IMAGES } from '../../constants';
 import { handleImageError } from '../../utils/imageUtils';
+import { assetService } from '../../services/assetService';
+import { bookmarkService } from '../../services/bookmarkService';
 
 const AssetCard = memo(({ asset, showStatus = false }) => {
   // Normalize category data - can be string or object { id, name, icon }
@@ -52,7 +54,7 @@ const AssetCard = memo(({ asset, showStatus = false }) => {
   // State management
   const [isLiked, setIsLiked] = useState(asset.isLiked || false);
   const [likes, setLikes] = useState(asset.likes || 0);
-  const [isBookmarked, setIsBookmarked] = useState(asset.isBookmarked || false);
+  const [isBookmarked, setIsBookmarked] = useState(asset.isBookmarked || asset.isLiked || false);
   const [showModal, setShowModal] = useState(false);
   const [showSaveDropdown, setShowSaveDropdown] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -65,6 +67,13 @@ const AssetCard = memo(({ asset, showStatus = false }) => {
   // Refs
   const saveButtonRef = useRef(null);
   const cardRef = useRef(null);
+
+  // Sync state with props when asset data changes (e.g., page reload)
+  useEffect(() => {
+    setIsLiked(asset.isLiked || false);
+    setIsBookmarked(asset.isBookmarked || asset.isLiked || false);
+    setLikes(asset.likes || 0);
+  }, [asset.isLiked, asset.isBookmarked, asset.likes]);
 
   // Handlers with loading states and API integration
   const handleLike = useCallback(async (e) => {
@@ -82,9 +91,11 @@ const AssetCard = memo(({ asset, showStatus = false }) => {
     setLikes(isLiked ? likes - 1 : likes + 1);
     
     try {
-      // TODO: Integrate with API
-      // await api.post(`/api/assets/${asset.id}/like`);
-      await new Promise(resolve => setTimeout(resolve, 300)); // Simulate API
+      await assetService.toggleFavorite(asset.id);
+      
+      if (import.meta.env.DEV) {
+        console.log(`[AssetCard] Like toggled: ${!previousLiked ? 'Added' : 'Removed'}`);
+      }
     } catch (error) {
       // Rollback on error
       setIsLiked(previousLiked);
@@ -108,9 +119,12 @@ const AssetCard = memo(({ asset, showStatus = false }) => {
     setIsBookmarked(!isBookmarked);
     
     try {
-      // TODO: Integrate with bookmark API
-      // await api.post(`/api/assets/${asset.id}/bookmark`);
-      await new Promise(resolve => setTimeout(resolve, 300)); // Simulate API
+      // Bookmark usa endpoint separado (UserBookmark table)
+      await bookmarkService.toggleBookmark(asset.id);
+      
+      if (import.meta.env.DEV) {
+        console.log(`[AssetCard] Bookmark toggled: ${!previousBookmarked ? 'Added' : 'Removed'}`);
+      }
     } catch (error) {
       // Rollback on error
       setIsBookmarked(previousBookmarked);

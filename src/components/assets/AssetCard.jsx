@@ -1,10 +1,10 @@
-import { Heart, Download, Eye, MessageCircle, MoreVertical } from 'lucide-react';
+import { Heart, Download, Eye, MessageCircle, MoreVertical, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { useState, useCallback, memo } from 'react';
 import AssetDetailModal from './AssetDetailModal';
 import { PLACEHOLDER_IMAGES } from '../../constants';
 import { handleImageError } from '../../utils/imageUtils';
 
-const AssetCard = memo(({ asset }) => {
+const AssetCard = memo(({ asset, showStatus = false }) => {
   const [isLiked, setIsLiked] = useState(asset.isLiked || false);
   const [likes, setLikes] = useState(asset.likes || 0);
   const [showModal, setShowModal] = useState(false);
@@ -29,6 +29,34 @@ const AssetCard = memo(({ asset }) => {
     setShowModal(false);
   }, []);
 
+  // Status badge config
+  const getStatusConfig = (status) => {
+    switch (status) {
+      case 'pending':
+        return { 
+          label: 'Pending', 
+          icon: Clock, 
+          className: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' 
+        };
+      case 'published':
+        return { 
+          label: 'Published', 
+          icon: CheckCircle, 
+          className: 'bg-green-500/20 text-green-400 border-green-500/30' 
+        };
+      case 'draft':
+        return { 
+          label: 'Draft', 
+          icon: XCircle, 
+          className: 'bg-gray-500/20 text-gray-400 border-gray-500/30' 
+        };
+      default:
+        return null;
+    }
+  };
+
+  const statusConfig = showStatus && asset.status ? getStatusConfig(asset.status) : null;
+
   return (
     <article 
       className="asset-card group relative"
@@ -47,12 +75,22 @@ const AssetCard = memo(({ asset }) => {
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-        {/* Category Badge - Menor */}
-        <div className="absolute top-2 left-2 z-10">
-          <span className="px-2.5 py-1 bg-black/80 backdrop-blur-md rounded-full text-xs font-medium border border-white/10">
-            {asset.category}
-          </span>
-        </div>
+        {/* Status Badge - Top left if showStatus */}
+        {statusConfig ? (
+          <div className="absolute top-2 left-2 z-10">
+            <span className={`flex items-center gap-1 px-2.5 py-1 backdrop-blur-md rounded-full text-xs font-medium border ${statusConfig.className}`}>
+              <statusConfig.icon size={12} />
+              {statusConfig.label}
+            </span>
+          </div>
+        ) : (
+          /* Category Badge - Menor */
+          <div className="absolute top-2 left-2 z-10">
+            <span className="px-2.5 py-1 bg-black/80 backdrop-blur-md rounded-full text-xs font-medium border border-white/10">
+              {asset.category}
+            </span>
+          </div>
+        )}
 
         {/* Like Button - Menor */}
         <button

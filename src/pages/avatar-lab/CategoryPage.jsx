@@ -148,6 +148,7 @@ const CategoryPage = () => {
     setPage(1);
     setAssets([]);
     setHasMore(true);
+    setHasProcessedData(false); // ← Resetar flag ao trocar sort
     // ✅ useEffect will detect sortBy change and refetch
   }, [sortBy]);
 

@@ -178,9 +178,10 @@ const ForYouPage = () => {
         mainElement.scrollTo({ top: 0, behavior: 'auto' });
       }
       
-      // Reset page and assets
+      // Reset page, assets and processed flag
       setPage(1);
       setAssets([]);
+      setHasProcessedData(false); // ← Resetar flag ao trocar sort
     }
   }, [sortBy]);
 

@@ -45,17 +45,20 @@ const MyAssetsPage = () => {
   }, [isAuthenticated, navigate]);
 
   // Query params based on filter
+  // Para "My Assets": sempre buscar TODOS os assets (aprovados + não aprovados + ativos + inativos)
+  // E filtrar client-side por statusFilter
   const queryParams = useMemo(() => {
     return {
       page,
       limit: 15,
-      includeUnapproved: statusFilter === 'all' || statusFilter === 'pending',
-      includeInactive: statusFilter === 'all' || statusFilter === 'drafts'
+      sortBy: sortBy,
+      includeUnapproved: true, // ✅ Sempre true para pegar pending
+      includeInactive: true     // ✅ Sempre true para pegar drafts
     };
-  }, [page, statusFilter]);
+  }, [page, sortBy]); // ✅ Removido statusFilter - não afeta query
 
-  // Cache key
-  const cacheKey = CACHE_KEYS.userAssets(user?.id, page, { statusFilter, sortBy });
+  // Cache key - statusFilter NÃO afeta cache pois filtro é client-side
+  const cacheKey = CACHE_KEYS.userAssets(user?.id, page, { sortBy });
 
   // Fetch data with cache
   const { 
@@ -91,30 +94,16 @@ const MyAssetsPage = () => {
     return 'published';
   }, []);
 
-  const sortAssets = useCallback((assetList, sortOption) => {
-    const sorted = [...assetList];
-    switch (sortOption) {
-      case 'newest':
-        return sorted.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
-      case 'oldest':
-        return sorted.sort((a, b) => new Date(a.uploadedAt) - new Date(b.uploadedAt));
-      case 'downloads':
-        return sorted.sort((a, b) => b.downloads - a.downloads);
-      case 'likes':
-        return sorted.sort((a, b) => b.likes - a.likes);
-      default:
-        return sorted;
-    }
-  }, []);
-
-  // Memoizar transformação e filtragem de assets - PERFORMANCE: Evita processamento desnecessário
-  const transformedAndFilteredAssets = useMemo(() => {
+  // Memoizar transformação de assets - PERFORMANCE: Evita processamento desnecessário
+  // Backend envia TODOS os assets (approved + unapproved + active + inactive)
+  // Filtro client-side por statusFilter para tabs Published/Pending/Drafts
+  const transformedAssets = useMemo(() => {
     if (!pageData?.success || !pageData?.data) return [];
 
     const backendAssets = pageData.data.assets || [];
 
     // Transform assets - Backend já normaliza: tags, imageUrls, thumbnailUrl
-    const transformedAssets = backendAssets.map(asset => ({
+    const transformed = backendAssets.map(asset => ({
       id: asset.id,
       title: asset.title,
       description: asset.description,
@@ -138,22 +127,19 @@ const MyAssetsPage = () => {
       status: getAssetStatus(asset)
     }));
 
-    // Client-side filter
-    const filteredAssets = transformedAssets.filter(asset => {
+    // ✅ Filtro client-side baseado em statusFilter
+    return transformed.filter(asset => {
       if (statusFilter === 'all') return true;
       if (statusFilter === 'published') return asset.isApproved && asset.isActive;
       if (statusFilter === 'pending') return !asset.isApproved;
       if (statusFilter === 'drafts') return !asset.isActive;
       return true;
     });
-
-    // Client-side sort
-    return sortAssets(filteredAssets, sortBy);
-  }, [pageData, statusFilter, sortBy, user, getAssetStatus, sortAssets]);
+  }, [pageData, user, getAssetStatus, statusFilter]); // ✅ Adicionado statusFilter
 
   // Process data
   useEffect(() => {
-    if (transformedAndFilteredAssets.length === 0) {
+    if (transformedAssets.length === 0) {
       setHasProcessedData(false);
       return;
     }
@@ -161,19 +147,25 @@ const MyAssetsPage = () => {
     const total = pageData?.data?.total || 0;
 
     if (page === 1) {
-      setAssets(transformedAndFilteredAssets);
+      setAssets(transformedAssets);
+      // ⚠️ hasMore baseado no backend total (não no filtrado)
+      // Pode carregar páginas extras mas garante que não perca dados
+      setHasMore(total > 15);
     } else {
-      setAssets(prev => [...prev, ...transformedAndFilteredAssets]);
+      setAssets(prev => {
+        const newAssets = [...prev, ...transformedAssets];
+        setHasMore(newAssets.length < total);
+        return newAssets;
+      });
     }
 
     setTotalAssets(total);
-    setHasMore(transformedAndFilteredAssets.length === 15 && assets.length + transformedAndFilteredAssets.length < total);
     setHasProcessedData(true);
 
     if (import.meta.env.DEV) {
       console.log(`[MyAssets] ${isCached ? 'HIT' : 'MISS'} - Page ${page}, ${statusFilter}, ${sortBy}`);
     }
-  }, [transformedAndFilteredAssets, page, isCached, pageData, assets.length]);
+  }, [transformedAssets, page, isCached, pageData, statusFilter, sortBy]); // ✅ Removido assets.length
 
   // Scroll to top
   useEffect(() => {
@@ -194,7 +186,7 @@ const MyAssetsPage = () => {
   const scrollToTop = useCallback(() => {
     const mainElement = document.querySelector('main');
     if (mainElement) {
-      mainElement.scrollTo({ top: 0, behavior: 'smooth' });
+      mainElement.scrollTo({ top: 0, behavior: 'auto' }); // ✅ auto para evitar input lag
     }
   }, []);
 
@@ -219,7 +211,9 @@ const MyAssetsPage = () => {
     );
     const currentTarget = observerTarget.current;
     if (currentTarget) observer.observe(currentTarget);
-    return () => { if (currentTarget) observer.unobserve(currentTarget); };
+    return () => {
+      observer.disconnect(); // ✅ Mais seguro que unobserve
+    };
   }, [loadMoreAssets, hasMore, pageLoading]);
 
   // Filter/sort options
@@ -243,7 +237,7 @@ const MyAssetsPage = () => {
       const mainElement = document.querySelector('main');
       if (mainElement) mainElement.scrollTo({ top: 0, behavior: 'auto' });
       setPage(1);
-      setHasProcessedData(false);
+      setAssets([]); // ✅ Limpar assets para forçar re-render com novo filtro
     }
   }, [statusFilter]);
 
@@ -253,16 +247,20 @@ const MyAssetsPage = () => {
       const mainElement = document.querySelector('main');
       if (mainElement) mainElement.scrollTo({ top: 0, behavior: 'auto' });
       setPage(1);
-      setHasProcessedData(false);
+      // ✅ Removido setHasProcessedData(false) - skeleton aparece naturalmente
     }
   }, [sortBy]);
 
-  const stats = useMemo(() => ({
-    all: assets.length,
-    published: assets.filter(a => a.status === 'published').length,
-    pending: assets.filter(a => a.status === 'pending').length,
-    drafts: assets.filter(a => a.status === 'draft').length,
-  }), [assets]);
+  // Stats calculation - Single-pass com reduce para performance
+  const stats = useMemo(() => {
+    return assets.reduce((acc, asset) => {
+      acc.all++;
+      if (asset.status === 'published') acc.published++;
+      else if (asset.status === 'pending') acc.pending++;
+      else if (asset.status === 'draft') acc.drafts++;
+      return acc;
+    }, { all: 0, published: 0, pending: 0, drafts: 0 });
+  }, [assets]);
 
   if (!isAuthenticated) return null;
 
@@ -472,6 +470,7 @@ const MyAssetsPage = () => {
           style={{
             contain: 'layout style paint',
             willChange: 'transform',
+            transform: 'translateZ(0)', // ✅ GPU acceleration
           }}
         >
           <ArrowUp size={20} />

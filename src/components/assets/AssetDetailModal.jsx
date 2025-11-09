@@ -268,20 +268,25 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
   // Render modal in portal for better performance and z-index management
   return createPortal(
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 animate-modal-fade-in"
       onClick={handleBackdropClick}
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
+      style={{
+        contain: 'layout style paint',
+        willChange: 'opacity'
+      }}
     >
       <div 
         className="relative bg-surface-float rounded-2xl shadow-2xl border border-white/10 max-w-7xl w-full max-h-[90vh] overflow-hidden flex animate-scale-in" 
         ref={modalRef}
         style={{ 
           contain: 'layout style paint',
-          willChange: 'transform',
+          willChange: 'transform, opacity',
           transform: 'translateZ(0)'
         }}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Main Content - Left Side */}
         <div className="flex-1 flex flex-col min-w-0">
@@ -832,8 +837,12 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
       {/* Image Lightbox (Fullscreen) */}
       {showLightbox && createPortal(
         <div 
-          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center animate-fade-in"
+          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center animate-modal-fade-in"
           onClick={() => setShowLightbox(false)}
+          style={{
+            contain: 'layout style paint',
+            willChange: 'opacity'
+          }}
         >
           {/* Close button */}
           <button

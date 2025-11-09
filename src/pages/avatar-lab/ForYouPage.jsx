@@ -98,19 +98,25 @@ const ForYouPage = () => {
 
     if (page === 1) {
       setAssets(transformedAssets);
+      // Página 1: hasMore se total > 15
+      setHasMore(total > 15);
     } else {
-      setAssets(prev => [...prev, ...transformedAssets]);
+      setAssets(prev => {
+        const newAssets = [...prev, ...transformedAssets];
+        // Páginas seguintes: hasMore se ainda não chegou no total
+        setHasMore(newAssets.length < total);
+        return newAssets;
+      });
     }
 
     setTotalAssets(total);
-    setHasMore(transformedAssets.length === 15 && assets.length + transformedAssets.length < total);
     setHasProcessedData(true);
 
     // Log cache status em dev
     if (import.meta.env.DEV) {
       console.log(`[ForYouPage] ${isCached ? 'Cache HIT' : 'Cache MISS'} - Page ${page}, Sort: ${sortBy}`);
     }
-  }, [transformedAssets, page, sortBy, isCached, pageData, assets.length]);
+  }, [transformedAssets, page, sortBy, isCached, pageData]); // ✅ Removido assets.length
 
   // Scroll to top button visibility
   useEffect(() => {
@@ -131,7 +137,7 @@ const ForYouPage = () => {
   const scrollToTop = useCallback(() => {
     const mainElement = document.querySelector('main');
     if (mainElement) {
-      mainElement.scrollTo({ top: 0, behavior: 'smooth' });
+      mainElement.scrollTo({ top: 0, behavior: 'auto' }); // ✅ auto para evitar input lag
     }
   }, []);
 
@@ -152,7 +158,9 @@ const ForYouPage = () => {
     }, { threshold: 0.1 });
     const currentTarget = observerTarget.current;
     if (currentTarget) observer.observe(currentTarget);
-    return () => { if (currentTarget) observer.unobserve(currentTarget); };
+    return () => {
+      observer.disconnect(); // ✅ Mais seguro que unobserve
+    };
   }, [loadMoreAssets, hasMore, pageLoading]);
 
   const sortOptions = [
@@ -172,10 +180,9 @@ const ForYouPage = () => {
         mainElement.scrollTo({ top: 0, behavior: 'auto' });
       }
       
-      // Reset page and processed flag
-      // CRITICAL: DON'T clear assets - keep old data visible during transition
+      // Reset page - keep old data visible during transition
       setPage(1);
-      setHasProcessedData(false);
+      // ✅ Removido setHasProcessedData(false) - skeleton aparece naturalmente
     }
   }, [sortBy]);
 
@@ -405,6 +412,7 @@ const ForYouPage = () => {
           style={{
             contain: 'layout style paint',
             willChange: 'transform',
+            transform: 'translateZ(0)', // ✅ GPU acceleration
           }}
         >
           <ArrowUp size={20} />

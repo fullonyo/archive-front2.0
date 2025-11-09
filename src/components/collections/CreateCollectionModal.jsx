@@ -59,17 +59,20 @@ const CreateCollectionModal = ({ isOpen, onClose, onSuccess }) => {
     }
   }, [isOpen]);
 
-  const handleBackdropClick = useCallback((e) => {
-    if (e.target === e.currentTarget && !loading) {
-      handleClose();
-    }
-  }, [loading]);
-
+  // Close handler
   const handleClose = useCallback(() => {
     if (!loading) {
       onClose();
     }
   }, [loading, onClose]);
+
+  // Backdrop click handler
+  const handleBackdropClick = useCallback((e) => {
+    // Só fecha se clicar EXATAMENTE no backdrop (não em filhos)
+    if (e.target === e.currentTarget && !loading) {
+      handleClose();
+    }
+  }, [loading, handleClose]);
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
@@ -96,7 +99,7 @@ const CreateCollectionModal = ({ isOpen, onClose, onSuccess }) => {
       });
 
       if (result.success) {
-        onSuccess?.(result);
+        onSuccess?.(result.data);
         onClose();
       } else {
         setError(result.message || 'Failed to create collection');
@@ -113,7 +116,7 @@ const CreateCollectionModal = ({ isOpen, onClose, onSuccess }) => {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[60] bg-black/85 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[100] bg-black/85 flex items-center justify-center p-4"
       onClick={handleBackdropClick}
       style={{
         contain: 'layout style paint',
@@ -123,6 +126,7 @@ const CreateCollectionModal = ({ isOpen, onClose, onSuccess }) => {
     >
       <div
         className="bg-surface-float rounded-xl w-full max-w-md"
+        onClick={(e) => e.stopPropagation()} // CRITICAL: Previne propagação para o backdrop
         style={{
           contain: 'layout style paint',
           willChange: 'transform'
@@ -141,7 +145,11 @@ const CreateCollectionModal = ({ isOpen, onClose, onSuccess }) => {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+        <form 
+          onSubmit={handleSubmit} 
+          className="p-4 space-y-4"
+          onClick={(e) => e.stopPropagation()} // Extra protection
+        >
           {/* Error Message */}
           {error && (
             <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400">
@@ -194,7 +202,10 @@ const CreateCollectionModal = ({ isOpen, onClose, onSuccess }) => {
                 <button
                   key={e}
                   type="button"
-                  onClick={() => setEmoji(e)}
+                  onClick={(ev) => {
+                    ev.stopPropagation(); // Previne propagação
+                    setEmoji(e);
+                  }}
                   className={`
                     w-8 h-8 rounded text-lg hover:bg-surface-float2 transition-colors
                     ${emoji === e ? 'bg-surface-float2 ring-1 ring-theme-active' : ''}
@@ -234,7 +245,10 @@ const CreateCollectionModal = ({ isOpen, onClose, onSuccess }) => {
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => setVisibility('PRIVATE')}
+                onClick={(e) => {
+                  e.stopPropagation(); // Previne propagação
+                  setVisibility('PRIVATE');
+                }}
                 disabled={loading}
                 className={`
                   flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg border-2 transition-all
@@ -250,7 +264,10 @@ const CreateCollectionModal = ({ isOpen, onClose, onSuccess }) => {
               
               <button
                 type="button"
-                onClick={() => setVisibility('PUBLIC')}
+                onClick={(e) => {
+                  e.stopPropagation(); // Previne propagação
+                  setVisibility('PUBLIC');
+                }}
                 disabled={loading}
                 className={`
                   flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg border-2 transition-all

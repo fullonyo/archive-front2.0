@@ -25,8 +25,10 @@ const AssetCard = memo(({ asset, showStatus = false }) => {
   }, [isLiked, likes]);
 
   const handleCardClick = useCallback(() => {
+    // Não abre modal se dropdown estiver aberto
+    if (showSaveDropdown) return;
     setShowModal(true);
-  }, []);
+  }, [showSaveDropdown]);
 
   const handleCloseModal = useCallback(() => {
     setShowModal(false);
@@ -124,7 +126,10 @@ const AssetCard = memo(({ asset, showStatus = false }) => {
         </button>
 
         {/* Hover Actions - Compacto */}
-        <div className="absolute inset-x-0 bottom-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+        <div 
+          className="absolute inset-x-0 bottom-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="flex gap-2">
             <button 
               ref={saveButtonRef}
@@ -134,11 +139,17 @@ const AssetCard = memo(({ asset, showStatus = false }) => {
             >
               <Bookmark size={14} />
             </button>
-            <button className="btn btn-primary flex-1 justify-center text-xs py-1.5 shadow-lg">
+            <button 
+              onClick={(e) => e.stopPropagation()}
+              className="btn btn-primary flex-1 justify-center text-xs py-1.5 shadow-lg"
+            >
               <Download size={14} />
               <span className="hidden sm:inline">Download</span>
             </button>
-            <button className="btn bg-black/80 backdrop-blur-md text-white hover:bg-black p-2 shadow-lg">
+            <button 
+              onClick={(e) => e.stopPropagation()}
+              className="btn bg-black/80 backdrop-blur-md text-white hover:bg-black p-2 shadow-lg"
+            >
               <Eye size={14} />
             </button>
           </div>

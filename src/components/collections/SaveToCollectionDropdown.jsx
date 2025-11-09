@@ -80,9 +80,20 @@ const SaveToCollectionDropdown = ({ isOpen, onClose, assetId, assetTitle, button
     }
   }, [assetId, loadCollections]);
 
-  // Click fora fecha dropdown
+  // Handler para abrir modal de criação
+  const handleOpenCreateModal = useCallback((e) => {
+    e.stopPropagation();
+    setShowCreateModal(true);
+  }, []);
+
+  // Handler para fechar modal de criação
+  const handleCloseCreateModal = useCallback(() => {
+    setShowCreateModal(false);
+  }, []);
+
+  // Click fora fecha dropdown (mas não quando modal está aberto)
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || showCreateModal) return; // Não fecha dropdown se modal estiver aberto
 
     const handleClickOutside = (e) => {
       if (
@@ -106,7 +117,7 @@ const SaveToCollectionDropdown = ({ isOpen, onClose, assetId, assetTitle, button
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscape);
     };
-  }, [isOpen, onClose, buttonRef]);
+  }, [isOpen, showCreateModal, onClose, buttonRef]); // Adiciona showCreateModal como dependência
 
   // Calcular posição do dropdown
   const [position, setPosition] = useState(null);
@@ -158,10 +169,26 @@ const SaveToCollectionDropdown = ({ isOpen, onClose, assetId, assetTitle, button
 
   return createPortal(
     <>
+      {/* Invisible backdrop to catch clicks */}
+      {!showCreateModal && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            onClose();
+          }}
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+          }}
+        />
+      )}
+
       {/* Dropdown */}
       <div
         ref={dropdownRef}
-        className="fixed z-[100] w-80 bg-surface-float border border-white/10 rounded-xl shadow-2xl"
+        className="fixed z-50 w-80 bg-surface-float border border-white/10 rounded-xl shadow-2xl"
         style={{
           top: `${position.top}px`,
           left: `${position.left}px`,
@@ -264,10 +291,7 @@ const SaveToCollectionDropdown = ({ isOpen, onClose, assetId, assetTitle, button
         {/* Footer - Create New */}
         <div className="p-3 border-t border-white/5">
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowCreateModal(true);
-            }}
+            onClick={handleOpenCreateModal}
             className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-theme-active hover:bg-theme-hover rounded-lg text-sm font-medium transition-colors"
           >
             <Plus size={16} />
@@ -279,7 +303,7 @@ const SaveToCollectionDropdown = ({ isOpen, onClose, assetId, assetTitle, button
       {/* Create Collection Modal */}
       <CreateCollectionModal
         isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
+        onClose={handleCloseCreateModal}
         onSuccess={handleCreateSuccess}
       />
     </>,

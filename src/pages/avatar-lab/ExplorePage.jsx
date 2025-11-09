@@ -76,21 +76,14 @@ const ExplorePage = () => {
   const [activeView, setActiveView] = useState('all'); // all, featured, popular
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
-
-  const popularTags = [
-    { name: 'anime', count: 2341, trending: true },
-    { name: 'realistic', count: 1876, trending: false },
-    { name: 'cyberpunk', count: 1523, trending: true },
-    { name: 'fantasy', count: 1432, trending: false },
-    { name: 'cute', count: 1298, trending: true },
-    { name: 'horror', count: 987, trending: false },
-    { name: 'scifi', count: 876, trending: false },
-    { name: 'medieval', count: 765, trending: false },
-    { name: 'modern', count: 654, trending: false },
-    { name: 'nature', count: 543, trending: false },
-    { name: 'urban', count: 432, trending: false },
-    { name: 'space', count: 321, trending: false },
-  ];
+  const [popularTags, setPopularTags] = useState([]);
+  const [loadingTags, setLoadingTags] = useState(true);
+  const [stats, setStats] = useState({
+    totalAssets: 0,
+    totalApproved: 0,
+    recentUploads: 0
+  });
+  const [loadingStats, setLoadingStats] = useState(true);
 
   const handleCategoryClick = useCallback((categoryId) => {
     navigate(`/category/${categoryId}`);
@@ -158,6 +151,58 @@ const ExplorePage = () => {
     }
   }, []);
 
+  // Load popular tags from API
+  const loadPopularTags = useCallback(async () => {
+    setLoadingTags(true);
+    try {
+      const response = await assetService.getPopularTags(12);
+      
+      if (response.success && response.data) {
+        // Transform tags to include trending flag based on usage count
+        const tags = response.data.map((tag, index) => ({
+          name: tag.name || tag.tag,
+          count: tag.count || tag.usage_count || 0,
+          trending: index < 3 // Top 3 are trending
+        }));
+        setPopularTags(tags);
+      } else if (Array.isArray(response)) {
+        const tags = response.map((tag, index) => ({
+          name: tag.name || tag.tag,
+          count: tag.count || tag.usage_count || 0,
+          trending: index < 3
+        }));
+        setPopularTags(tags);
+      }
+    } catch (error) {
+      console.error('Load popular tags error:', error);
+      // Don't show error toast - tags are optional
+      setPopularTags([]);
+    } finally {
+      setLoadingTags(false);
+    }
+  }, []);
+
+  // Load global stats from API
+  const loadStats = useCallback(async () => {
+    setLoadingStats(true);
+    try {
+      const response = await assetService.getStats();
+      
+      if (response.success && response.data) {
+        setStats({
+          totalAssets: response.data.totalAssets || 0,
+          totalApproved: response.data.totalApproved || 0,
+          recentUploads: response.data.recentUploads || 0
+        });
+      }
+    } catch (error) {
+      console.error('Load stats error:', error);
+      // Keep default values
+    } finally {
+      setLoadingStats(false);
+    }
+  }, []);
+
   // Load categories on mount and listen for updates
   useEffect(() => {
     loadCategories();
@@ -167,6 +212,16 @@ const ExplorePage = () => {
       loadCategories();
     });
   }, [loadCategories]);
+
+  // Load popular tags on mount
+  useEffect(() => {
+    loadPopularTags();
+  }, [loadPopularTags]);
+
+  // Load stats on mount
+  useEffect(() => {
+    loadStats();
+  }, [loadStats]);
 
   // Filter categories based on active view
   const filteredCategories = useMemo(() => {
@@ -472,45 +527,92 @@ const ExplorePage = () => {
             <button className="text-xs text-theme-active hover:underline">{t('explore.viewAll')} →</button>
           </div>
           <div className="rounded-xl border border-white/5 bg-surface-float p-4">
-            <div className="flex flex-wrap gap-2">
-              {popularTags.map((tag) => (
-                <button
-                  key={tag.name}
-                  onClick={() => handleTagClick(tag.name)}
-                  className="group relative px-3 py-1.5 bg-surface-float2 hover:bg-theme-active/20 border border-white/5 hover:border-theme-active/30 rounded-md text-xs transition-all"
-                >
-                  <span className="font-medium group-hover:text-theme-active transition-colors">
-                    #{tag.name}
-                  </span>
-                  <span className="ml-1.5 text-text-tertiary text-[10px]">
-                    {tag.count > 999 ? `${(tag.count / 1000).toFixed(1)}k` : tag.count}
-                  </span>
-                  {tag.trending && (
-                    <TrendingUp size={10} className="inline ml-1 text-green-400" />
-                  )}
-                </button>
-              ))}
-            </div>
+            {loadingTags ? (
+              // Loading skeleton for tags
+              <div className="flex flex-wrap gap-2">
+                {[...Array(12)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-7 w-20 bg-surface-float2 rounded-md animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : popularTags.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {popularTags.map((tag) => (
+                  <button
+                    key={tag.name}
+                    onClick={() => handleTagClick(tag.name)}
+                    className="group relative px-3 py-1.5 bg-surface-float2 hover:bg-theme-active/20 border border-white/5 hover:border-theme-active/30 rounded-md text-xs transition-all"
+                  >
+                    <span className="font-medium group-hover:text-theme-active transition-colors">
+                      #{tag.name}
+                    </span>
+                    <span className="ml-1.5 text-text-tertiary text-[10px]">
+                      {tag.count > 999 ? `${(tag.count / 1000).toFixed(1)}k` : tag.count}
+                    </span>
+                    {tag.trending && (
+                      <div className="absolute -top-1 -right-1">
+                        <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-text-tertiary text-center py-2">No popular tags found</p>
+            )}
           </div>
         </section>
 
         {/* Quick Stats */}
         <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {[
-            { label: 'Total Assets', value: '8.5K', icon: Package, color: 'text-blue-400' },
-            { label: 'Categories', value: categories.length, icon: Grid3x3, color: 'text-purple-400' },
-            { label: 'This Week', value: '+342', icon: Clock, color: 'text-green-400' },
-            { label: 'Trending', value: categories.filter(c => c.trending).length, icon: TrendingUp, color: 'text-orange-400' },
-          ].map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <div key={stat.label} className="p-4 rounded-lg border border-white/5 bg-surface-float">
-                <Icon size={16} className={`${stat.color} mb-2`} />
-                <div className="text-xl font-bold mb-1">{stat.value}</div>
-                <div className="text-xs text-text-tertiary">{stat.label}</div>
+          {loadingStats ? (
+            // Loading skeletons
+            [...Array(4)].map((_, i) => (
+              <div key={i} className="p-4 rounded-lg border border-white/5 bg-surface-float">
+                <div className="w-4 h-4 bg-surface-float2 rounded mb-2 animate-pulse" />
+                <div className="h-6 w-16 bg-surface-float2 rounded mb-1 animate-pulse" />
+                <div className="h-3 w-20 bg-surface-float2 rounded animate-pulse" />
               </div>
-            );
-          })}
+            ))
+          ) : (
+            [
+              { 
+                label: 'Total Assets', 
+                value: stats.totalAssets > 999 ? `${(stats.totalAssets / 1000).toFixed(1)}K` : stats.totalAssets, 
+                icon: Package, 
+                color: 'text-blue-400' 
+              },
+              { 
+                label: 'Categories', 
+                value: categories.length, 
+                icon: Grid3x3, 
+                color: 'text-purple-400' 
+              },
+              { 
+                label: 'This Week', 
+                value: stats.recentUploads > 0 ? `+${stats.recentUploads}` : '0', 
+                icon: Clock, 
+                color: 'text-green-400' 
+              },
+              { 
+                label: 'Trending', 
+                value: categories.filter(c => c.trending).length, 
+                icon: TrendingUp, 
+                color: 'text-orange-400' 
+              },
+            ].map((stat) => {
+              const Icon = stat.icon;
+              return (
+                <div key={stat.label} className="p-4 rounded-lg border border-white/5 bg-surface-float">
+                  <Icon size={16} className={`${stat.color} mb-2`} />
+                  <div className="text-xl font-bold mb-1">{stat.value}</div>
+                  <div className="text-xs text-text-tertiary">{stat.label}</div>
+                </div>
+              );
+            })
+          )}
         </section>
           </>
         )}

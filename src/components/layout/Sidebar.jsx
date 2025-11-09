@@ -1,4 +1,4 @@
-import { Home, Compass, History, Users, Bookmark, FolderOpen, MessageSquare, Settings, Plus, ChevronRight, ChevronLeft, X, Hash, TrendingUp, HelpCircle, Lightbulb, Link2, UserCircle, Activity, PenTool, Shield } from 'lucide-react';
+import { Home, Compass, History, Users, Bookmark, FolderOpen, MessageSquare, Settings, Plus, ChevronRight, ChevronLeft, X, Hash, TrendingUp, HelpCircle, Lightbulb, Link2, UserCircle, Activity, PenTool, Shield, FolderHeart } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useAuth } from '../../contexts/AuthContext';
@@ -50,6 +50,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { icon: Home, label: t('sidebar.forYou'), path: '/' },
     { icon: Compass, label: t('sidebar.explore'), path: '/explore' },
     { icon: FolderOpen, label: t('sidebar.myAssets'), path: '/my-assets' },
+    { icon: FolderHeart, label: 'Coleções', path: '/collections' },
     { icon: Bookmark, label: t('sidebar.bookmarks'), path: '/bookmarks' },
     { icon: History, label: t('sidebar.history'), path: '/history' },
   ];

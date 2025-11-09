@@ -1,6 +1,7 @@
-import { Heart, Download, Eye, MessageCircle, MoreVertical, Clock, CheckCircle, XCircle } from 'lucide-react';
-import { useState, useCallback, memo } from 'react';
+import { Heart, Download, Eye, MessageCircle, MoreVertical, Clock, CheckCircle, XCircle, Bookmark } from 'lucide-react';
+import { useState, useCallback, memo, useRef } from 'react';
 import AssetDetailModal from './AssetDetailModal';
+import SaveToCollectionDropdown from '../collections/SaveToCollectionDropdown';
 import { PLACEHOLDER_IMAGES } from '../../constants';
 import { handleImageError } from '../../utils/imageUtils';
 
@@ -8,6 +9,8 @@ const AssetCard = memo(({ asset, showStatus = false }) => {
   const [isLiked, setIsLiked] = useState(asset.isLiked || false);
   const [likes, setLikes] = useState(asset.likes || 0);
   const [showModal, setShowModal] = useState(false);
+  const [showSaveDropdown, setShowSaveDropdown] = useState(false);
+  const saveButtonRef = useRef(null);
 
   const handleLike = useCallback((e) => {
     e.preventDefault();
@@ -27,6 +30,16 @@ const AssetCard = memo(({ asset, showStatus = false }) => {
 
   const handleCloseModal = useCallback(() => {
     setShowModal(false);
+  }, []);
+
+  const handleSaveClick = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowSaveDropdown(prev => !prev);
+  }, []);
+
+  const handleCloseSaveDropdown = useCallback(() => {
+    setShowSaveDropdown(false);
   }, []);
 
   // Status badge config
@@ -113,6 +126,14 @@ const AssetCard = memo(({ asset, showStatus = false }) => {
         {/* Hover Actions - Compacto */}
         <div className="absolute inset-x-0 bottom-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
           <div className="flex gap-2">
+            <button 
+              ref={saveButtonRef}
+              onClick={handleSaveClick}
+              className="btn bg-black/80 backdrop-blur-md text-white hover:bg-black p-2 shadow-lg"
+              title="Save to Collection"
+            >
+              <Bookmark size={14} />
+            </button>
             <button className="btn btn-primary flex-1 justify-center text-xs py-1.5 shadow-lg">
               <Download size={14} />
               <span className="hidden sm:inline">Download</span>
@@ -188,6 +209,15 @@ const AssetCard = memo(({ asset, showStatus = false }) => {
           </button>
         </div>
       </div>
+
+      {/* Save to Collection Dropdown */}
+      <SaveToCollectionDropdown
+        isOpen={showSaveDropdown}
+        onClose={handleCloseSaveDropdown}
+        assetId={asset.id}
+        assetTitle={asset.title}
+        buttonRef={saveButtonRef}
+      />
 
       {/* Asset Detail Modal */}
       <AssetDetailModal 

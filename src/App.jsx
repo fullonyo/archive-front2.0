@@ -38,6 +38,10 @@ import {
   AdminPage,
 } from './pages';
 
+// Collections Pages (direct import until added to index)
+import CollectionsPage from './pages/CollectionsPage';
+import CollectionDetailPage from './pages/CollectionDetailPage';
+
 const PlaceholderPage = ({ title }) => (
   <div className="flex items-center justify-center min-h-[60vh]">
     <div className="text-center">
@@ -98,6 +102,10 @@ function App() {
                 <Route path="history" element={<HistoryPage />} />
                 <Route path="bookmarks" element={<BookmarksPage />} />
                 <Route path="my-assets" element={<MyAssetsPage />} />
+                
+                {/* Collections Routes */}
+                <Route path="collections" element={<CollectionsPage />} />
+                <Route path="collections/:id" element={<CollectionDetailPage />} />
                 
                 {/* Forum Routes */}
                 <Route path="forum/popular" element={<ForumPopularPage />} />

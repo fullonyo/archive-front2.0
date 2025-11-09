@@ -72,7 +72,9 @@ const ForYouPage = () => {
         category: asset.category?.name || 'Unknown',
         thumbnail,
         author: {
+          id: asset.user?.id,
           name: asset.user?.username || 'Unknown',
+          username: asset.user?.username || 'Unknown',
           avatarUrl: asset.user?.avatarUrl || null
         },
         uploadedAt: formatUploadDate(asset.createdAt),

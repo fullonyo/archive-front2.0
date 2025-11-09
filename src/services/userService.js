@@ -176,6 +176,32 @@ class UserService {
     const response = await api.post(`/users/${userId}/comments`, commentData);
     return response.data.data;
   }
+
+  // Follow/Unfollow
+  async toggleFollow(userId) {
+    const response = await api.post(`/users/${userId}/follow`);
+    return response.data;
+  }
+
+  async getFollowers(userId, options = {}) {
+    const params = new URLSearchParams({
+      page: options.page || 1,
+      limit: options.limit || 20
+    });
+    
+    const response = await api.get(`/users/${userId}/followers?${params}`);
+    return response.data;
+  }
+
+  async getFollowing(userId, options = {}) {
+    const params = new URLSearchParams({
+      page: options.page || 1,
+      limit: options.limit || 20
+    });
+    
+    const response = await api.get(`/users/${userId}/following?${params}`);
+    return response.data;
+  }
 }
 
 export const userService = new UserService();

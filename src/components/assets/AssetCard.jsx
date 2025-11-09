@@ -10,13 +10,32 @@ import {
   XCircle,
   Loader2
 } from 'lucide-react';
-import { useState, useCallback, memo, useRef, useEffect } from 'react';
+import { useState, useCallback, useMemo, memo, useRef, useEffect } from 'react';
 import AssetDetailModal from './AssetDetailModal';
 import SaveToCollectionDropdown from '../collections/SaveToCollectionDropdown';
 import { PLACEHOLDER_IMAGES } from '../../constants';
 import { handleImageError } from '../../utils/imageUtils';
 
 const AssetCard = memo(({ asset, showStatus = false }) => {
+  // Normalize category data - can be string or object { id, name, icon }
+  const categoryName = useMemo(() => {
+    if (!asset.category) return 'Uncategorized';
+    return typeof asset.category === 'string' ? asset.category : asset.category.name;
+  }, [asset.category]);
+  
+  // Normalize author data - ensure it always exists with default values
+  const author = useMemo(() => {
+    if (!asset.author && !asset.user) {
+      return { name: 'Unknown', username: 'unknown', avatarUrl: null };
+    }
+    const authorData = asset.author || asset.user;
+    return {
+      name: authorData.name || authorData.username || 'Unknown',
+      username: authorData.username || 'unknown',
+      avatarUrl: authorData.avatarUrl || authorData.avatar || null
+    };
+  }, [asset.author, asset.user]);
+  
   // State management
   const [isLiked, setIsLiked] = useState(asset.isLiked || false);
   const [likes, setLikes] = useState(asset.likes || 0);
@@ -179,7 +198,7 @@ const AssetCard = memo(({ asset, showStatus = false }) => {
       onKeyDown={handleKeyDown}
       role="button"
       tabIndex={0}
-      aria-label={`View details for ${asset.title} by ${asset.author.name}`}
+      aria-label={`View details for ${asset.title} by ${author.name}`}
       aria-expanded="false"
       style={{
         contain: 'layout style paint',
@@ -218,7 +237,7 @@ const AssetCard = memo(({ asset, showStatus = false }) => {
             </span>
           ) : (
             <span className="px-2.5 py-1.5 bg-black/90 backdrop-blur-xl rounded-lg text-xs font-semibold border border-white/10 shadow-lg text-white/90">
-              {asset.category}
+              {categoryName}
             </span>
           )}
 
@@ -331,10 +350,10 @@ const AssetCard = memo(({ asset, showStatus = false }) => {
             // TODO: Navigate to author profile
           }}
         >
-          {asset.author.avatarUrl ? (
+          {author.avatarUrl ? (
             <img 
-              src={asset.author.avatarUrl} 
-              alt={asset.author.name}
+              src={author.avatarUrl} 
+              alt={author.name}
               className="w-5 h-5 rounded-full ring-1 ring-white/5 group-hover/author:ring-theme-active transition-all"
               loading="lazy"
               onError={handleImageError('avatar')}
@@ -343,13 +362,13 @@ const AssetCard = memo(({ asset, showStatus = false }) => {
           ) : (
             <div className="w-5 h-5 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full ring-1 ring-white/5 group-hover/author:ring-theme-active flex items-center justify-center transition-all">
               <span className="text-white text-[10px] font-bold">
-                {asset.author.name?.[0]?.toUpperCase() || 'U'}
+                {author.name?.[0]?.toUpperCase() || 'U'}
               </span>
             </div>
           )}
           <div className="flex-1 min-w-0 flex items-baseline gap-1.5">
             <span className="text-xs text-text-secondary group-hover/author:text-text-primary transition-colors font-medium truncate">
-              {asset.author.name}
+              {author.name}
             </span>
             <span className="text-text-tertiary text-[10px] flex-shrink-0">• {asset.uploadedAt}</span>
           </div>

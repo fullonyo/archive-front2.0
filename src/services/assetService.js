@@ -242,6 +242,16 @@ class AssetService {
   }
 
   /**
+   * Toggle bookmark (save for later)
+   * @param {number} assetId 
+   * @returns {Promise} Status atualizado
+   */
+  async toggleBookmark(assetId) {
+    const response = await api.post(`/assets/${assetId}/bookmark`);
+    return response.data;
+  }
+
+  /**
    * Check if asset is favorited
    * @param {number} assetId 
    * @returns {Promise<boolean>} 
@@ -271,10 +281,10 @@ class AssetService {
   /**
    * Download asset
    * @param {number} assetId 
-   * @returns {Promise} Download iniciado
+   * @returns {Promise} Download URL data
    */
   async downloadAsset(assetId) {
-    const response = await api.post(`/assets/${assetId}/download`);
+    const response = await api.get(`/assets/${assetId}/download`);
     return response.data;
   }
 

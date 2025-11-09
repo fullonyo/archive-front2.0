@@ -9,6 +9,7 @@ import { CACHE_KEYS, CACHE_TTL, CACHE_PATTERNS } from '../../config/cache';
 import toast from 'react-hot-toast';
 import AssetDetailModal from '../../components/assets/AssetDetailModal';
 import AssetCard from '../../components/assets/AssetCard';
+import FollowButton from '../../components/user/FollowButton';
 import { handleImageError } from '../../utils/imageUtils';
 import {
   User,
@@ -31,6 +32,7 @@ import {
   Clock,
   CheckCircle,
   Users,
+  UserPlus,
   BookmarkIcon,
   MoreHorizontal,
   Share2,
@@ -486,8 +488,6 @@ const ProfilePage = () => {
   const tabs = [
     { id: 'overview', label: 'Visão Geral', icon: Activity },
     { id: 'avatars', label: 'Avatares', icon: User, count: profileUser?.stats?.totalUploads },
-    { id: 'posts', label: 'Posts', icon: MessageSquare, count: 0 },
-    { id: 'activity', label: 'Atividade', icon: TrendingUp },
     { id: 'achievements', label: 'Conquistas', icon: Trophy }
   ];
 
@@ -910,12 +910,25 @@ const ProfilePage = () => {
               )}
 
               {/* Botões para perfil de outros usuários */}
-              {!isOwnProfile && (
+              {!isOwnProfile && profileUser && (
                 <div className="flex items-center gap-2">
-                  <button className="flex items-center gap-2 px-4 py-2 bg-theme-active text-white rounded-lg hover:bg-theme-hover transition-colors text-sm font-medium">
-                    <Users className="w-4 h-4" />
-                    Seguir
-                  </button>
+                  <FollowButton
+                    userId={profileUser.id}
+                    username={profileUser.username}
+                    initialIsFollowing={profileUser.isFollowing || false}
+                    variant="primary"
+                    size="default"
+                    onFollowChange={(isFollowing, followerCount) => {
+                      setProfileUser(prev => ({
+                        ...prev,
+                        isFollowing,
+                        stats: {
+                          ...prev.stats,
+                          followers: followerCount
+                        }
+                      }));
+                    }}
+                  />
                   <button className="p-2 hover:bg-surface-elevated rounded-lg transition-colors text-text-tertiary hover:text-text-primary">
                     <MessageCircle className="w-4 h-4" />
                   </button>
@@ -953,7 +966,7 @@ const ProfilePage = () => {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4 mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-white/5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-white/5">
             <StatCard 
               icon={User}
               label="Avatares"
@@ -962,10 +975,17 @@ const ProfilePage = () => {
             />
             
             <StatCard 
-              icon={MessageSquare}
-              label="Posts"
-              value={profileUser.stats?.postsCount || 0}
-              color="text-green-500"
+              icon={Users}
+              label="Seguidores"
+              value={profileUser.stats?.followers || 0}
+              color="text-purple-500"
+            />
+            
+            <StatCard 
+              icon={UserPlus}
+              label="Seguindo"
+              value={profileUser.stats?.following || 0}
+              color="text-indigo-500"
             />
             
             <StatCard 
@@ -979,28 +999,7 @@ const ProfilePage = () => {
               icon={Download}
               label="Downloads"
               value={profileUser.stats?.downloadsCount || 0}
-              color="text-purple-500"
-            />
-            
-            <StatCard 
-              icon={Trophy}
-              label="Reputação"
-              value={profileUser.stats?.reputation || 0}
-              color="text-yellow-500"
-            />
-            
-            <StatCard 
-              icon={Target}
-              label="Taxa de Sucesso"
-              value={`${stats.successRate}%`}
-              color="text-cyan-500"
-            />
-            
-            <StatCard 
-              icon={Zap}
-              label="Engajamento"
-              value={stats.totalEngagement}
-              color="text-orange-500"
+              color="text-green-500"
             />
           </div>
         </div>
@@ -1056,37 +1055,30 @@ const ProfilePage = () => {
                       <User className="w-4 h-4 sm:w-5 sm:h-5 text-theme-primary" />
                       Avatares Recentes
                     </h2>
-                    <button className="text-theme-primary hover:text-theme-primary/80 text-xs sm:text-sm font-medium flex items-center gap-1">
+                    <button 
+                      onClick={() => setActiveTab('avatars')}
+                      className="text-theme-primary hover:text-theme-primary/80 text-xs sm:text-sm font-medium flex items-center gap-1"
+                    >
                       Ver todos
                       <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </button>
                   </div>
                   
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-                    {userAssets.slice(0, 6).map(asset => (
-                      <AssetCard key={asset.id} asset={asset} />
-                    ))}
-                  </div>
-                </section>
-
-                {/* Recent Posts */}
-                <section className="rounded-xl border border-white/5 bg-surface-float p-4 sm:p-6">
-                  <div className="flex items-center justify-between mb-4 sm:mb-6">
-                    <h2 className="text-lg sm:text-xl font-bold text-text-primary flex items-center gap-2">
-                      <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-theme-primary" />
-                      Posts Recentes
-                    </h2>
-                    <button className="text-theme-primary hover:text-theme-primary/80 text-xs sm:text-sm font-medium flex items-center gap-1">
-                      Ver todos
-                      <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    </button>
-                  </div>
-                  
-                  <div className="space-y-2 sm:space-y-3">
-                    {mockPosts.map(post => (
-                      <PostCard key={post.id} post={post} />
-                    ))}
-                  </div>
+                  {assetsLoading && userAssets.length === 0 ? (
+                    <div className="text-center py-8">
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-theme-primary"></div>
+                    </div>
+                  ) : userAssets.length === 0 ? (
+                    <div className="text-center py-8">
+                      <p className="text-text-secondary">Nenhum avatar publicado ainda</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+                      {userAssets.slice(0, 6).map(asset => (
+                        <AssetCard key={asset.id} asset={asset} />
+                      ))}
+                    </div>
+                  )}
                 </section>
               </div>
 
@@ -1121,13 +1113,48 @@ const ProfilePage = () => {
                 <section className="rounded-xl border border-white/5 bg-surface-float p-4 sm:p-6">
                   <h3 className="text-base sm:text-lg font-bold text-text-primary mb-3 sm:mb-4 flex items-center gap-2">
                     <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-theme-primary" />
-                    Atividade Recente
+                    Resumo de Atividade
                   </h3>
                   
                   <div className="space-y-3 sm:space-y-4">
-                    {mockActivities.slice(0, 5).map(activity => (
-                      <ActivityItem key={activity.id} activity={activity} />
-                    ))}
+                    <div className="flex items-center justify-between p-3 bg-surface-elevated rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-500/10 rounded-lg">
+                          <Upload className="w-4 h-4 text-blue-500" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-text-primary">Total de Uploads</p>
+                          <p className="text-xs text-text-tertiary">Avatares publicados</p>
+                        </div>
+                      </div>
+                      <span className="text-lg font-bold text-text-primary">{profileUser.stats?.totalUploads || 0}</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 bg-surface-elevated rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-red-500/10 rounded-lg">
+                          <Heart className="w-4 h-4 text-red-500" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-text-primary">Curtidas Recebidas</p>
+                          <p className="text-xs text-text-tertiary">Total de favoritos</p>
+                        </div>
+                      </div>
+                      <span className="text-lg font-bold text-text-primary">{profileUser.stats?.favoritesCount || 0}</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 bg-surface-elevated rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-green-500/10 rounded-lg">
+                          <Download className="w-4 h-4 text-green-500" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-text-primary">Downloads</p>
+                          <p className="text-xs text-text-tertiary">Total de downloads</p>
+                        </div>
+                      </div>
+                      <span className="text-lg font-bold text-text-primary">{profileUser.stats?.downloadsCount || 0}</span>
+                    </div>
                   </div>
                 </section>
 
@@ -1211,39 +1238,6 @@ const ProfilePage = () => {
             </div>
           )}
 
-          {activeTab === 'posts' && (
-            <div className="rounded-xl border border-white/5 bg-surface-float p-4 sm:p-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
-                <div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-text-primary">Todos os Posts</h2>
-                  <p className="text-xs sm:text-sm text-text-tertiary mt-1">{profileUser.stats?.postsCount || 0} posts no fórum</p>
-                </div>
-              </div>
-              
-              <div className="space-y-2 sm:space-y-3">
-                {mockPosts.map(post => (
-                  <PostCard key={post.id} post={post} expanded />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'activity' && (
-            <div className="rounded-xl border border-white/5 bg-surface-float p-4 sm:p-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-text-primary mb-4 sm:mb-6">Timeline de Atividades</h2>
-              
-              <div className="relative">
-                <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-theme-primary via-theme-secondary to-transparent" />
-                
-                <div className="space-y-6">
-                  {mockActivities.map((activity, index) => (
-                    <ActivityItemExpanded key={activity.id} activity={activity} isLast={index === mockActivities.length - 1} />
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
           {activeTab === 'achievements' && (
             <div className="rounded-xl border border-white/5 bg-surface-float p-4 sm:p-6">
               <h2 className="text-xl sm:text-2xl font-bold text-text-primary mb-4 sm:mb-6">Conquistas & Badges</h2>
@@ -1283,96 +1277,6 @@ const StatCard = ({ icon: Icon, label, value, color }) => (
     </div>
   </div>
 );
-
-const PostCard = ({ post, expanded = false }) => (
-  <div className="flex items-start gap-2 sm:gap-3 lg:gap-4 p-3 sm:p-4 bg-surface-elevated rounded-lg hover:bg-surface-elevated/80 transition-colors cursor-pointer group">
-    <div className="flex-shrink-0">
-      <div className={`
-        w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center
-        ${post.isPinned ? 'bg-yellow-500/10' : 'bg-theme-primary/10'}
-      `}>
-        <MessageSquare className={`w-4 h-4 sm:w-5 sm:h-5 ${post.isPinned ? 'text-yellow-500' : 'text-theme-primary'}`} />
-      </div>
-    </div>
-    
-    <div className="flex-1 min-w-0">
-      <div className="flex items-start justify-between gap-2 mb-1">
-        <h3 className="font-semibold text-text-primary group-hover:text-theme-primary transition-colors line-clamp-1 text-xs sm:text-sm lg:text-base">
-          {post.title}
-        </h3>
-        {post.isPinned && (
-          <span className="flex-shrink-0 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 bg-yellow-500/10 text-yellow-500 rounded-full whitespace-nowrap">
-            Fixado
-          </span>
-        )}
-      </div>
-      
-      <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[10px] sm:text-xs text-text-tertiary">
-        <span className="px-1.5 sm:px-2 py-0.5 bg-theme-primary/10 text-theme-primary rounded-full">
-          {post.category}
-        </span>
-        
-        <span className="flex items-center gap-0.5 sm:gap-1">
-          <MessageSquare className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-          {post.replies}
-        </span>
-        
-        <span className="flex items-center gap-0.5 sm:gap-1">
-          <Heart className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-          {post.likes}
-        </span>
-        
-        {expanded && (
-          <span className="flex items-center gap-0.5 sm:gap-1">
-            <Eye className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-            {post.views}
-          </span>
-        )}
-        
-        <span className="hidden sm:inline">{new Date(post.date).toLocaleDateString('pt-BR')}</span>
-      </div>
-    </div>
-  </div>
-);
-
-const ActivityItem = ({ activity }) => {
-  const Icon = activity.icon;
-  return (
-    <div className="flex items-start gap-2 sm:gap-3">
-      <div className={`flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-surface-base flex items-center justify-center ${activity.color}`}>
-        <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-xs sm:text-sm text-text-primary line-clamp-2">
-          {activity.content}
-        </p>
-        <p className="text-[10px] sm:text-xs text-text-tertiary mt-0.5 sm:mt-1">
-          {activity.time}
-        </p>
-      </div>
-    </div>
-  );
-};
-
-const ActivityItemExpanded = ({ activity, isLast }) => {
-  const Icon = activity.icon;
-  return (
-    <div className="relative pl-10 sm:pl-12">
-      <div className={`absolute left-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-surface-float border-4 border-surface-base flex items-center justify-center ${activity.color}`}>
-        <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-      </div>
-      
-      <div className="rounded-xl border border-white/5 bg-surface-float p-3 sm:p-4">
-        <p className="text-xs sm:text-sm text-text-primary mb-1 sm:mb-2">
-          {activity.content}
-        </p>
-        <p className="text-[10px] sm:text-sm text-text-tertiary">
-          {activity.time}
-        </p>
-      </div>
-    </div>
-  );
-};
 
 const ProgressStat = ({ label, value, max, suffix, color }) => {
   const percentage = (value / max) * 100;

@@ -20,15 +20,21 @@ import {
   FileCode,
   Package
 } from 'lucide-react';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { handleImageError } from '../../utils/imageUtils';
 import { PLACEHOLDER_IMAGES } from '../../constants';
+import { assetService } from '../../services/assetService';
+import { userService } from '../../services/userService';
 
 const AssetDetailModal = ({ asset, isOpen, onClose }) => {
+  // Normalize author/user naming (backend uses 'user', we use 'author' in UI)
+  const author = useMemo(() => asset?.author || asset?.user, [asset]);
+  
   // State management
   const [isLiked, setIsLiked] = useState(asset?.isLiked || false);
   const [isBookmarked, setIsBookmarked] = useState(asset?.isBookmarked || false);
+  const [isFollowing, setIsFollowing] = useState(author?.isFollowing || false);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [showLightbox, setShowLightbox] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -37,7 +43,9 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
   // Loading states
   const [isLiking, setIsLiking] = useState(false);
   const [isBookmarking, setIsBookmarking] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
+  const [isDownloadingSidebar, setIsDownloadingSidebar] = useState(false);
+  const [isDownloadingMain, setIsDownloadingMain] = useState(false);
+  const [isFollowingAction, setIsFollowingAction] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   
   // Refs
@@ -46,6 +54,21 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
 
   // Gallery images
   const images = [asset?.thumbnail, ...(asset?.imageUrls || [])].filter(Boolean);
+
+  // Sync states when asset changes
+  useEffect(() => {
+    if (asset) {
+      setIsLiked(asset.isLiked || false);
+      setIsBookmarked(asset.isBookmarked || false);
+    }
+  }, [asset]);
+
+  // Sync following state when author changes
+  useEffect(() => {
+    if (author) {
+      setIsFollowing(author.isFollowing || false);
+    }
+  }, [author]);
 
   // Close on ESC key and click outside
   useEffect(() => {
@@ -89,9 +112,7 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
     setIsLiked(!isLiked);
     
     try {
-      // TODO: Integrate with API
-      // await api.post(`/api/assets/${asset.id}/like`);
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await assetService.toggleFavorite(asset.id);
     } catch (error) {
       setIsLiked(previousLiked); // Rollback
       console.error('Failed to like asset:', error);
@@ -112,9 +133,7 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
     setIsBookmarked(!isBookmarked);
     
     try {
-      // TODO: Integrate with API
-      // await api.post(`/api/assets/${asset.id}/bookmark`);
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await assetService.toggleBookmark(asset.id);
     } catch (error) {
       setIsBookmarked(previousBookmarked); // Rollback
       console.error('Failed to bookmark asset:', error);
@@ -123,22 +142,42 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
     }
   }, [isBookmarked, isBookmarking, asset?.id]);
 
-  // Download handler with loading state
-  const handleDownload = useCallback(async () => {
-    if (isDownloading) return;
+  // Download handlers with separate loading states
+  const handleDownloadSidebar = useCallback(async () => {
+    if (isDownloadingSidebar) return;
     
-    setIsDownloading(true);
+    setIsDownloadingSidebar(true);
     
     try {
-      // TODO: Integrate with download API
-      // window.open(asset.downloadUrl, '_blank');
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const response = await assetService.downloadAsset(asset.id);
+      if (response.success && response.data?.download_url) {
+        window.open(response.data.download_url, '_blank');
+      }
     } catch (error) {
       console.error('Failed to download asset:', error);
+      alert('Failed to download asset. Please try again.');
     } finally {
-      setIsDownloading(false);
+      setIsDownloadingSidebar(false);
     }
-  }, [isDownloading, asset?.downloadUrl]);
+  }, [isDownloadingSidebar, asset?.id]);
+
+  const handleDownloadMain = useCallback(async () => {
+    if (isDownloadingMain) return;
+    
+    setIsDownloadingMain(true);
+    
+    try {
+      const response = await assetService.downloadAsset(asset.id);
+      if (response.success && response.data?.download_url) {
+        window.open(response.data.download_url, '_blank');
+      }
+    } catch (error) {
+      console.error('Failed to download asset:', error);
+      alert('Failed to download asset. Please try again.');
+    } finally {
+      setIsDownloadingMain(false);
+    }
+  }, [isDownloadingMain, asset?.id]);
 
   // Optimized share handler
   const handleShare = useCallback((platform) => {
@@ -178,6 +217,27 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
     setCurrentImageIndex(prev => (prev === images.length - 1 ? 0 : prev + 1));
   }, [images.length]);
 
+  // Follow handler with loading state
+  const handleFollow = useCallback(async (e) => {
+    e?.stopPropagation();
+    if (isFollowingAction || !author?.id) return;
+    
+    setIsFollowingAction(true);
+    const previousFollowing = isFollowing;
+    
+    // Optimistic update
+    setIsFollowing(!isFollowing);
+    
+    try {
+      await userService.toggleFollow(author.id);
+    } catch (error) {
+      setIsFollowing(previousFollowing); // Rollback
+      console.error('Failed to follow user:', error);
+    } finally {
+      setIsFollowingAction(false);
+    }
+  }, [isFollowing, isFollowingAction, author?.id]);
+
   // Optimized close button handler
   const handleCloseClick = useCallback((e) => {
     e.stopPropagation();
@@ -214,10 +274,10 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
           >
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                {asset.author?.avatarUrl ? (
+                {author?.avatarUrl ? (
                   <img 
-                    src={asset.author.avatarUrl} 
-                    alt={asset.author.name} 
+                    src={author.avatarUrl} 
+                    alt={author.username} 
                     className="w-full h-full rounded-full object-cover" 
                     loading="lazy"
                     onError={handleImageError('avatar')}
@@ -227,7 +287,7 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
                 )}
               </div>
               <div>
-                <h3 className="font-semibold text-sm">{asset.author?.name || 'Unknown'}</h3>
+                <h3 className="font-semibold text-sm">{author?.username || 'Unknown'}</h3>
                 <p className="text-xs text-text-tertiary">{asset.uploadedAt}</p>
               </div>
             </div>
@@ -353,12 +413,12 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
               {/* PRIMARY ACTION - Download (Full Width, Most Prominent) */}
               <div className="space-y-3">
                 <button
-                  onClick={handleDownload}
-                  disabled={isDownloading}
+                  onClick={handleDownloadMain}
+                  disabled={isDownloadingMain}
                   className="w-full px-6 py-3.5 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-gray-500 disabled:to-gray-600 text-white rounded-xl font-semibold text-base shadow-xl hover:shadow-2xl transition-all active:scale-[0.98] disabled:cursor-wait flex items-center justify-center gap-2.5"
                   aria-label={`Download ${asset.title}`}
                 >
-                  {isDownloading ? (
+                  {isDownloadingMain ? (
                     <>
                       <Loader2 size={20} className="animate-spin" strokeWidth={2.5} />
                       <span>Downloading...</span>
@@ -595,27 +655,40 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
                 Download Options
               </h3>
               
+              {/* Primary Download Button */}
               <button
-                onClick={handleDownload}
-                disabled={isDownloading}
-                className="w-full mb-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-gray-500 disabled:to-gray-600 text-white rounded-lg font-semibold text-sm shadow-lg transition-all active:scale-95 disabled:cursor-wait flex items-center justify-center gap-2"
+                onClick={handleDownloadSidebar}
+                disabled={isDownloadingSidebar}
+                className="w-full mb-3 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-gray-500 disabled:to-gray-600 text-white rounded-lg font-semibold text-sm shadow-lg transition-all active:scale-95 disabled:cursor-wait flex items-center justify-center gap-2"
+                aria-label={`Download ${asset.title}`}
               >
-                {isDownloading ? (
-                  <Loader2 size={16} className="animate-spin" strokeWidth={2.5} />
+                {isDownloadingSidebar ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" strokeWidth={2.5} />
+                    <span>Downloading...</span>
+                  </>
                 ) : (
-                  <Download size={16} strokeWidth={2.5} />
+                  <>
+                    <Download size={16} strokeWidth={2.5} />
+                    <span>Download Asset</span>
+                  </>
                 )}
-                <span>Unity Package</span>
               </button>
 
-              <button className="w-full px-4 py-2 bg-surface-float2 hover:bg-surface-base text-text-secondary hover:text-text-primary rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 border border-white/5 hover:border-white/10">
-                <FileCode size={16} strokeWidth={2} />
-                <span>Prefab Only</span>
-              </button>
+              {/* External Link Button */}
+              <a
+                href={asset.externalUrl || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full px-4 py-2 bg-surface-float2 hover:bg-surface-base text-text-secondary hover:text-text-primary rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 border border-white/5 hover:border-white/10"
+              >
+                <ExternalLink size={16} strokeWidth={2} />
+                <span>External Link</span>
+              </a>
 
               <div className="mt-3 pt-3 border-t border-white/5">
                 <p className="text-xs text-text-tertiary mb-2">File Size</p>
-                <p className="text-xs font-medium mb-3">23.4 MB (Unity Package)</p>
+                <p className="text-xs font-medium mb-3">{asset.fileSize || '23.4 MB'}</p>
                 
                 <p className="text-xs text-text-tertiary mb-2">Requirements</p>
                 <div className="space-y-1">
@@ -649,18 +722,18 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
               </div>
             </div>
 
-            {/* Author Info */}
+            {/* Builder Info */}
             <div className="bg-surface-float/50 rounded-xl p-4 border border-white/10">
               <h3 className="text-xs font-semibold text-text-tertiary uppercase tracking-wide mb-3 flex items-center gap-2">
                 <User size={14} />
-                About Creator
+                About Builder
               </h3>
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-                  {asset.author?.avatarUrl ? (
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-theme-active transition-all">
+                  {author?.avatarUrl ? (
                     <img 
-                      src={asset.author.avatarUrl} 
-                      alt={asset.author.name} 
+                      src={author.avatarUrl} 
+                      alt={author.username} 
                       className="w-full h-full rounded-full object-cover" 
                       loading="lazy"
                       onError={handleImageError('avatar')}
@@ -670,13 +743,47 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold truncate text-sm hover:text-theme-active transition-colors cursor-pointer">{asset.author?.name || 'Unknown'}</p>
-                  <p className="text-xs text-text-tertiary">Creator • {asset.uploadedAt}</p>
+                  <p className="font-semibold truncate text-sm hover:text-theme-active transition-colors cursor-pointer">
+                    {author?.username || 'Unknown'}
+                  </p>
+                  <p className="text-xs text-text-tertiary">Builder • {asset.uploadedAt}</p>
                 </div>
               </div>
-              <button className="w-full px-3 py-2 bg-theme-active hover:bg-theme-hover text-white rounded-lg text-sm font-medium transition-all active:scale-95">
-                View Profile
-              </button>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // TODO: Navigate to profile
+                    console.log('Navigate to profile:', author?.id);
+                  }}
+                  className="px-2.5 py-1.5 bg-surface-float2 hover:bg-surface-base text-text-secondary hover:text-text-primary rounded-md text-xs font-medium transition-all border border-white/5 hover:border-white/10"
+                >
+                  Profile
+                </button>
+                <button 
+                  onClick={handleFollow}
+                  disabled={isFollowingAction}
+                  className={`px-2.5 py-1.5 rounded-md text-xs font-medium transition-all
+                    ${isFollowing 
+                      ? 'bg-surface-float2 hover:bg-surface-base text-text-primary border border-white/10' 
+                      : 'bg-theme-active hover:bg-theme-hover text-white'
+                    }
+                    disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  {isFollowingAction ? (
+                    <span className="flex items-center justify-center gap-1">
+                      <Loader2 size={12} className="animate-spin" />
+                      {isFollowing ? 'Unfollowing...' : 'Following...'}
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center gap-1">
+                      {isFollowing && <Check size={12} />}
+                      {isFollowing ? 'Following' : 'Follow'}
+                    </span>
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Version History (if applicable) */}

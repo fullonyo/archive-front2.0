@@ -429,7 +429,8 @@ const ProfilePage = () => {
         
         // Transform backend data to frontend format
         // Maps: thumbnailUrl→thumbnail, user→author, _count→likes/downloads/comments
-        const transformedAssets = (result.assets || []).map(asset => ({
+        const backendAssets = result.data?.assets || result.assets || [];
+        const transformedAssets = backendAssets.map(asset => ({
           ...asset,
           thumbnail: asset.thumbnailUrl || 
                     (Array.isArray(asset.imageUrls) && asset.imageUrls.length > 0 ? asset.imageUrls[0] : null),
@@ -450,7 +451,8 @@ const ProfilePage = () => {
           setUserAssets(prev => [...prev, ...transformedAssets]);
         }
         
-        setHasMoreAssets(result.pagination?.page < result.pagination?.pages);
+        const pagination = result.data?.pagination || result.pagination;
+        setHasMoreAssets(pagination?.page < pagination?.pages);
       } catch (err) {
         console.error('Error loading user assets:', err);
       } finally {

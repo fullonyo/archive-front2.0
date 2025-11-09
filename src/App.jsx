@@ -12,6 +12,7 @@ import {
   // Avatar Lab
   ForYouPage,
   ExplorePage,
+  CategoryPage,
   HistoryPage,
   BookmarksPage,
   MyAssetsPage,
@@ -120,7 +121,7 @@ function App() {
                 <Route path="new-asset" element={<NewAssetPage />} />
                 <Route path="admin" element={<AdminPage />} />
                 <Route path="search" element={<PlaceholderPage title="Search Results" />} />
-                <Route path="category/:id" element={<PlaceholderPage title="Category" />} />
+                <Route path="category/:id" element={<CategoryPage />} />
               </Route>
             </Routes>
           </Router>

@@ -386,7 +386,7 @@ class AssetService {
       sort: options.sort || 'newest'
     });
     
-    const response = await api.get(`/categories/${categoryId}/assets?${params}`);
+    const response = await api.get(`/categories/${categoryId}?${params}`);
     return response.data;
   }
 

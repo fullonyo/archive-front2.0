@@ -34,7 +34,7 @@ export const textTypeConfig = {
    * Velocidade de digitação em ms
    * Valores menores = mais rápido
    */
-  typingSpeed: 125,
+  typingSpeed: 50,
   
   /**
    * Delay inicial antes de começar (ms)
@@ -50,7 +50,7 @@ export const textTypeConfig = {
    * Velocidade de apagar em ms
    * Valores menores = mais rápido
    */
-  deletingSpeed: 65,
+  deletingSpeed: 30,
   
   /**
    * Loop infinito dos textos

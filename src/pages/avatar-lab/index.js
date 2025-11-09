@@ -1,6 +1,7 @@
 // Avatar Lab Pages - Central export
 export { default as ForYouPage } from './ForYouPage';
 export { default as ExplorePage } from './ExplorePage';
+export { default as CategoryPage } from './CategoryPage';
 export { default as MyAssetsPage } from './MyAssetsPage';
 export { default as BookmarksPage } from './BookmarksPage';
 export { default as HistoryPage } from './HistoryPage';

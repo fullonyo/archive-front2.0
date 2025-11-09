@@ -80,33 +80,27 @@ const CategoryPage = () => {
       setCategory(categoryData);
     }
 
-    // Transform assets
-    const transformedAssets = backendAssets.map(asset => {
-      const thumbnail = asset.thumbnailUrl || 
-                       (Array.isArray(asset.imageUrls) && asset.imageUrls[0]) ||
-                       null;
-
-      return {
-        id: asset.id,
-        title: asset.title,
-        description: asset.description,
-        category: asset.category?.name || categoryData?.name || 'Unknown',
-        thumbnail,
-        thumbnailUrl: asset.thumbnailUrl, // Keep original for fallback
-        imageUrls: asset.imageUrls || [], // IMPORTANTE: Passar array de imagens para galeria
-        author: {
-          name: asset.user?.username || 'Unknown',
-          avatarUrl: asset.user?.avatarUrl || null
-        },
-        uploadedAt: formatUploadDate(asset.createdAt),
-        likes: asset._count?.favorites || asset.favoritesCount || 0,
-        downloads: asset._count?.downloads || asset.downloadCount || 0,
-        comments: asset._count?.reviews || asset.reviewsCount || 0,
-        tags: asset.tags || [],
-        isLiked: asset.isLiked || false,
-        averageRating: asset.averageRating || 0
-      };
-    });
+    // Transform assets - Backend já normaliza: tags, imageUrls, thumbnailUrl
+    const transformedAssets = backendAssets.map(asset => ({
+      id: asset.id,
+      title: asset.title,
+      description: asset.description,
+      category: asset.category?.name || categoryData?.name || 'Unknown',
+      thumbnail: asset.thumbnailUrl || (asset.imageUrls?.[0]) || null,
+      thumbnailUrl: asset.thumbnailUrl,
+      imageUrls: asset.imageUrls || [],
+      author: {
+        name: asset.user?.username || 'Unknown',
+        avatarUrl: asset.user?.avatarUrl || null
+      },
+      uploadedAt: formatUploadDate(asset.createdAt),
+      likes: asset._count?.favorites || asset.favoritesCount || 0,
+      downloads: asset._count?.downloads || asset.downloadCount || 0,
+      comments: asset._count?.reviews || asset.reviewsCount || 0,
+      tags: asset.tags || [],
+      isLiked: asset.isLiked || false,
+      averageRating: asset.averageRating || 0
+    }));
 
     // Update assets based on page
     if (page === 1) {

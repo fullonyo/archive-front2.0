@@ -59,35 +59,30 @@ const ForYouPage = () => {
     const backendAssets = pageData.data.assets || pageData.data.data?.assets || [];
     const total = pageData.data.total || pageData.data.data?.total || 0;
 
-    // Transformar para o formato do frontend (backend já normaliza URLs via proxy)
-    const transformedAssets = backendAssets.map(asset => {
-      const thumbnail = asset.thumbnailUrl || 
-                       (Array.isArray(asset.imageUrls) && asset.imageUrls[0]) ||
-                       null;
-
-      return {
-        id: asset.id,
-        title: asset.title,
-        description: asset.description,
-        category: asset.category?.name || 'Unknown',
-        thumbnail,
-        thumbnailUrl: asset.thumbnailUrl,
-        imageUrls: asset.imageUrls || [], // Backend já converte para proxy URLs
-        author: {
-          id: asset.user?.id,
-          name: asset.user?.username || 'Unknown',
-          username: asset.user?.username || 'Unknown',
-          avatarUrl: asset.user?.avatarUrl || null
-        },
-        uploadedAt: formatUploadDate(asset.createdAt),
-        likes: asset._count?.favorites || asset.favoritesCount || 0,
-        downloads: asset._count?.downloads || asset.downloadCount || 0,
-        comments: asset._count?.reviews || asset.reviewsCount || 0,
-        tags: asset.tags || [],
-        isLiked: asset.isLiked || false,
-        averageRating: asset.averageRating || 0
-      };
-    });
+    // Transformar para o formato do frontend
+    // Backend já normaliza: tags, imageUrls, thumbnailUrl (todos com proxy)
+    const transformedAssets = backendAssets.map(asset => ({
+      id: asset.id,
+      title: asset.title,
+      description: asset.description,
+      category: asset.category?.name || 'Unknown',
+      thumbnail: asset.thumbnailUrl || (asset.imageUrls?.[0]) || null,
+      thumbnailUrl: asset.thumbnailUrl,
+      imageUrls: asset.imageUrls || [],
+      author: {
+        id: asset.user?.id,
+        name: asset.user?.username || 'Unknown',
+        username: asset.user?.username || 'Unknown',
+        avatarUrl: asset.user?.avatarUrl || null
+      },
+      uploadedAt: formatUploadDate(asset.createdAt),
+      likes: asset._count?.favorites || asset.favoritesCount || 0,
+      downloads: asset._count?.downloads || asset.downloadCount || 0,
+      comments: asset._count?.reviews || asset.reviewsCount || 0,
+      tags: asset.tags || [],
+      isLiked: asset.isLiked || false,
+      averageRating: asset.averageRating || 0
+    }));
 
     if (page === 1) {
       setAssets(transformedAssets);

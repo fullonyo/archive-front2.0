@@ -16,7 +16,7 @@ import { useState, useCallback, useMemo, memo, useRef, useEffect } from 'react';
 import AssetDetailModal from './AssetDetailModal';
 import SaveToCollectionDropdown from '../collections/SaveToCollectionDropdown';
 import { PLACEHOLDER_IMAGES } from '../../constants';
-import { handleImageError, convertGoogleDriveUrl } from '../../utils/imageUtils';
+import { handleImageError } from '../../utils/imageUtils';
 
 const AssetCard = memo(({ asset, showStatus = false }) => {
   // Normalize category data - can be string or object { id, name, icon }
@@ -38,16 +38,14 @@ const AssetCard = memo(({ asset, showStatus = false }) => {
     };
   }, [asset.author, asset.user]);
   
-  // Normalize thumbnail - backend may send 'thumbnailUrl' or 'thumbnail'
+  // Thumbnail URL - Backend já normaliza, use direto com fallback
   const thumbnailUrl = useMemo(() => {
-    const rawUrl = asset.thumbnail || asset.thumbnailUrl || PLACEHOLDER_IMAGES.ASSET_THUMBNAIL;
-    return convertGoogleDriveUrl(rawUrl);
+    return asset.thumbnail || asset.thumbnailUrl || PLACEHOLDER_IMAGES.ASSET_THUMBNAIL;
   }, [asset.thumbnail, asset.thumbnailUrl]);
   
-  // Gallery images - USE DIRECTLY from backend (already normalized with proxy URLs)
+  // Gallery images - Backend já normaliza URLs via proxy, use direto
   const galleryImages = useMemo(() => {
     const imageUrls = Array.isArray(asset.imageUrls) ? asset.imageUrls : [];
-    // Backend já converte tudo para proxy URLs, então use direto
     return imageUrls.length > 0 ? imageUrls : [thumbnailUrl].filter(Boolean);
   }, [asset.imageUrls, thumbnailUrl]);
   

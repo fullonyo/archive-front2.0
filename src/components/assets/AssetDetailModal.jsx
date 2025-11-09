@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { handleImageError, convertGoogleDriveUrl } from '../../utils/imageUtils';
+import { handleImageError } from '../../utils/imageUtils';
 import { PLACEHOLDER_IMAGES } from '../../constants';
 import { assetService } from '../../services/assetService';
 import { userService } from '../../services/userService';
@@ -41,10 +41,9 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
     return typeof asset.category === 'string' ? asset.category : asset.category.name;
   }, [asset?.category]);
   
-  // Normalize thumbnail and convert Google Drive URLs
+  // Thumbnail URL - Backend já normaliza, use direto
   const thumbnailUrl = useMemo(() => {
-    const rawUrl = asset?.thumbnail || asset?.thumbnailUrl || null;
-    return rawUrl ? convertGoogleDriveUrl(rawUrl) : null;
+    return asset?.thumbnail || asset?.thumbnailUrl || null;
   }, [asset?.thumbnail, asset?.thumbnailUrl]);
   
   // State management

@@ -138,9 +138,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         }}
         aria-label={t('sidebar.menu')}
       >
-      <div className="flex flex-col min-h-full">
+      <div className="flex flex-col h-full">
         {/* Logo & Toggle Button */}
-        <div className="flex items-center justify-between p-4 border-b border-white/5">
+        <div className="flex items-center justify-between p-2 border-b border-white/5 flex-shrink-0">
           {isOpen ? (
             <>
               <span className="font-medium text-sm text-text-secondary">
@@ -168,274 +168,185 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           )}
         </div>
 
-        <nav className="flex-1 px-2 py-2 space-y-1 overflow-y-auto" aria-label="Menu principal">
+        <nav 
+          className="flex-1 min-h-0 px-2 py-1 overflow-y-auto" 
+          aria-label="Menu principal"
+          style={{
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'thin'
+          }}
+        >
           {/* Avatar Lab - Seção Principal */}
-          {isOpen ? (
-            <div className="pb-3">
-              <h3 className="px-3 mb-2 text-xs font-semibold text-theme-active uppercase tracking-wider">
-                Avatar Lab
-              </h3>
-              <div className="space-y-0.5">
-                {avatarLabItems.map((item) => {
-                  const Icon = item.icon;
-                  const active = isActive(item.path);
-                  const isSpecial = item.special;
-                  
-                  return (
-                    <button 
-                      key={item.path} 
-                      onClick={() => handleNavigation(item.path)} 
-                      className={`
-                        w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-all duration-200 text-sm
-                        ${isSpecial 
-                          ? 'bg-theme-active/10 hover:bg-theme-active/20 text-theme-active' 
-                          : active 
-                            ? 'nav-item active' 
-                            : 'nav-item'
-                        }
-                      `}
-                      aria-label={item.label}
-                      aria-current={active ? 'page' : undefined}
-                    >
-                      <Icon size={18} className="flex-shrink-0" />
-                      <span className="truncate">
-                        {item.label}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-            // Mostrar apenas ícones quando colapsado
-            <div className="space-y-0.5 pb-2">
-              {avatarLabItems.map((item) => {
-                const Icon = item.icon;
-                const active = isActive(item.path);
-                const isSpecial = item.special;
-                
-                return (
-                  <button 
-                    key={item.path} 
-                    onClick={() => handleNavigation(item.path)} 
-                    className={`
-                      w-full flex items-center justify-center p-2 rounded-lg transition-all duration-200
-                      ${isSpecial 
-                        ? 'bg-theme-active/10 hover:bg-theme-active/20 text-theme-active' 
-                        : active 
-                          ? 'nav-item active' 
-                          : 'nav-item'
-                      }
-                    `}
-                    aria-label={item.label}
-                    aria-current={active ? 'page' : undefined}
-                    title={item.label}
-                  >
-                    <Icon size={18} />
-                  </button>
-                );
-              })}
-            </div>
+          {isOpen && (
+            <h3 className="px-3 mb-1 text-xs font-semibold text-theme-active uppercase tracking-wider">
+              Avatar Lab
+            </h3>
           )}
+          <div className={isOpen ? "pb-1 space-y-0.5" : "pb-1 space-y-0.5"}>
+            {avatarLabItems.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.path);
+              const isSpecial = item.special;
+              
+              return (
+                <button 
+                  key={item.path} 
+                  onClick={() => handleNavigation(item.path)} 
+                  className={`
+                    w-full flex items-center py-1.5 rounded-lg font-medium transition-all duration-200 text-sm
+                    ${isOpen ? 'px-3 gap-3' : 'px-3 justify-center'}
+                    ${isSpecial 
+                      ? 'bg-theme-active/10 hover:bg-theme-active/20 text-theme-active' 
+                      : active 
+                        ? 'nav-item active' 
+                        : 'nav-item'
+                    }
+                  `}
+                  aria-label={item.label}
+                  aria-current={active ? 'page' : undefined}
+                  title={!isOpen ? item.label : undefined}
+                >
+                  <Icon size={18} className="flex-shrink-0" />
+                  {isOpen && (
+                    <span className="truncate">
+                      {item.label}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
 
           {/* Separador */}
-          {isOpen && <div className="border-t border-white/5 my-3" />}
+          {isOpen && <div className="border-t border-white/5 my-2" />}
 
           {/* Fórum */}
-          {isOpen ? (
-            <div className="pt-3">
-              <h3 className="px-3 mb-1.5 text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                Forum Lab
-              </h3>
-              <div className="space-y-0.5">
-                {/* New Topic Button */}
-                <button 
-                  onClick={() => handleNavigation('/forum/new')} 
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 font-medium transition-all duration-200 text-sm"
-                  aria-label={t('sidebar.newTopic')}
-                >
-                  <PenTool size={18} className="flex-shrink-0" />
-                  <span className="truncate">
-                    {t('sidebar.newTopic')}
-                  </span>
-                </button>
-                
-                {/* Forum Categories */}
-                {forumCategories.map((item) => {
-                  const Icon = item.icon;
-                  const active = isActive(item.path);
-                  
-                  return (
-                    <button 
-                      key={item.path} 
-                      onClick={() => handleNavigation(item.path)} 
-                      className={`nav-item w-full justify-start text-sm py-2 ${active ? 'active' : ''}`}
-                      aria-label={item.label}
-                      aria-current={active ? 'page' : undefined}
-                    >
-                      <Icon size={18} className="flex-shrink-0" />
-                      <span className="truncate ml-3">
-                        {item.label}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-            // Mostrar apenas ícones quando colapsado
-            <div className="space-y-0.5">
-              {/* New Topic Button - Collapsed */}
-              <button 
-                onClick={() => handleNavigation('/forum/new')} 
-                className="w-full flex items-center justify-center p-2 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 transition-all duration-200"
-                aria-label={t('sidebar.newTopic')}
-                title={t('sidebar.newTopic')}
-              >
-                <PenTool size={18} />
-              </button>
-              
-              {/* Forum Categories - Collapsed */}
-              {forumCategories.map((item) => {
-                const Icon = item.icon;
-                const active = isActive(item.path);
-                
-                return (
-                  <button 
-                    key={item.path} 
-                    onClick={() => handleNavigation(item.path)} 
-                    className={`nav-item w-full justify-center text-sm py-2 ${active ? 'active' : ''}`}
-                    aria-label={item.label}
-                    aria-current={active ? 'page' : undefined}
-                    title={item.label}
-                  >
-                    <Icon size={18} />
-                  </button>
-                );
-              })}
-            </div>
+          {isOpen && (
+            <h3 className="px-3 mb-1 text-xs font-semibold text-text-secondary uppercase tracking-wider">
+              Forum Lab
+            </h3>
           )}
+          <div className="space-y-0.5 pt-1">
+            {/* New Topic Button */}
+            <button 
+              onClick={() => handleNavigation('/forum/new')} 
+              className={`w-full flex items-center py-1.5 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 font-medium transition-all duration-200 text-sm ${isOpen ? 'px-3 gap-3' : 'px-3 justify-center'}`}
+              aria-label={t('sidebar.newTopic')}
+              title={!isOpen ? t('sidebar.newTopic') : undefined}
+            >
+              <PenTool size={18} className="flex-shrink-0" />
+              {isOpen && (
+                <span className="truncate">
+                  {t('sidebar.newTopic')}
+                </span>
+              )}
+            </button>
+            
+            {/* Forum Categories */}
+            {forumCategories.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.path);
+              
+              return (
+                <button 
+                  key={item.path} 
+                  onClick={() => handleNavigation(item.path)} 
+                  className={`nav-item w-full text-sm py-1.5 ${isOpen ? 'px-3 gap-3' : 'px-3 justify-center'} ${active ? 'active' : ''}`}
+                  aria-label={item.label}
+                  aria-current={active ? 'page' : undefined}
+                  title={!isOpen ? item.label : undefined}
+                >
+                  <Icon size={18} className="flex-shrink-0" />
+                  {isOpen && (
+                    <span className="truncate ml-3">
+                      {item.label}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
 
           {/* Separador */}
-          {isOpen && <div className="border-t border-white/5 my-3" />}
+          {isOpen && <div className="border-t border-white/5 my-2" />}
 
           {/* VRChat API */}
-          {isOpen ? (
-            <div className="pt-3">
-              <h3 className="px-3 mb-1.5 text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                VRChat Lab
-              </h3>
-              <div className="space-y-0.5">
-                {vrchatItems.map((item) => {
-                  const Icon = item.icon;
-                  const active = isActive(item.path);
-                  
-                  return (
-                    <button 
-                      key={item.path} 
-                      onClick={() => handleNavigation(item.path)} 
-                      className={`nav-item w-full justify-start text-sm py-2 ${active ? 'active' : ''}`}
-                      aria-label={item.label}
-                      aria-current={active ? 'page' : undefined}
-                    >
-                      <Icon size={18} className="flex-shrink-0" />
-                      <span className="truncate ml-3">
-                        {item.label}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-            /* Mostrar apenas ícones quando colapsado */
-            <div className="space-y-0.5">
-              {vrchatItems.map((item) => {
-                const Icon = item.icon;
-                const active = isActive(item.path);
-                
-                return (
-                  <button 
-                    key={item.path} 
-                    onClick={() => handleNavigation(item.path)} 
-                    className={`nav-item w-full justify-center text-sm py-2 ${active ? 'active' : ''}`}
-                    aria-label={item.label}
-                    aria-current={active ? 'page' : undefined}
-                    title={item.label}
-                  >
-                    <Icon size={18} />
-                  </button>
-                );
-              })}
-            </div>
+          {isOpen && (
+            <h3 className="px-3 mb-1 text-xs font-semibold text-text-secondary uppercase tracking-wider">
+              VRChat Lab
+            </h3>
           )}
+          <div className="space-y-0.5 pt-1">
+            {vrchatItems.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.path);
+              
+              return (
+                <button 
+                  key={item.path} 
+                  onClick={() => handleNavigation(item.path)} 
+                  className={`nav-item w-full text-sm py-1.5 ${isOpen ? 'px-3 gap-3' : 'px-3 justify-center'} ${active ? 'active' : ''}`}
+                  aria-label={item.label}
+                  aria-current={active ? 'page' : undefined}
+                  title={!isOpen ? item.label : undefined}
+                >
+                  <Icon size={18} className="flex-shrink-0" />
+                  {isOpen && (
+                    <span className="truncate ml-3">
+                      {item.label}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
 
           {/* Admin Panel - Only for ADMIN/MODERATOR */}
           {isAdminUser && (
             <>
-              <div className="my-4 border-t border-white/10" />
+              <div className="my-2 border-t border-white/10" />
               
-              {isOpen ? (
-                <div>
-                  <h3 className="px-3 mb-1.5 text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                    Admin
-                  </h3>
-                  <div className="space-y-0.5">
-                    <button 
-                      onClick={() => handleNavigation('/admin')} 
-                      className={`nav-item w-full justify-start text-sm py-2 ${isActive('/admin') ? 'active' : ''}`}
-                      aria-label={t('sidebar.admin') || 'Admin Panel'}
-                      aria-current={isActive('/admin') ? 'page' : undefined}
-                    >
-                      <Shield size={18} className="flex-shrink-0" />
-                      <span className="truncate ml-3">
-                        {t('sidebar.admin') || 'Admin Panel'}
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-0.5">
-                  <button 
-                    onClick={() => handleNavigation('/admin')} 
-                    className={`nav-item w-full justify-center text-sm py-2 ${isActive('/admin') ? 'active' : ''}`}
-                    aria-label={t('sidebar.admin') || 'Admin Panel'}
-                    aria-current={isActive('/admin') ? 'page' : undefined}
-                    title={t('sidebar.admin') || 'Admin Panel'}
-                  >
-                    <Shield size={18} />
-                  </button>
-                </div>
+              {isOpen && (
+                <h3 className="px-3 mb-1 text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                  Admin
+                </h3>
               )}
+              <div className="space-y-0.5">
+                <button 
+                  onClick={() => handleNavigation('/admin')} 
+                  className={`nav-item w-full text-sm py-1.5 ${isOpen ? 'px-3 gap-3' : 'px-3 justify-center'} ${isActive('/admin') ? 'active' : ''}`}
+                  aria-label={t('sidebar.admin') || 'Admin Panel'}
+                  aria-current={isActive('/admin') ? 'page' : undefined}
+                  title={!isOpen ? t('sidebar.admin') || 'Admin Panel' : undefined}
+                >
+                  <Shield size={18} className="flex-shrink-0" />
+                  {isOpen && (
+                    <span className="truncate ml-3">
+                      {t('sidebar.admin') || 'Admin Panel'}
+                    </span>
+                  )}
+                </button>
+              </div>
             </>
           )}
 
         </nav>
 
-        <div className="p-2 border-t border-white/5">
-          {isOpen ? (
-            <button 
-              onClick={() => handleNavigation('/settings')} 
-              className={`nav-item w-full justify-start text-sm py-2 ${isActive('/settings') ? 'active' : ''}`}
-              aria-label={t('sidebar.settings')}
-              aria-current={isActive('/settings') ? 'page' : undefined}
-            >
-              <Settings size={18} className="flex-shrink-0" />
+        <div className="flex-shrink-0 p-2 border-t border-white/5">
+          <button 
+            onClick={() => handleNavigation('/settings')} 
+            className={`nav-item w-full text-sm py-1.5 ${isOpen ? 'px-3 gap-3' : 'px-3 justify-center'} ${isActive('/settings') ? 'active' : ''}`}
+            aria-label={t('sidebar.settings')}
+            aria-current={isActive('/settings') ? 'page' : undefined}
+            title={!isOpen ? t('sidebar.settings') : undefined}
+          >
+            <Settings size={18} className="flex-shrink-0" />
+            {isOpen && (
               <span className="truncate ml-3">
                 {t('sidebar.settings')}
               </span>
-            </button>
-          ) : (
-            <button 
-              onClick={() => handleNavigation('/settings')} 
-              className={`nav-item w-full justify-center text-sm py-2 ${isActive('/settings') ? 'active' : ''}`}
-              aria-label={t('sidebar.settings')}
-              aria-current={isActive('/settings') ? 'page' : undefined}
-              title={t('sidebar.settings')}
-            >
-              <Settings size={18} />
-            </button>
-          )}
+            )}
+          </button>
         </div>
       </div>
     </aside>

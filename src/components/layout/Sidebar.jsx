@@ -127,14 +127,15 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
       <aside 
         className={`
-          bg-surface-float border-r border-white/5 transition-all duration-300 ease-in-out flex-shrink-0 h-full
+          bg-surface-float border-r border-white/5 flex-shrink-0 h-full overflow-x-clip
           ${isOpen ? 'w-64' : 'w-16'}
           ${isMobile ? 'fixed left-0 top-0 bottom-0 z-50' : 'relative'}
           ${isMobile && !isOpen ? '-translate-x-full' : 'translate-x-0'}
         `}
         style={{
           contain: 'layout style paint',
-          willChange: isOpen ? 'width' : 'auto'
+          transition: 'width 250ms cubic-bezier(0.4, 0, 0.2, 1)',
+          willChange: 'width'
         }}
         aria-label={t('sidebar.menu')}
       >

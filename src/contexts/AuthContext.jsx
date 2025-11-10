@@ -24,9 +24,12 @@ export const useAuth = () => {
  * - Verificar autenticação na inicialização
  */
 export const AuthProvider = ({ children }) => {
-  // Core authentication state
+  // ✅ FIX: Inicialização otimista - previne flash de "não autenticado"
+  // Se há token no localStorage, assume autenticado até validar
   const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    !!localStorage.getItem('auth_token') // Optimistic initialization
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 

@@ -26,6 +26,7 @@ import { handleImageError } from '../../utils/imageUtils';
 import { PLACEHOLDER_IMAGES } from '../../constants';
 import { assetService } from '../../services/assetService';
 import { userService } from '../../services/userService';
+import Toast from '../common/Toast';
 
 const AssetDetailModal = ({ asset, isOpen, onClose }) => {
   // Normalize author/user naming (backend uses 'user', we use 'author' in UI)
@@ -63,9 +64,17 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
   const [isFollowingAction, setIsFollowingAction] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   
+  // Modal ready state (prevents animation glitch)
+  const [isModalReady, setIsModalReady] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  
+  // Toast notification state
+  const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
+  
   // Refs
   const modalRef = useRef(null);
   const shareButtonRef = useRef(null);
+  const [shareMenuPosition, setShareMenuPosition] = useState({ top: 0, left: 0 });
 
   // Gallery images - USE DIRECTLY from backend (already normalized with proxy URLs)
   const images = useMemo(() => {
@@ -73,43 +82,75 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
     return imageUrls.length > 0 ? imageUrls : [thumbnailUrl].filter(Boolean);
   }, [thumbnailUrl, imageUrls]);
 
-  // Sync states when asset changes
-  useEffect(() => {
-    if (asset) {
-      setIsLiked(asset.isLiked || false);
-      setIsBookmarked(asset.isBookmarked || false);
-    }
-  }, [asset]);
+  // Image navigation handlers (MUST be declared before useEffect that uses them)
+  const handlePreviousImage = useCallback(() => {
+    setImageLoaded(false); // Reset for smooth transition
+    setCurrentImageIndex(prev => (prev === 0 ? images.length - 1 : prev - 1));
+  }, [images.length]);
 
-  // Sync following state when author changes
-  useEffect(() => {
-    if (author) {
-      setIsFollowing(author.isFollowing || false);
-    }
-  }, [author]);
+  const handleNextImage = useCallback(() => {
+    setImageLoaded(false); // Reset for smooth transition
+    setCurrentImageIndex(prev => (prev === images.length - 1 ? 0 : prev + 1));
+  }, [images.length]);
 
-  // Close on ESC key and click outside
+  // ✅ FIX: Consolidar todos os state syncs em um único effect
+  // Previne 3 re-renders desnecessários ao abrir modal
+  useEffect(() => {
+    if (!isOpen || !asset) return;
+    
+    // Batch ALL state updates em uma única operação
+    setIsLiked(asset.isLiked || false);
+    setIsBookmarked(asset.isBookmarked || false);
+    setIsFollowing(author?.isFollowing || false);
+    setIsModalReady(false);
+    setImageLoaded(false);
+    setCurrentImageIndex(0);
+    
+    // Preload first image
+    if (images.length > 0) {
+      const img = new Image();
+      img.src = images[0];
+    }
+    
+    // Delay to ensure DOM is ready before animation
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setIsModalReady(true);
+      });
+    });
+  }, [isOpen, asset, author?.isFollowing, images]);
+
+  // Close on ESC key and keyboard navigation for lightbox
   useEffect(() => {
     if (!isOpen) return;
 
-    const handleEsc = (e) => {
+    const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         if (showLightbox) {
           setShowLightbox(false);
         } else {
           onClose();
         }
+      } else if (showLightbox && images.length > 1) {
+        // Keyboard navigation in lightbox
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          handlePreviousImage();
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          handleNextImage();
+        }
       }
     };
 
-    document.addEventListener('keydown', handleEsc);
+    document.addEventListener('keydown', handleKeyDown);
     document.body.style.overflow = 'hidden';
 
     return () => {
-      document.removeEventListener('keydown', handleEsc);
+      document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen, showLightbox, onClose]);
+  }, [isOpen, showLightbox, onClose, handlePreviousImage, handleNextImage, images.length]);
 
   // Optimized backdrop click handler
   const handleBackdropClick = useCallback((e) => {
@@ -131,9 +172,19 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
     
     try {
       await assetService.toggleFavorite(asset.id);
+      setToast({
+        show: true,
+        message: isLiked ? 'Removed from favorites' : 'Added to favorites',
+        type: 'success'
+      });
     } catch (error) {
       setIsLiked(previousLiked); // Rollback
       console.error('Failed to like asset:', error);
+      setToast({
+        show: true,
+        message: 'Failed to update favorites. Please try again.',
+        type: 'error'
+      });
     } finally {
       setIsLiking(false);
     }
@@ -152,9 +203,19 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
     
     try {
       await assetService.toggleBookmark(asset.id);
+      setToast({
+        show: true,
+        message: isBookmarked ? 'Removed from bookmarks' : 'Added to bookmarks',
+        type: 'success'
+      });
     } catch (error) {
       setIsBookmarked(previousBookmarked); // Rollback
       console.error('Failed to bookmark asset:', error);
+      setToast({
+        show: true,
+        message: 'Failed to update bookmarks. Please try again.',
+        type: 'error'
+      });
     } finally {
       setIsBookmarking(false);
     }
@@ -170,10 +231,21 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
       const response = await assetService.downloadAsset(asset.id);
       if (response.success && response.data?.download_url) {
         window.open(response.data.download_url, '_blank');
+        setToast({
+          show: true,
+          message: 'Download started successfully',
+          type: 'success'
+        });
+      } else {
+        throw new Error('No download URL received');
       }
     } catch (error) {
       console.error('Failed to download asset:', error);
-      alert('Failed to download asset. Please try again.');
+      setToast({
+        show: true,
+        message: 'Failed to download asset. Please try again.',
+        type: 'error'
+      });
     } finally {
       setIsDownloadingSidebar(false);
     }
@@ -188,14 +260,37 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
       const response = await assetService.downloadAsset(asset.id);
       if (response.success && response.data?.download_url) {
         window.open(response.data.download_url, '_blank');
+        setToast({
+          show: true,
+          message: 'Download started successfully',
+          type: 'success'
+        });
+      } else {
+        throw new Error('No download URL received');
       }
     } catch (error) {
       console.error('Failed to download asset:', error);
-      alert('Failed to download asset. Please try again.');
+      setToast({
+        show: true,
+        message: 'Failed to download asset. Please try again.',
+        type: 'error'
+      });
     } finally {
       setIsDownloadingMain(false);
     }
   }, [isDownloadingMain, asset?.id]);
+
+  // Toggle share menu with position calculation
+  const toggleShareMenu = useCallback(() => {
+    if (!showShareMenu && shareButtonRef.current) {
+      const rect = shareButtonRef.current.getBoundingClientRect();
+      setShareMenuPosition({
+        top: rect.bottom + 8,
+        left: rect.left
+      });
+    }
+    setShowShareMenu(!showShareMenu);
+  }, [showShareMenu]);
 
   // Optimized share handler
   const handleShare = useCallback((platform) => {
@@ -218,22 +313,14 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
       setShowShareMenu(false);
     } else if (platform === 'discord') {
       navigator.clipboard.writeText(url);
-      alert('Link copied! Paste it in Discord.');
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
       setShowShareMenu(false);
     } else {
       window.open(shareUrls[platform], '_blank', 'width=600,height=400');
       setShowShareMenu(false);
     }
   }, [asset]);
-
-  // Image navigation
-  const handlePreviousImage = useCallback(() => {
-    setCurrentImageIndex(prev => (prev === 0 ? images.length - 1 : prev - 1));
-  }, [images.length]);
-
-  const handleNextImage = useCallback(() => {
-    setCurrentImageIndex(prev => (prev === images.length - 1 ? 0 : prev + 1));
-  }, [images.length]);
 
   // Follow handler with loading state
   const handleFollow = useCallback(async (e) => {
@@ -248,13 +335,23 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
     
     try {
       await userService.toggleFollow(author.id);
+      setToast({
+        show: true,
+        message: isFollowing ? `Unfollowed ${author.username}` : `Now following ${author.username}`,
+        type: 'success'
+      });
     } catch (error) {
       setIsFollowing(previousFollowing); // Rollback
       console.error('Failed to follow user:', error);
+      setToast({
+        show: true,
+        message: 'Failed to update follow status. Please try again.',
+        type: 'error'
+      });
     } finally {
       setIsFollowingAction(false);
     }
-  }, [isFollowing, isFollowingAction, author?.id]);
+  }, [isFollowing, isFollowingAction, author?.id, author?.username]);
 
   // Optimized close button handler
   const handleCloseClick = useCallback((e) => {
@@ -268,23 +365,25 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
   // Render modal in portal for better performance and z-index management
   return createPortal(
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 animate-modal-fade-in"
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 ${isModalReady ? 'animate-modal-fade-in' : 'opacity-0'}`}
       onClick={handleBackdropClick}
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
       style={{
         contain: 'layout style paint',
-        willChange: 'opacity'
+        willChange: 'opacity',
+        transition: isModalReady ? 'none' : 'opacity 0s'
       }}
     >
       <div 
-        className="relative bg-surface-float rounded-2xl shadow-2xl border border-white/10 max-w-7xl w-full max-h-[90vh] overflow-hidden flex animate-scale-in" 
+        className={`relative bg-surface-float rounded-2xl shadow-2xl border border-white/10 max-w-7xl w-full max-h-[90vh] overflow-hidden flex ${isModalReady ? 'animate-scale-in' : 'opacity-0 scale-95'}`}
         ref={modalRef}
         style={{ 
           contain: 'layout style paint',
           willChange: 'transform, opacity',
-          transform: 'translateZ(0)'
+          transform: 'translateZ(0)',
+          transition: isModalReady ? 'none' : 'all 0s'
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -296,13 +395,12 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
             style={{ contain: 'layout style' }}
           >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
                 {author?.avatarUrl ? (
                   <img 
                     src={author.avatarUrl} 
                     alt={author.username} 
                     className="w-full h-full rounded-full object-cover" 
-                    loading="lazy"
                     onError={handleImageError('avatar')}
                   />
                 ) : (
@@ -334,13 +432,29 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
           >
             {/* Image Gallery */}
             <div className="relative bg-surface-base group/gallery">
-              <div className="relative max-h-[70vh] flex items-center justify-center">
+              <div className="relative max-h-[70vh] min-h-[400px] flex items-center justify-center">
+                {/* Skeleton Loader */}
+                {!imageLoaded && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-full h-full bg-surface-float2 animate-pulse flex items-center justify-center">
+                      <div className="text-center">
+                        <Loader2 size={48} className="animate-spin text-theme-active mx-auto mb-2" />
+                        <p className="text-sm text-text-tertiary">Loading image...</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Main Image */}
                 <img 
                   src={images[currentImageIndex] || PLACEHOLDER_IMAGES.ASSET_THUMBNAIL} 
                   alt={`${asset.title} - Image ${currentImageIndex + 1}`}
-                  className="max-h-[70vh] w-full object-contain cursor-zoom-in"
-                  loading="lazy"
-                  onError={handleImageError('thumbnail')}
+                  className={`max-h-[70vh] w-full object-contain cursor-zoom-in transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                  onLoad={() => setImageLoaded(true)}
+                  onError={(e) => {
+                    handleImageError('thumbnail')(e);
+                    setImageLoaded(true);
+                  }}
                   onClick={() => setShowLightbox(true)}
                 />
                 
@@ -400,7 +514,10 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
                     {images.map((img, idx) => (
                       <button
                         key={idx}
-                        onClick={() => setCurrentImageIndex(idx)}
+                        onClick={() => {
+                          setImageLoaded(false);
+                          setCurrentImageIndex(idx);
+                        }}
                         className={`
                           relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all
                           ${idx === currentImageIndex 
@@ -511,7 +628,7 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
                 <div className="relative">
                   <button 
                     ref={shareButtonRef}
-                    onClick={() => setShowShareMenu(!showShareMenu)}
+                    onClick={toggleShareMenu}
                     className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-surface-float2 hover:bg-surface-base rounded-lg transition-all text-sm border border-white/5 hover:border-white/10"
                     aria-expanded={showShareMenu}
                   >
@@ -528,7 +645,14 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
                         onClick={() => setShowShareMenu(false)}
                       />
                       {/* Menu */}
-                      <div className="fixed z-[61] w-56 bg-surface-float border border-white/10 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                      <div 
+                        className="fixed z-[61] w-56 bg-surface-float border border-white/10 rounded-xl shadow-2xl overflow-hidden animate-fade-in"
+                        style={{
+                          top: `${shareMenuPosition.top}px`,
+                          left: `${shareMenuPosition.left}px`,
+                          animation: 'fadeIn 150ms ease-out'
+                        }}
+                      >
                         <div className="p-1">
                           <button
                             onClick={() => handleShare('copy')}
@@ -550,8 +674,17 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
                             onClick={() => handleShare('discord')}
                             className="w-full px-3 py-2.5 text-sm text-left hover:bg-surface-float2 rounded-lg flex items-center gap-3 transition-colors"
                           >
-                            <ExternalLink size={16} strokeWidth={2} />
-                            <span>Share on Discord</span>
+                            {copySuccess ? (
+                              <>
+                                <Check size={16} className="text-green-500" strokeWidth={2.5} />
+                                <span className="text-green-500 font-medium">Link copied!</span>
+                              </>
+                            ) : (
+                              <>
+                                <ExternalLink size={16} strokeWidth={2} />
+                                <span>Share on Discord</span>
+                              </>
+                            )}
                           </button>
                           <button
                             onClick={() => handleShare('twitter')}
@@ -662,19 +795,17 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
         </div>
 
         {/* Right Sidebar - Download Options & Details */}
-        <aside className="w-80 border-l border-white/5 bg-surface-base/30 flex-shrink-0 hidden lg:flex flex-col">
+        <aside className="w-80 border-l border-white/5 bg-surface-base/30 flex-shrink-0 hidden lg:flex flex-col overflow-hidden">
           <div 
-            className="p-5 space-y-4 flex-1 overflow-y-auto overscroll-contain"
+            className="p-4 space-y-3 h-full flex flex-col"
             style={{ 
-              WebkitOverflowScrolling: 'touch',
-              contain: 'layout style paint',
-              willChange: 'scroll-position'
+              contain: 'layout style paint'
             }}
           >
             {/* Download Options Card */}
-            <div className="bg-surface-float/50 rounded-xl p-4 border border-white/10">
-              <h3 className="text-xs font-semibold text-text-tertiary uppercase tracking-wide mb-3 flex items-center gap-2">
-                <Package size={14} />
+            <div className="bg-surface-float/50 rounded-lg p-3 border border-white/10 flex-shrink-0">
+              <h3 className="text-xs font-semibold text-text-tertiary uppercase tracking-wide mb-2 flex items-center gap-2">
+                <Package size={12} />
                 Download Options
               </h3>
               
@@ -682,7 +813,7 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
               <button
                 onClick={handleDownloadSidebar}
                 disabled={isDownloadingSidebar}
-                className="w-full mb-3 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-gray-500 disabled:to-gray-600 text-white rounded-lg font-semibold text-sm shadow-lg transition-all active:scale-95 disabled:cursor-wait flex items-center justify-center gap-2"
+                className="w-full mb-2 px-3 py-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-gray-500 disabled:to-gray-600 text-white rounded-lg font-semibold text-sm shadow-lg transition-all active:scale-95 disabled:cursor-wait flex items-center justify-center gap-2"
                 aria-label={`Download ${asset.title}`}
               >
                 {isDownloadingSidebar ? (
@@ -709,12 +840,12 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
                 <span>External Link</span>
               </a>
 
-              <div className="mt-3 pt-3 border-t border-white/5">
-                <p className="text-xs text-text-tertiary mb-2">File Size</p>
-                <p className="text-xs font-medium mb-3">{asset.fileSize || '23.4 MB'}</p>
+              <div className="mt-2 pt-2 border-t border-white/5">
+                <p className="text-xs text-text-tertiary mb-1">File Size</p>
+                <p className="text-xs font-medium mb-2">{asset.fileSize || '23.4 MB'}</p>
                 
-                <p className="text-xs text-text-tertiary mb-2">Requirements</p>
-                <div className="space-y-1">
+                <p className="text-xs text-text-tertiary mb-1">Requirements</p>
+                <div className="space-y-0.5">
                   <p className="text-xs">• Unity 2019.4.31f1+</p>
                   <p className="text-xs">• VRChat SDK 3.0</p>
                   <p className="text-xs">• Poiyomi Shader 8.0+</p>
@@ -723,9 +854,9 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
             </div>
 
             {/* License & Usage */}
-            <div className="bg-surface-float/50 rounded-xl p-4 border border-white/10">
-              <h3 className="text-xs font-semibold text-text-tertiary uppercase tracking-wide mb-3">License</h3>
-              <div className="space-y-2 text-xs">
+            <div className="bg-surface-float/50 rounded-lg p-3 border border-white/10 flex-shrink-0">
+              <h3 className="text-xs font-semibold text-text-tertiary uppercase tracking-wide mb-2">License</h3>
+              <div className="space-y-1 text-xs">
                 <div className="flex items-start gap-2">
                   <div className="w-1 h-1 rounded-full bg-green-500 mt-1.5 flex-shrink-0" />
                   <p>Personal & Commercial use</p>
@@ -746,19 +877,18 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
             </div>
 
             {/* Builder Info */}
-            <div className="bg-surface-float/50 rounded-xl p-4 border border-white/10">
-              <h3 className="text-xs font-semibold text-text-tertiary uppercase tracking-wide mb-3 flex items-center gap-2">
-                <User size={14} />
+            <div className="bg-surface-float/50 rounded-lg p-3 border border-white/10 flex-shrink-0">
+              <h3 className="text-xs font-semibold text-text-tertiary uppercase tracking-wide mb-2 flex items-center gap-2">
+                <User size={12} />
                 About Builder
               </h3>
-              <div className="flex items-center gap-3 mb-3">
+              <div className="flex items-center gap-2 mb-2">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-theme-active transition-all">
                   {author?.avatarUrl ? (
                     <img 
                       src={author.avatarUrl} 
                       alt={author.username} 
                       className="w-full h-full rounded-full object-cover" 
-                      loading="lazy"
                       onError={handleImageError('avatar')}
                     />
                   ) : (
@@ -809,24 +939,23 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
               </div>
             </div>
 
-            {/* Version History (if applicable) */}
-            <div className="bg-surface-float/50 rounded-xl p-4 border border-white/10">
-              <h3 className="text-xs font-semibold text-text-tertiary uppercase tracking-wide mb-3">Version History</h3>
-              <div className="space-y-3">
-                <div className="pb-3 border-b border-white/5 last:border-0 last:pb-0">
-                  <div className="flex items-center justify-between mb-1">
+            {/* Version History (if applicable) - Mais compacto */}
+            <div className="bg-surface-float/50 rounded-lg p-3 border border-white/10 flex-shrink-0">
+              <h3 className="text-xs font-semibold text-text-tertiary uppercase tracking-wide mb-2">Version History</h3>
+              <div className="space-y-2">
+                <div className="pb-2 border-b border-white/5 last:border-0 last:pb-0">
+                  <div className="flex items-center justify-between mb-0.5">
                     <span className="text-xs font-semibold">v1.2.0</span>
                     <span className="text-xs text-text-tertiary">Current</span>
                   </div>
-                  <p className="text-xs text-text-secondary">Bug fixes and performance improvements</p>
-                  <p className="text-xs text-text-tertiary mt-1">{asset.uploadedAt}</p>
+                  <p className="text-xs text-text-secondary line-clamp-1">Bug fixes and performance improvements</p>
                 </div>
-                <div className="pb-3 border-b border-white/5 last:border-0 last:pb-0">
-                  <div className="flex items-center justify-between mb-1">
+                <div className="pb-2 border-b border-white/5 last:border-0 last:pb-0">
+                  <div className="flex items-center justify-between mb-0.5">
                     <span className="text-xs font-semibold">v1.1.0</span>
                     <span className="text-xs text-text-tertiary">2w ago</span>
                   </div>
-                  <p className="text-xs text-text-secondary">Added new features and optimizations</p>
+                  <p className="text-xs text-text-secondary line-clamp-1">Added new features and optimizations</p>
                 </div>
               </div>
             </div>
@@ -894,6 +1023,16 @@ const AssetDetailModal = ({ asset, isOpen, onClose }) => {
         </div>,
         document.body
       )}
+
+      {/* Toast Notification */}
+      <Toast
+        show={toast.show}
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast({ ...toast, show: false })}
+        position="top-right"
+        duration={3000}
+      />
     </div>,
     document.body
   );

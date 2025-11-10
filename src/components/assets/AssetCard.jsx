@@ -21,31 +21,19 @@ import { assetService } from '../../services/assetService';
 import { bookmarkService } from '../../services/bookmarkService';
 
 const AssetCard = memo(({ asset, showStatus = false }) => {
-  // Normalize category data - can be string or object { id, name, icon }
-  const categoryName = useMemo(() => {
-    if (!asset.category) return 'Uncategorized';
-    return typeof asset.category === 'string' ? asset.category : asset.category.name;
-  }, [asset.category]);
+  // ✅ FIX: Backend já normaliza - acesso direto sem useMemo
+  // Remove overhead desnecessário e dependency tracking
+  const categoryName = asset.category || 'Uncategorized';
   
-  // Normalize author data - ensure it always exists with default values
-  const author = useMemo(() => {
-    if (!asset.author && !asset.user) {
-      return { name: 'Unknown', username: 'unknown', avatarUrl: null };
-    }
-    const authorData = asset.author || asset.user;
-    return {
-      name: authorData.name || authorData.username || 'Unknown',
-      username: authorData.username || 'unknown',
-      avatarUrl: authorData.avatarUrl || authorData.avatar || null
-    };
-  }, [asset.author, asset.user]);
+  const author = asset.author || { 
+    name: 'Unknown', 
+    username: 'unknown', 
+    avatarUrl: null 
+  };
   
-  // Thumbnail URL - Backend já normaliza, use direto com fallback
-  const thumbnailUrl = useMemo(() => {
-    return asset.thumbnail || asset.thumbnailUrl || PLACEHOLDER_IMAGES.ASSET_THUMBNAIL;
-  }, [asset.thumbnail, asset.thumbnailUrl]);
+  const thumbnailUrl = asset.thumbnail || PLACEHOLDER_IMAGES.ASSET_THUMBNAIL;
   
-  // Gallery images - Backend já normaliza URLs via proxy, use direto
+  // ✅ useMemo SÓ para transformações que realmente precisam
   const galleryImages = useMemo(() => {
     const imageUrls = Array.isArray(asset.imageUrls) ? asset.imageUrls : [];
     return imageUrls.length > 0 ? imageUrls : [thumbnailUrl].filter(Boolean);

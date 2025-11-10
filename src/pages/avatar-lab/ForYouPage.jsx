@@ -152,16 +152,24 @@ const ForYouPage = () => {
     setPage(prev => prev + 1);
   }, [pageLoading, hasMore]);
 
+  // ✅ FIX: Previne memory leak - observer só recria quando hasMore muda
   useEffect(() => {
-    const observer = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore && !pageLoading) loadMoreAssets();
-    }, { threshold: 0.1 });
-    const currentTarget = observerTarget.current;
-    if (currentTarget) observer.observe(currentTarget);
-    return () => {
-      observer.disconnect(); // ✅ Mais seguro que unobserve
-    };
-  }, [loadMoreAssets, hasMore, pageLoading]);
+    if (!observerTarget.current || !hasMore) return;
+    
+    const observer = new IntersectionObserver(
+      entries => {
+        // Verificar condições dentro do callback (não nas dependências)
+        if (entries[0].isIntersecting && hasMore && !pageLoading) {
+          loadMoreAssets();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    
+    observer.observe(observerTarget.current);
+    
+    return () => observer.disconnect();
+  }, [hasMore]); // ✅ FIX: Só depende de hasMore - previne recriação excessiva
 
   const sortOptions = [
     { value: 'latest', label: t('forYou.latest'), icon: Clock },

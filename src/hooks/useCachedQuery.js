@@ -169,8 +169,9 @@ export const useCachedQuery = (key, queryFn, options = {}) => {
   useEffect(() => {
     mountedRef.current = true;
     
-    // Só chamar fetchData se necessário
-    if (enabled) {
+    // ✅ FIX: Só executar se key mudou OU é primeiro mount
+    // Previne race conditions quando key e enabled mudam simultaneamente
+    if (enabled && (previousKeyRef.current !== key || !initialFetchDoneRef.current)) {
       fetchData();
     }
 
@@ -182,7 +183,7 @@ export const useCachedQuery = (key, queryFn, options = {}) => {
         abortControllerRef.current.abort();
       }
     };
-  }, [key, enabled]); // Dependências reduzidas - só key e enabled
+  }, [key, enabled, fetchData]); // ✅ FIX: Adicionar fetchData como dependência
 
   return {
     data,

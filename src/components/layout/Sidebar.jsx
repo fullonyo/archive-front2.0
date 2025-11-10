@@ -127,11 +127,15 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
       <aside 
         className={`
-          bg-surface-float border-r border-white/5 transition-all duration-300 flex-shrink-0 h-full overflow-hidden
+          bg-surface-float border-r border-white/5 transition-all duration-300 ease-in-out flex-shrink-0 h-full
           ${isOpen ? 'w-64' : 'w-16'}
           ${isMobile ? 'fixed left-0 top-0 bottom-0 z-50' : 'relative'}
           ${isMobile && !isOpen ? '-translate-x-full' : 'translate-x-0'}
         `}
+        style={{
+          contain: 'layout style paint',
+          willChange: isOpen ? 'width' : 'auto'
+        }}
         aria-label={t('sidebar.menu')}
       >
       <div className="flex flex-col min-h-full">
@@ -182,7 +186,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                       key={item.path} 
                       onClick={() => handleNavigation(item.path)} 
                       className={`
-                        w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-all duration-200 overflow-hidden text-sm
+                        w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-all duration-200 text-sm
                         ${isSpecial 
                           ? 'bg-theme-active/10 hover:bg-theme-active/20 text-theme-active' 
                           : active 
@@ -194,7 +198,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                       aria-current={active ? 'page' : undefined}
                     >
                       <Icon size={18} className="flex-shrink-0" />
-                      <span className="whitespace-nowrap">
+                      <span className="truncate">
                         {item.label}
                       </span>
                     </button>
@@ -247,11 +251,11 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 {/* New Topic Button */}
                 <button 
                   onClick={() => handleNavigation('/forum/new')} 
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 font-medium transition-all duration-200 overflow-hidden text-sm"
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 font-medium transition-all duration-200 text-sm"
                   aria-label={t('sidebar.newTopic')}
                 >
                   <PenTool size={18} className="flex-shrink-0" />
-                  <span className="whitespace-nowrap">
+                  <span className="truncate">
                     {t('sidebar.newTopic')}
                   </span>
                 </button>
@@ -265,12 +269,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                     <button 
                       key={item.path} 
                       onClick={() => handleNavigation(item.path)} 
-                      className={`nav-item w-full justify-start overflow-hidden text-sm py-2 ${active ? 'active' : ''}`}
+                      className={`nav-item w-full justify-start text-sm py-2 ${active ? 'active' : ''}`}
                       aria-label={item.label}
                       aria-current={active ? 'page' : undefined}
                     >
                       <Icon size={18} className="flex-shrink-0" />
-                      <span className="whitespace-nowrap ml-3">
+                      <span className="truncate ml-3">
                         {item.label}
                       </span>
                     </button>
@@ -300,12 +304,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                   <button 
                     key={item.path} 
                     onClick={() => handleNavigation(item.path)} 
-                    className={`nav-item w-full justify-start overflow-hidden text-sm py-2 ${active ? 'active' : ''}`}
+                    className={`nav-item w-full justify-center text-sm py-2 ${active ? 'active' : ''}`}
                     aria-label={item.label}
                     aria-current={active ? 'page' : undefined}
                     title={item.label}
                   >
-                    <Icon size={18} className="flex-shrink-0" />
+                    <Icon size={18} />
                   </button>
                 );
               })}
@@ -330,12 +334,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                     <button 
                       key={item.path} 
                       onClick={() => handleNavigation(item.path)} 
-                      className={`nav-item w-full justify-start overflow-hidden text-sm py-2 ${active ? 'active' : ''}`}
+                      className={`nav-item w-full justify-start text-sm py-2 ${active ? 'active' : ''}`}
                       aria-label={item.label}
                       aria-current={active ? 'page' : undefined}
                     >
                       <Icon size={18} className="flex-shrink-0" />
-                      <span className="whitespace-nowrap ml-3">
+                      <span className="truncate ml-3">
                         {item.label}
                       </span>
                     </button>
@@ -344,7 +348,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               </div>
             </div>
           ) : (
-            // Mostrar apenas ícones quando colapsado
+            /* Mostrar apenas ícones quando colapsado */
             <div className="space-y-0.5">
               {vrchatItems.map((item) => {
                 const Icon = item.icon;
@@ -354,12 +358,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                   <button 
                     key={item.path} 
                     onClick={() => handleNavigation(item.path)} 
-                    className={`nav-item w-full justify-start overflow-hidden text-sm py-2 ${active ? 'active' : ''}`}
+                    className={`nav-item w-full justify-center text-sm py-2 ${active ? 'active' : ''}`}
                     aria-label={item.label}
                     aria-current={active ? 'page' : undefined}
                     title={item.label}
                   >
-                    <Icon size={18} className="flex-shrink-0" />
+                    <Icon size={18} />
                   </button>
                 );
               })}
@@ -379,12 +383,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                   <div className="space-y-0.5">
                     <button 
                       onClick={() => handleNavigation('/admin')} 
-                      className={`nav-item w-full justify-start overflow-hidden text-sm py-2 ${isActive('/admin') ? 'active' : ''}`}
+                      className={`nav-item w-full justify-start text-sm py-2 ${isActive('/admin') ? 'active' : ''}`}
                       aria-label={t('sidebar.admin') || 'Admin Panel'}
                       aria-current={isActive('/admin') ? 'page' : undefined}
                     >
                       <Shield size={18} className="flex-shrink-0" />
-                      <span className="whitespace-nowrap ml-3">
+                      <span className="truncate ml-3">
                         {t('sidebar.admin') || 'Admin Panel'}
                       </span>
                     </button>
@@ -394,12 +398,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 <div className="space-y-0.5">
                   <button 
                     onClick={() => handleNavigation('/admin')} 
-                    className={`nav-item w-full justify-start overflow-hidden text-sm py-2 ${isActive('/admin') ? 'active' : ''}`}
+                    className={`nav-item w-full justify-center text-sm py-2 ${isActive('/admin') ? 'active' : ''}`}
                     aria-label={t('sidebar.admin') || 'Admin Panel'}
                     aria-current={isActive('/admin') ? 'page' : undefined}
                     title={t('sidebar.admin') || 'Admin Panel'}
                   >
-                    <Shield size={18} className="flex-shrink-0" />
+                    <Shield size={18} />
                   </button>
                 </div>
               )}
@@ -409,18 +413,29 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         </nav>
 
         <div className="p-2 border-t border-white/5">
-          <button 
-            onClick={() => handleNavigation('/settings')} 
-            className={`nav-item w-full justify-start overflow-hidden text-sm py-2 ${isActive('/settings') ? 'active' : ''}`}
-            aria-label={t('sidebar.settings')}
-            aria-current={isActive('/settings') ? 'page' : undefined}
-            title={!isOpen ? t('sidebar.settings') : ''}
-          >
-            <Settings size={18} className="flex-shrink-0" />
-            <span className={`whitespace-nowrap transition-all duration-200 ${isOpen ? 'opacity-100 max-w-xs ml-3' : 'opacity-0 max-w-0'}`}>
-              {t('sidebar.settings')}
-            </span>
-          </button>
+          {isOpen ? (
+            <button 
+              onClick={() => handleNavigation('/settings')} 
+              className={`nav-item w-full justify-start text-sm py-2 ${isActive('/settings') ? 'active' : ''}`}
+              aria-label={t('sidebar.settings')}
+              aria-current={isActive('/settings') ? 'page' : undefined}
+            >
+              <Settings size={18} className="flex-shrink-0" />
+              <span className="truncate ml-3">
+                {t('sidebar.settings')}
+              </span>
+            </button>
+          ) : (
+            <button 
+              onClick={() => handleNavigation('/settings')} 
+              className={`nav-item w-full justify-center text-sm py-2 ${isActive('/settings') ? 'active' : ''}`}
+              aria-label={t('sidebar.settings')}
+              aria-current={isActive('/settings') ? 'page' : undefined}
+              title={t('sidebar.settings')}
+            >
+              <Settings size={18} />
+            </button>
+          )}
         </div>
       </div>
     </aside>
